@@ -1,0 +1,2321 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقارير الزيارات التجميعية - نظام التقارير التربوية</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="lib/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="lib/favicon-16.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="lib/favicon-64.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="lib/apple-touch-icon-180.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/modern-style.css">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="js/supabase.js"></script>
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+    <style>
+        .notifications-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            max-width: 350px;
+        }
+        
+        .notification-item {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-right: 4px solid #1e3c72;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .notification-item.success { border-right-color: #2e9b54; }
+        .notification-item.error { border-right-color: #e34f76; }
+        .notification-item.info { border-right-color: #1e3c72; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .loader {
+            border: 3px solid #eef2f7;
+            border-top: 3px solid #1e3c72;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        .loader-small {
+            border: 2px solid #eef2f7;
+            border-top: 2px solid #1e3c72;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .filters-bar { flex-wrap: wrap; }
+        .filter-group { min-width: 150px; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .badge-success { background: #eef9f0; color: #2e9b54; }
+        .badge-primary { background: #eef2ff; color: #1e3c72; }
+        
+        .action-link {
+            color: #1e3c72;
+            text-decoration: none;
+            margin: 0 0.3rem;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+        .action-link:hover { opacity: 0.7; }
+        .action-link.view { color: #1e3c72; }
+        .action-link.edit { color: #f59e0b; }
+        .action-link.delete { color: #e34f76; }
+        
+        .activities-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 50px;
+            gap: 0.8rem;
+            padding: 0.8rem;
+            background: #f8fafd;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+        .activity-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 50px;
+            gap: 0.8rem;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+        .activity-row .form-input { margin: 0; }
+        .add-activity-btn {
+            background: linear-gradient(135deg, #1e3c72, #153155);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .add-activity-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30,60,114,0.2);
+        }
+        .remove-activity-btn {
+            background: #fff2f5;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: #e34f76;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .remove-activity-btn:hover {
+            background: #e34f76;
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .visits-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eef2f7;
+            border-radius: 12px;
+        }
+        .visits-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .visits-table th,
+        .visits-table td {
+            padding: 10px 12px;
+            text-align: center;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .visits-table th {
+            background: #f8fafd;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .modal-large {
+            max-width: 1300px;
+            width: 95%;
+        }
+        
+        .form-input[readonly], .form-input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+        
+        .filter-loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #eef2f7;
+            border-top-color: #1e3c72;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 0.5rem;
+        }
+        
+        .report-title-section {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+            padding: 0.8rem;
+            background: #eef2ff;
+            border-radius: 12px;
+        }
+        .report-title-section h3 {
+            color: #1e3c72;
+            margin: 0;
+        }
+        
+        .loading-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: #4e6580;
+        }
+        .loading-message .loader {
+            margin-bottom: 1rem;
+        }
+        
+        .flatpickr-calendar {
+            font-family: 'Inter', sans-serif;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border: none;
+        }
+        .flatpickr-day.selected, 
+        .flatpickr-day.startRange, 
+        .flatpickr-day.endRange,
+        .flatpickr-day.selected.inRange,
+        .flatpickr-day.startRange.inRange,
+        .flatpickr-day.endRange.inRange,
+        .flatpickr-day.selected:focus,
+        .flatpickr-day.selected:hover {
+            background: #1e3c72;
+            border-color: #1e3c72;
+        }
+        .flatpickr-day.today {
+            border-color: #1e3c72;
+        }
+        .flatpickr-day.today:hover {
+            background: #1e3c72;
+            color: white;
+        }
+        .flatpickr-months .flatpickr-prev-month:hover svg,
+        .flatpickr-months .flatpickr-next-month:hover svg {
+            fill: #1e3c72;
+        }
+        .flatpickr-input[readonly] {
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .preview-table th,
+        .preview-table td {
+            border: 1px solid #dee2e6;
+            padding: 10px 8px;
+            text-align: center;
+            vertical-align: top;
+        }
+        .preview-table th {
+            background: linear-gradient(135deg, #1e3c72, #153155);
+            color: white;
+            font-weight: 600;
+        }
+        .preview-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        
+        /* تنسيقات الإشعارات */
+        .notifications-trigger button {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: right;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #4e6580;
+            transition: all 0.2s;
+        }
+        .notifications-trigger button:hover {
+            background: #f0f4fa;
+            color: #1e3c72;
+        }
+        .notification-badge {
+            position: relative;
+        }
+        .badge-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e34f76;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 600;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            margin-right: auto;
+        }
+        
+        .notifications-panel {
+            position: fixed;
+            top: 0;
+            left: -380px;
+            width: 380px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.1);
+            z-index: 10000;
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .notifications-panel.open { left: 0; }
+        .notifications-panel-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid #eef2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafd;
+        }
+        .notifications-panel-header h3 { color: #1e3c72; font-size: 1.2rem; margin: 0; }
+        .notifications-panel-header .mark-all-read { background: none; border: none; color: #1e3c72; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem; }
+        .notifications-panel-header .close-panel { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #4e6580; }
+        .notifications-list { flex: 1; overflow-y: auto; padding: 1rem; }
+        .notification-list-item {
+            background: #f8fafd;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-right: 3px solid transparent;
+            position: relative;
+        }
+        .notification-list-item.unread { background: white; border-right-color: #1e3c72; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .notification-list-item:hover { transform: translateX(-3px); }
+        .notification-list-item .title { font-weight: 600; color: #0b1f35; margin-bottom: 0.25rem; }
+        .notification-list-item .message { font-size: 0.85rem; color: #4e6580; margin-bottom: 0.5rem; }
+        .notification-list-item .time { font-size: 0.7rem; color: #6a7f9e; }
+        .notification-list-item .delete-notification {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #e34f76;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .notification-list-item:hover .delete-notification { opacity: 1; }
+        .empty-notifications { text-align: center; padding: 3rem; color: #4e6580; }
+        .empty-notifications i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+        .panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            display: none;
+        }
+        .panel-overlay.open { display: block; }
+        
+        /* ========== أنماط الطباعة المحسنة - تمنع انقسام الصفوف ========== */
+        @media print {
+            .toolbar, .sidebar, .main-content > :not(.pdf-print-area), .modal, .modal-actions, .no-print,
+            .filters-bar, .add-report-btn, .section-title + p, .notifications-trigger, .sidebar-footer, .logout-btn,
+            .btn-primary, .btn-secondary, .action-link, .modal-header .modal-close {
+                display: none !important;
+            }
+            body { margin: 0; padding: 0; background: white; }
+            .main-content { margin: 0 !important; padding: 0 !important; }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            
+            /* منع انقسام الصفوف بين الصفحات */
+            .preview-table tr,
+            .visits-table tr,
+            .activities-table tr,
+            .print-report-container .info-grid,
+            .print-report-container .text-section {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .preview-table, .visits-table, .activities-table {
+                page-break-inside: auto;
+            }
+            h2, h3 {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+            .print-footer {
+                page-break-before: avoid;
+                break-before: avoid;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .activity-row, .activities-header {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            .activity-row .form-input { width: 100%; }
+            .remove-activity-btn {
+                width: 100%;
+            }
+            .notifications-panel { width: 100%; left: -100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- القائمة الجانبية -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
+                <h2>نظام التقارير التربوية</h2>
+                <p class="user-role" id="userRoleDisplay">...</p>
+            </div>
+
+            <!-- زر الإشعارات -->
+            <div class="notifications-trigger" style="margin: 0.5rem 1rem;">
+                <button onclick="toggleNotificationsPanel()" class="notification-badge">
+                    <i class="fas fa-bell" style="font-size: 1.1rem;"></i>
+                    <span>الإشعارات</span>
+                    <span id="unreadBadge" class="badge-count" style="display: none;">0</span>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
+                <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
+                <a href="summary-reports.html" class="active"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
+                <a href="analytics.html" id="navAnalytics" style="display: none;"><i class="fas fa-chart-bar"></i> التحليلات</a>
+                <div id="adminLinks" style="display: none;">
+                    <a href="districts-management.html" id="districtsManagementLink"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+                    <a href="users-management.html" id="usersManagementLink"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar"><i class="fas fa-user"></i></div>
+                    <div class="user-details">
+                        <h4 class="user-name" id="userNameDisplay">...</h4>
+                        <p class="user-district" id="userDistrictDisplay">...</p>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+            </div>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1 class="section-title" style="margin-bottom: 0.5rem;"><i class="fas fa-chart-line"></i> التقارير التجميعية</h1>
+                    <p style="color: #4e6580;">إدارة التقارير النصف شهرية للمختصين التربويين</p>
+                </div>
+                <div>
+                    <button onclick="openAddReportModal()" class="btn-primary" id="addReportBtn" style="display: none;">
+                        <i class="fas fa-plus"></i> إضافة تقرير تجميعي جديد
+                    </button>
+                </div>
+            </div>
+
+            <!-- شريط الفلاتر -->
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <label><i class="fas fa-search"></i> بحث</label>
+                    <input type="text" id="searchInput" placeholder="مختص / منطقة...">
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-filter"></i> نوع التقرير</label>
+                    <select id="reportTypeFilter">
+                        <option value="">الكل</option>
+                        <option value="in_person">وجاهي</option>
+                        <option value="remote">عن بعد</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar"></i> من تاريخ (تاريخ الإنشاء)</label>
+                    <input type="text" id="dateFrom" class="form-input filter-date-picker" placeholder="اختر تاريخ البداية" readonly>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar"></i> إلى تاريخ (تاريخ الإنشاء)</label>
+                    <input type="text" id="dateTo" class="form-input filter-date-picker" placeholder="اختر تاريخ النهاية" readonly>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="filterReports()" class="btn-primary"><i class="fas fa-search"></i> بحث</button>
+                    <button onclick="clearFilters()" class="btn-secondary"><i class="fas fa-eraser"></i> مسح</button>
+                    <button onclick="exportToExcel()" class="btn-secondary"><i class="fas fa-file-excel"></i> تصدير إكسل</button>
+                </div>
+            </div>
+
+            <!-- جدول التقارير التجميعية -->
+            <div class="table-container">
+                <div style="overflow-x: auto;">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>تاريخ الإنشاء</th>
+                                <th>نوع التقرير</th>
+                                <th>فترة التقرير</th>
+                                <th>المنطقة</th>
+                                <th>المختص</th>
+                                <th>عدد الزيارات</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportsTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 3rem;">
+                                    <div class="loading-message">
+                                        <div class="loader"></div>
+                                        <p style="margin-top: 1rem;">جاري تحميل التقارير...</p>
+                                    </div>
+                                  </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 1rem; color: #4e6580;" id="resultsCount">عدد النتائج: 0</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- مودال إضافة/تعديل تقرير تجميعي -->
+    <div id="summaryReportModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="modalTitle">إضافة تقرير تجميعي جديد</h2>
+                <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="summaryReportForm">
+                <input type="hidden" id="reportId">
+                
+                <div class="form-row">
+                    <div>
+                        <label>نوع التقرير *</label>
+                        <select id="reportTypeSelect" class="form-input" required onchange="onReportTypeChange()">
+                            <option value="">اختر نوع التقرير</option>
+                            <option value="in_person">تعليم وجاهي</option>
+                            <option value="remote">تعليم عن بعد</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="reportTitleSection" class="report-title-section">
+                    <h3 id="dynamicReportTitle">التقرير النصف شهري للمختص التربوي</h3>
+                </div>
+                
+                <div class="form-row">
+                    <div>
+                        <label>المختص التربوي *</label>
+                        <select id="specialistId" class="form-input" required onchange="onSpecialistChange()">
+                            <option value="">اختر المختص</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>التخصص</label>
+                        <input type="text" id="specialization" class="form-input" readonly placeholder="سيتم جلب التخصص تلقائياً">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div>
+                        <label>المنطقة التعليمية *</label>
+                        <select id="districtId" class="form-input" required onchange="loadVisitsData()">
+                            <option value="">اختر المنطقة</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>عدد الزيارات الكلية</label>
+                        <input type="number" id="totalVisits" class="form-input" readonly placeholder="سيتم حسابه تلقائياً">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div>
+                        <label>الفترة من *</label>
+                        <input type="text" id="periodFrom" class="form-input date-picker" placeholder="اختر تاريخ البداية" required readonly>
+                    </div>
+                    <div>
+                        <label>الفترة إلى *</label>
+                        <input type="text" id="periodTo" class="form-input date-picker" placeholder="اختر تاريخ النهاية" required readonly>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 1.5rem 0 1rem 0;">أولاً: الزيارات</h3>
+                <div class="visits-table-container">
+                    <table class="visits-table" id="visitsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>التاريخ</th>
+                                <th>المدرسة</th>
+                                <th>الصف</th>
+                                <th>الشعبة</th>
+                                <th>المبحث</th>
+                                <th>اسم المعلم</th>
+                                <th>أفكار إبداعية / جوانب إيجابية</th>
+                                <th>التوصيات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="visitsTableBody">
+                            <tr>
+                                <td colspan="9" style="text-align: center; padding: 2rem; color: #4e6580;">
+                                    الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية
+                                   </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3 style="margin: 1.5rem 0 1rem 0;">ثانياً: أنشطة إشرافية أخرى</h3>
+                <div class="activities-header">
+                    <span>التاريخ</span>
+                    <span>النشاط</span>
+                    <span>الموضوع</span>
+                    <span>الفئة المستهدفة</span>
+                    <span></span>
+                </div>
+                <div id="activitiesContainer">
+                    <div class="activity-row" data-activity-id="0">
+                        <input type="text" class="form-input activity-date" placeholder="dd/mm/yyyy">
+                        <input type="text" class="form-input activity-name" placeholder="النشاط">
+                        <input type="text" class="form-input activity-topic" placeholder="الموضوع">
+                        <input type="text" class="form-input activity-target" placeholder="الفئة المستهدفة">
+                        <button type="button" class="remove-activity-btn" onclick="removeActivityRow(this)" style="display: none;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="add-activity-btn" onclick="addActivityRow()">
+                    <i class="fas fa-plus"></i> إضافة نشاط إشرافي
+                </button>
+                
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="submit" id="saveReportBtn" class="btn-primary" style="flex: 2;">
+                        <i class="fas fa-save"></i> حفظ
+                    </button>
+                    <button type="button" onclick="closeModal()" class="btn-secondary" style="flex: 1;">
+                        <i class="fas fa-times"></i> إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- مودال عرض التقرير -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content" style="max-width: 1200px; max-height: 85vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2>تفاصيل التقرير التجميعي</h2>
+                <button class="modal-close" onclick="closeViewModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="reportDetails" style="padding: 1rem;"></div>
+            <div class="modal-actions">
+                <button onclick="exportReportToPDF()" class="btn-primary"><i class="fas fa-print"></i> طباعة / PDF</button>
+                <button onclick="closeViewModal()" class="btn-secondary">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div style="text-align: center;">
+                <div style="width: 70px; height: 70px; background: #fff2f5; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #e34f76;"></i>
+                </div>
+                <h3>تأكيد الحذف</h3>
+                <p>هل أنت متأكد من حذف هذا التقرير؟</p>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button onclick="confirmDelete()" class="btn-danger" style="flex: 1;">حذف</button>
+                <button onclick="closeDeleteModal()" class="btn-secondary" style="flex: 1;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- حاوية الإشعارات المنبثقة -->
+    <div class="notifications-container" id="notificationsContainer"></div>
+
+    <!-- لوحة الإشعارات المنبثقة -->
+    <div id="panelOverlay" class="panel-overlay" onclick="closeNotificationsPanel()"></div>
+    <div id="notificationsPanel" class="notifications-panel">
+        <div class="notifications-panel-header">
+            <h3><i class="fas fa-bell"></i> الإشعارات</h3>
+            <button onclick="markAllAsRead()" class="mark-all-read" id="markAllReadBtn" style="display: none;">
+                <i class="fas fa-check-double"></i> تعيين الكل كمقروء
+            </button>
+            <button onclick="closeNotificationsPanel()" class="close-panel">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="notifications-list" id="notificationsList">
+            <div class="empty-notifications">
+                <i class="fas fa-bell-slash"></i>
+                <p>لا توجد إشعارات</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== متغيرات عامة ====================
+        let currentUser = null;
+        let currentReports = [];
+        let deleteReportData = null;
+        let currentViewReport = null;
+        let districtsList = [];
+        let specialistsList = [];
+        let schoolsMap = {};
+        let isSaving = false;
+        let nextActivityId = 1;
+        let isLoadingVisits = false;
+        let currentVisitsData = [];
+        let periodFromPicker = null;
+        let periodToPicker = null;
+        let filterDateFromPicker = null;
+        let filterDateToPicker = null;
+        let activityDatePickers = [];
+
+        // ==================== دوال الصلاحيات ====================
+        function canViewSummaryReports(user) {
+            if (!user) return false;
+            return ['admin', 'support', 'manger', 'user'].includes(user.role);
+        }
+        
+        function canCreateSummaryReport(user) {
+            if (!user) return false;
+            return ['admin', 'support', 'user'].includes(user.role);
+        }
+        
+        function canEditSummaryReport(user, report) {
+            if (!user || !report) return false;
+            if (['admin', 'support'].includes(user.role)) return true;
+            if (user.role === 'user' && report.specialist_id == user.id) return true;
+            return false;
+        }
+        
+        function canDeleteSummaryReport(user, report) {
+            if (!user || !report) return false;
+            return ['admin', 'support'].includes(user.role);
+        }
+        
+        function getUserSubtitle(user) {
+            if (!user) return '';
+            if (user.role === 'admin' || user.role === 'support') return 'مدير نظام';
+            if (user.role === 'manger') return user.district_name || user.district || 'مدير منطقة';
+            if (user.role === 'spuser') return user.school_name || user.school || 'مدير مدرسة';
+            if (user.role === 'user') return 'مشرف تربوي';
+            return '';
+        }
+
+        function getRoleName(role) {
+            const roles = { 'admin': 'مدير النظام', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'spuser': 'مدير مدرسة', 'user': 'مختص تربوي' };
+            return roles[role] || role;
+        }
+
+        // ==================== دوال معالجة التاريخ ====================
+        
+        function initDatePickers() {
+            filterDateFromPicker = flatpickr("#dateFrom", {
+                locale: "ar",
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                placeholder: "dd/mm/yyyy",
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (filterDateToPicker && selectedDates[0]) {
+                        filterDateToPicker.set('minDate', selectedDates[0]);
+                        if (filterDateToPicker.selectedDates[0] && filterDateToPicker.selectedDates[0] < selectedDates[0]) {
+                            filterDateToPicker.clear();
+                            showMessage('تاريخ النهاية يجب أن يكون بعد تاريخ البداية', 'info');
+                        }
+                    }
+                    filterReports();
+                }
+            });
+            
+            filterDateToPicker = flatpickr("#dateTo", {
+                locale: "ar",
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                placeholder: "dd/mm/yyyy",
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (filterDateFromPicker && selectedDates[0]) {
+                        filterDateFromPicker.set('maxDate', selectedDates[0]);
+                        if (filterDateFromPicker.selectedDates[0] && filterDateFromPicker.selectedDates[0] > selectedDates[0]) {
+                            filterDateFromPicker.clear();
+                            showMessage('تاريخ البداية يجب أن يكون قبل تاريخ النهاية', 'info');
+                        }
+                    }
+                    filterReports();
+                }
+            });
+            
+            periodFromPicker = flatpickr("#periodFrom", {
+                locale: "ar",
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                placeholder: "dd/mm/yyyy",
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (periodToPicker && selectedDates[0]) {
+                        periodToPicker.set('minDate', selectedDates[0]);
+                        if (periodToPicker.selectedDates[0] && periodToPicker.selectedDates[0] < selectedDates[0]) {
+                            periodToPicker.clear();
+                            showMessage('تاريخ النهاية يجب أن يكون بعد تاريخ البداية', 'info');
+                        }
+                    }
+                    loadVisitsData();
+                }
+            });
+            
+            periodToPicker = flatpickr("#periodTo", {
+                locale: "ar",
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                placeholder: "dd/mm/yyyy",
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (periodFromPicker && selectedDates[0]) {
+                        periodFromPicker.set('maxDate', selectedDates[0]);
+                        if (periodFromPicker.selectedDates[0] && periodFromPicker.selectedDates[0] > selectedDates[0]) {
+                            periodFromPicker.clear();
+                            showMessage('تاريخ البداية يجب أن يكون قبل تاريخ النهاية', 'info');
+                        }
+                    }
+                    loadVisitsData();
+                }
+            });
+        }
+        
+        function initActivityDatePicker(element) {
+            return flatpickr(element, {
+                locale: "ar",
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                placeholder: "dd/mm/yyyy",
+                allowInput: false
+            });
+        }
+        
+        function reinitializeActivityDatePickers() {
+            activityDatePickers.forEach(picker => {
+                if (picker && picker.destroy) picker.destroy();
+            });
+            activityDatePickers = [];
+            
+            const activityDateInputs = document.querySelectorAll('#activitiesContainer .activity-date');
+            activityDateInputs.forEach(input => {
+                if (input && !input._flatpickr) {
+                    const picker = initActivityDatePicker(input);
+                    activityDatePickers.push(picker);
+                }
+            });
+        }
+        
+        function getDateForDatabase(datePicker) {
+            if (datePicker && datePicker.selectedDates && datePicker.selectedDates[0]) {
+                const date = datePicker.selectedDates[0];
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            return null;
+        }
+        
+        function getFilterDateValue(datePicker) {
+            if (datePicker && datePicker.selectedDates && datePicker.selectedDates[0]) {
+                const date = datePicker.selectedDates[0];
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            return null;
+        }
+        
+        function setDatePickerValue(datePicker, dateValue) {
+            if (datePicker && dateValue) {
+                datePicker.setDate(new Date(dateValue));
+            }
+        }
+
+        // ==================== تحميل البيانات ====================
+        window.addEventListener('load', async () => {
+            currentUser = await getCurrentUser();
+            if (!currentUser) { window.location.href = 'login.html'; return; }
+            
+            if (!canViewSummaryReports(currentUser)) {
+                showMessage('لا تملك صلاحية الوصول لهذه الصفحة', 'error');
+                setTimeout(() => window.location.href = 'dashboard.html', 2000);
+                return;
+            }
+            
+            document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username;
+            document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
+            document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(currentUser);
+            
+            updateSidebarLinks(currentUser);
+            
+            // تحميل البيانات الأساسية فقط (المناطق والمختصين والمدارس)
+            await loadDistricts();
+            await loadSpecialists();
+            await loadSchools();
+            
+            initDatePickers();
+            
+            document.getElementById('searchInput').addEventListener('input', filterReports);
+            document.getElementById('reportTypeFilter').addEventListener('change', filterReports);
+            
+            document.getElementById('addReportBtn').style.display = canCreateSummaryReport(currentUser) ? 'inline-flex' : 'none';
+            
+            await updateUnreadBadge();
+            startNotificationPolling();
+            
+            // فتح التقرير من رابط الإشعار - يجب أن يتم فوراً دون تحميل أي تقارير
+            const urlParams = new URLSearchParams(window.location.search);
+            const reportIdToView = urlParams.get('view');
+            
+            if (reportIdToView) {
+                // فتح التقرير مباشرة (بدون تحميل قائمة التقارير)
+                console.log('فتح التقرير مباشرة من الإشعار:', reportIdToView);
+                await viewReportDirect(reportIdToView);
+                window.history.replaceState({}, document.title, window.location.pathname);
+                // لا نقوم بتحميل التقارير في الخلفية للحفاظ على السرعة
+            } else {
+                // فقط إذا لم يكن هناك إشعار، نقوم بتحميل قائمة التقارير
+                console.log('تحميل قائمة التقارير');
+                await loadSummaryReports();
+            }
+        });
+        
+        function updateSidebarLinks(user) {
+            const showAdminLinks = ['admin', 'support'].includes(user.role);
+            document.getElementById('adminLinks').style.display = showAdminLinks ? 'block' : 'none';
+            const showAnalytics = ['admin', 'support', 'manger'].includes(user.role);
+            document.getElementById('navAnalytics').style.display = showAnalytics ? 'flex' : 'none';
+        }
+        
+        async function getCurrentUser() {
+            const localUser = localStorage.getItem('currentUser');
+            if (localUser && JSON.parse(localUser).id) {
+                const parsed = JSON.parse(localUser);
+                if (parsed.district_name || parsed.school_name) return parsed;
+            }
+            try {
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                if (user) {
+                    const { data: userData } = await window.supabaseClient.from('users').select('*').eq('email', user.email).single();
+                    if (userData) {
+                        if (userData.district_id) {
+                            const { data: district } = await window.supabaseClient.from('districts').select('name').eq('id', userData.district_id).single();
+                            if (district) userData.district_name = district.name;
+                        }
+                        if (userData.school_id) {
+                            const { data: school } = await window.supabaseClient.from('schools').select('name').eq('id', userData.school_id).single();
+                            if (school) userData.school_name = school.name;
+                        }
+                        localStorage.setItem('currentUser', JSON.stringify(userData));
+                        return userData;
+                    }
+                }
+            } catch(e) { console.log(e); }
+            return localUser ? JSON.parse(localUser) : null;
+        }
+        
+        async function loadDistricts() {
+            try {
+                const { data, error } = await window.supabaseClient.from('districts').select('id, name').order('name');
+                if (error) throw error;
+                districtsList = data || [];
+                const options = '<option value="">اختر المنطقة</option>' + districtsList.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+                document.getElementById('districtId').innerHTML = options;
+            } catch (error) { console.error('Error loading districts:', error); }
+        }
+        
+        async function loadSchools() {
+            try {
+                const { data, error } = await window.supabaseClient.from('schools').select('id, name, district_id');
+                if (error) throw error;
+                schoolsMap = {};
+                (data || []).forEach(s => { schoolsMap[s.id] = s.name; });
+            } catch (error) { console.error('Error loading schools:', error); }
+        }
+        
+        async function loadSpecialists() {
+            try {
+                let query = window.supabaseClient
+                    .from('users')
+                    .select(`
+                        id, 
+                        name, 
+                        email,
+                        specialist_id,
+                        specialists:specialist_id (
+                            id,
+                            name,
+                            specialization,
+                            email,
+                            phone
+                        )
+                    `)
+                    .eq('role', 'user');
+                
+                const { data, error } = await query.order('name');
+                if (error) throw error;
+                
+                specialistsList = (data || []).map(user => ({
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    specialist_id: user.specialist_id,
+                    specialization: user.specialists?.specialization || ''
+                }));
+                
+                let options = '<option value="">اختر المختص</option>';
+                if (currentUser.role === 'user') {
+                    const currentSpecialist = specialistsList.find(s => s.id == currentUser.id);
+                    options = `<option value="${currentUser.id}">${currentUser.name || currentUser.username}</option>`;
+                    document.getElementById('specialistId').disabled = true;
+                } else {
+                    options += specialistsList.map(s => `<option value="${s.id}">${s.name}${s.specialization ? ' - ' + s.specialization : ''}</option>`).join('');
+                    document.getElementById('specialistId').disabled = false;
+                }
+                document.getElementById('specialistId').innerHTML = options;
+                
+                if (currentUser.role === 'user') {
+                    document.getElementById('specialistId').value = currentUser.id;
+                    await onSpecialistChange();
+                }
+            } catch (error) { 
+                console.error('Error loading specialists:', error);
+                showMessage('حدث خطأ في تحميل المختصين', 'error');
+            }
+        }
+        
+        async function loadVisitsData() {
+            const reportType = document.getElementById('reportTypeSelect').value;
+            const specialistId = document.getElementById('specialistId').value;
+            const districtId = document.getElementById('districtId').value;
+            const periodFrom = getDateForDatabase(periodFromPicker);
+            let periodTo = getDateForDatabase(periodToPicker);
+            
+            if (!reportType || !specialistId || !districtId || !periodFrom || !periodTo) {
+                document.getElementById('visitsTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 2rem; color: #4e6580;">
+                            الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية
+                          </td>
+                    </tr>
+                `;
+                document.getElementById('totalVisits').value = '';
+                currentVisitsData = [];
+                return;
+            }
+            
+            if (isLoadingVisits) return;
+            isLoadingVisits = true;
+            
+            document.getElementById('visitsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="9" style="text-align: center; padding: 2rem;">
+                        <div class="filter-loading"></div>
+                        <p style="margin-top: 0.5rem;">جاري تحميل الزيارات...</p>
+                      </td>
+                </tr>
+            `;
+            
+            try {
+                const tableName = reportType === 'in_person' ? 'in_person_reports' : 'remote_reports';
+                
+                const { data: schoolsInDistrict, error: schoolsError } = await window.supabaseClient
+                    .from('schools')
+                    .select('id, name')
+                    .eq('district_id', districtId);
+                
+                if (schoolsError) throw schoolsError;
+                
+                const schoolIds = schoolsInDistrict.map(s => s.id);
+                const schoolsMapTemp = {};
+                schoolsInDistrict.forEach(s => { schoolsMapTemp[s.id] = s.name; });
+                
+                if (schoolIds.length === 0) {
+                    document.getElementById('visitsTableBody').innerHTML = `
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 2rem; color: #4e6580;">
+                                لا توجد مدارس في هذه المنطقة
+                              </td>
+                        </tr>
+                    `;
+                    document.getElementById('totalVisits').value = 0;
+                    currentVisitsData = [];
+                    isLoadingVisits = false;
+                    return;
+                }
+                
+                const toDateObj = new Date(periodTo);
+                toDateObj.setDate(toDateObj.getDate() + 1);
+                const year = toDateObj.getFullYear();
+                const month = String(toDateObj.getMonth() + 1).padStart(2, '0');
+                const day = String(toDateObj.getDate()).padStart(2, '0');
+                const nextDay = `${year}-${month}-${day}`;
+                
+                const { data, error } = await window.supabaseClient
+                    .from(tableName)
+                    .select('*')
+                    .eq('specialist_id', specialistId)
+                    .in('school_id', schoolIds)
+                    .gte('visit_date', periodFrom)
+                    .lt('visit_date', nextDay)
+                    .order('visit_date', { ascending: true });
+                
+                if (error) throw error;
+                
+                const visits = (data || []).map(visit => ({
+                    ...visit,
+                    school_name: schoolsMapTemp[visit.school_id] || 'مدرسة غير محددة'
+                }));
+                
+                currentVisitsData = visits;
+                document.getElementById('totalVisits').value = visits.length;
+                
+                if (visits.length === 0) {
+                    document.getElementById('visitsTableBody').innerHTML = `
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 2rem; color: #4e6580;">
+                                لا توجد زيارات في هذه الفترة
+                              </td>
+                        </tr>
+                    `;
+                } else {
+                    let html = '';
+                    visits.forEach((visit, index) => {
+                        const creativeField = reportType === 'in_person' ? (visit.positive_aspects || '') : (visit.creative_ideas || '');
+                        const recommendations = visit.recommendations || '';
+                        const schoolName = visit.school_name || 'غير محدد';
+                        html += `
+                            <tr>
+                                <td style="padding: 8px;">${index + 1}</td>
+                                <td style="padding: 8px;">${visit.visit_date || ''}</td>
+                                <td style="padding: 8px;">${schoolName}</td>
+                                <td style="padding: 8px;">${visit.class_name || ''}</td>
+                                <td style="padding: 8px;">${visit.section || ''}</td>
+                                <td style="padding: 8px;">${visit.subject || ''}</td>
+                                <td style="padding: 8px;">${visit.teacher_name || ''}</td>
+                                <td style="padding: 8px;">${creativeField}</td>
+                                <td style="padding: 8px;">${recommendations}</td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('visitsTableBody').innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error loading visits:', error);
+                document.getElementById('visitsTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 2rem; color: #e34f76;">
+                            حدث خطأ في تحميل الزيارات: ${error.message}
+                          </td>
+                    </tr>
+                `;
+                currentVisitsData = [];
+            } finally {
+                isLoadingVisits = false;
+            }
+        }
+        
+        function onReportTypeChange() {
+            const reportType = document.getElementById('reportTypeSelect').value;
+            const titleSection = document.getElementById('reportTitleSection');
+            const dynamicTitle = document.getElementById('dynamicReportTitle');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            if (reportType) {
+                titleSection.style.display = 'block';
+                if (reportType === 'in_person') {
+                    dynamicTitle.textContent = 'التقرير النصف شهري للمختص التربوي – برنامج التعليم الوجاهي';
+                    modalTitle.textContent = 'إضافة تقرير تجميعي جديد - تعليم وجاهي';
+                } else if (reportType === 'remote') {
+                    dynamicTitle.textContent = 'التقرير النصف شهري للمختص التربوي – برنامج التعليم عن بعد';
+                    modalTitle.textContent = 'إضافة تقرير تجميعي جديد - تعليم عن بعد';
+                }
+            } else {
+                titleSection.style.display = 'none';
+                modalTitle.textContent = 'إضافة تقرير تجميعي جديد';
+            }
+            loadVisitsData();
+        }
+        
+        async function onSpecialistChange() {
+            const specialistId = document.getElementById('specialistId').value;
+            if (specialistId) {
+                const specialist = specialistsList.find(s => s.id == specialistId);
+                if (specialist) {
+                    document.getElementById('specialization').value = specialist.specialization || '';
+                } else {
+                    try {
+                        const { data: userData, error: userError } = await window.supabaseClient
+                            .from('users')
+                            .select(`
+                                id,
+                                name,
+                                specialist_id,
+                                specialists:specialist_id (
+                                    specialization
+                                )
+                            `)
+                            .eq('id', specialistId)
+                            .single();
+                        
+                        if (!userError && userData) {
+                            const specialization = userData.specialists?.specialization || '';
+                            document.getElementById('specialization').value = specialization;
+                            
+                            const existingIndex = specialistsList.findIndex(s => s.id == specialistId);
+                            if (existingIndex >= 0) {
+                                specialistsList[existingIndex].specialization = specialization;
+                            } else {
+                                specialistsList.push({
+                                    id: specialistId,
+                                    name: userData.name,
+                                    specialization: specialization
+                                });
+                            }
+                        } else {
+                            document.getElementById('specialization').value = '';
+                        }
+                    } catch (err) {
+                        console.error('Error fetching specialist data:', err);
+                        document.getElementById('specialization').value = '';
+                    }
+                }
+            } else {
+                document.getElementById('specialization').value = '';
+            }
+            loadVisitsData();
+        }
+        
+        async function loadSummaryReports() {
+            try {
+                let query = window.supabaseClient.from('summary_reports').select('*, users:specialist_id(id, name), districts:district_id(id, name)');
+                
+                if (currentUser.role === 'manger' && currentUser.district_id) {
+                    query = query.eq('district_id', currentUser.district_id);
+                } else if (currentUser.role === 'user') {
+                    query = query.eq('specialist_id', currentUser.id);
+                }
+                
+                const { data, error } = await query.order('created_at', { ascending: false });
+                if (error) throw error;
+                
+                currentReports = data || [];
+                displayReports(currentReports);
+            } catch (error) {
+                console.error('Error loading summary reports:', error);
+                showMessage('حدث خطأ في تحميل التقارير', 'error');
+            }
+        }
+        
+        function displayReports(reports) {
+            const tbody = document.getElementById('reportsTableBody');
+            if (!reports || reports.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align:center;padding:3rem;">
+                            <div class="loading-message">
+                                <i class="fas fa-folder-open" style="font-size:3rem; margin-bottom:1rem; opacity:0.5;"></i>
+                                <p>لا توجد تقارير</p>
+                            </div>
+                          </td>
+                    </tr>
+                `;
+                document.getElementById('resultsCount').textContent = 'عدد النتائج: 0';
+                return;
+            }
+            
+            tbody.innerHTML = reports.map((report, index) => {
+                const canEdit = canEditSummaryReport(currentUser, report);
+                const canDelete = canDeleteSummaryReport(currentUser, report);
+                const visitsCount = report.visits_data ? JSON.parse(report.visits_data).length : 0;
+                
+                let actionsHtml = `<a href="#" onclick="viewReport('${report.id}')" class="action-link view" title="مشاهدة"><i class="fas fa-eye"></i></a>`;
+                if (canEdit) actionsHtml += `<a href="#" onclick="editReport('${report.id}')" class="action-link edit" title="تعديل"><i class="fas fa-edit"></i></a>`;
+                if (canDelete) actionsHtml += `<a href="#" onclick="openDeleteModal('${report.id}')" class="action-link delete" title="حذف"><i class="fas fa-trash"></i></a>`;
+                
+                const typeBadge = report.report_type === 'in_person' ? '<span class="badge badge-primary">وجاهي</span>' : '<span class="badge badge-success">عن بعد</span>';
+                const periodFrom = new Date(report.period_from).toLocaleDateString('ar-SA');
+                const periodTo = new Date(report.period_to).toLocaleDateString('ar-SA');
+                const createdAt = new Date(report.created_at).toLocaleDateString('ar-SA');
+                
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${createdAt}</td>
+                        <td>${typeBadge}</td>
+                        <td>${periodFrom} - ${periodTo}</td>
+                        <td>${report.districts?.name || '-'}</td>
+                        <td>${report.users?.name || '-'}</td>
+                        <td>${visitsCount}</td>
+                        <td><div style="display:flex;gap:0.5rem;">${actionsHtml}</div></td>
+                    </tr>
+                `;
+            }).join('');
+            document.getElementById('resultsCount').textContent = `عدد النتائج: ${reports.length}`;
+        }
+        
+        function filterReports() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const type = document.getElementById('reportTypeFilter').value;
+            let fromDate = getFilterDateValue(filterDateFromPicker);
+            let toDate = getFilterDateValue(filterDateToPicker);
+
+            let nextDay = null;
+            if (toDate) {
+                const toDateObj = new Date(toDate);
+                toDateObj.setDate(toDateObj.getDate() + 1);
+                const year = toDateObj.getFullYear();
+                const month = String(toDateObj.getMonth() + 1).padStart(2, '0');
+                const day = String(toDateObj.getDate()).padStart(2, '0');
+                nextDay = `${year}-${month}-${day}`;
+            }
+            
+            const filtered = currentReports.filter(r => {
+                if (type && r.report_type !== type) return false;
+                
+                if (fromDate) {
+                    const reportDate = r.created_at ? r.created_at : null;
+                    if (reportDate && reportDate < fromDate) return false;
+                }
+                if (nextDay) {
+                    const reportDate = r.created_at ? r.created_at : null;
+                    if (reportDate && reportDate >= nextDay) return false;
+                }
+                
+                if (search) {
+                    const districtName = r.districts?.name?.toLowerCase() || '';
+                    const specialistName = r.users?.name?.toLowerCase() || '';
+                    if (!districtName.includes(search) && !specialistName.includes(search)) return false;
+                }
+                return true;
+            });
+            
+            displayReports(filtered);
+        }
+        
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('reportTypeFilter').value = '';
+            if (filterDateFromPicker) filterDateFromPicker.clear();
+            if (filterDateToPicker) filterDateToPicker.clear();
+            displayReports(currentReports);
+        }
+        
+        function exportToExcel() {
+            const rows = [['#', 'تاريخ الإنشاء', 'نوع التقرير', 'فترة التقرير من', 'فترة التقرير إلى', 'المنطقة', 'المختص', 'عدد الزيارات']];
+            currentReports.forEach((r, i) => {
+                rows.push([
+                    i + 1,
+                    new Date(r.created_at).toLocaleDateString('ar-SA'),
+                    r.report_type === 'in_person' ? 'وجاهي' : 'عن بعد',
+                    new Date(r.period_from).toLocaleDateString('ar-SA'),
+                    new Date(r.period_to).toLocaleDateString('ar-SA'),
+                    r.districts?.name || '-',
+                    r.users?.name || '-',
+                    r.visits_data ? JSON.parse(r.visits_data).length : 0
+                ]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'التقارير التجميعية');
+            XLSX.writeFile(wb, `التقارير_التجميعية_${new Date().toISOString().split('T')[0]}.xlsx`);
+            showMessage('تم تصدير التقارير بنجاح', 'success');
+        }
+        
+        // ==================== دوال المودال ====================
+        function openAddReportModal() {
+            if (!canCreateSummaryReport(currentUser)) {
+                showMessage('لا تملك صلاحية إضافة تقارير', 'error');
+                return;
+            }
+            document.getElementById('summaryReportForm').reset();
+            document.getElementById('reportId').value = '';
+            document.getElementById('specialization').value = '';
+            document.getElementById('totalVisits').value = '';
+            document.getElementById('reportTypeSelect').value = '';
+            document.getElementById('reportTitleSection').style.display = 'none';
+            document.getElementById('modalTitle').textContent = 'إضافة تقرير تجميعي جديد';
+            document.getElementById('visitsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="9" style="text-align: center; padding: 2rem; color: #4e6580;">
+                        الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية
+                       </td>
+                </tr>
+            `;
+            
+            if (periodFromPicker) periodFromPicker.clear();
+            if (periodToPicker) periodToPicker.clear();
+            
+            currentVisitsData = [];
+            
+            nextActivityId = 1;
+            document.getElementById('activitiesContainer').innerHTML = `
+                <div class="activity-row" data-activity-id="0">
+                    <input type="text" class="form-input activity-date" placeholder="dd/mm/yyyy">
+                    <input type="text" class="form-input activity-name" placeholder="النشاط">
+                    <input type="text" class="form-input activity-topic" placeholder="الموضوع">
+                    <input type="text" class="form-input activity-target" placeholder="الفئة المستهدفة">
+                    <button type="button" class="remove-activity-btn" onclick="removeActivityRow(this)" style="display: none;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                reinitializeActivityDatePickers();
+            }, 100);
+            
+            if (currentUser.role === 'user') {
+                document.getElementById('specialistId').value = currentUser.id;
+                document.getElementById('specialistId').disabled = true;
+                onSpecialistChange();
+            } else {
+                document.getElementById('specialistId').disabled = false;
+            }
+            
+            document.getElementById('summaryReportModal').classList.add('active');
+        }
+        
+        function addActivityRow() {
+            const container = document.getElementById('activitiesContainer');
+            const newId = nextActivityId++;
+            const newRow = document.createElement('div');
+            newRow.className = 'activity-row';
+            newRow.setAttribute('data-activity-id', newId);
+            newRow.innerHTML = `
+                <input type="text" class="form-input activity-date" placeholder="dd/mm/yyyy">
+                <input type="text" class="form-input activity-name" placeholder="النشاط">
+                <input type="text" class="form-input activity-topic" placeholder="الموضوع">
+                <input type="text" class="form-input activity-target" placeholder="الفئة المستهدفة">
+                <button type="button" class="remove-activity-btn" onclick="removeActivityRow(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(newRow);
+            
+            const newDateInput = newRow.querySelector('.activity-date');
+            const picker = initActivityDatePicker(newDateInput);
+            activityDatePickers.push(picker);
+            
+            const firstRow = container.querySelector('.activity-row:first-child .remove-activity-btn');
+            if (firstRow && firstRow.style.display !== 'inline-flex') {
+                firstRow.style.display = 'inline-flex';
+            }
+        }
+        
+        function removeActivityRow(btn) {
+            const row = btn.closest('.activity-row');
+            const container = document.getElementById('activitiesContainer');
+            
+            const dateInput = row.querySelector('.activity-date');
+            if (dateInput && dateInput._flatpickr) {
+                dateInput._flatpickr.destroy();
+                const index = activityDatePickers.findIndex(p => p === dateInput._flatpickr);
+                if (index > -1) activityDatePickers.splice(index, 1);
+            }
+            
+            if (container.children.length > 1) {
+                row.remove();
+            } else {
+                showMessage('لا يمكن حذف النشاط الوحيد، يمكنك تركه فارغاً', 'info');
+            }
+        }
+        
+        function collectActivitiesData() {
+            const activities = [];
+            const rows = document.querySelectorAll('#activitiesContainer .activity-row');
+            rows.forEach(row => {
+                const dateInput = row.querySelector('.activity-date');
+                let date = '';
+                
+                if (dateInput && dateInput._flatpickr && dateInput._flatpickr.selectedDates[0]) {
+                    const selectedDate = dateInput._flatpickr.selectedDates[0];
+                    const year = selectedDate.getFullYear();
+                    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(selectedDate.getDate()).padStart(2, '0');
+                    date = `${year}-${month}-${day}`;
+                } else if (dateInput && dateInput.value) {
+                    const parts = dateInput.value.split('/');
+                    if (parts.length === 3) {
+                        date = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                }
+                
+                const name = row.querySelector('.activity-name')?.value;
+                const topic = row.querySelector('.activity-topic')?.value;
+                const target = row.querySelector('.activity-target')?.value;
+                
+                if (date && name && topic && target) {
+                    activities.push({ date, name, topic, target });
+                }
+            });
+            return activities;
+        }
+        
+        function collectVisitsDataFromTable() {
+            const visits = [];
+            const reportType = document.getElementById('reportTypeSelect').value;
+            
+            for (const visit of currentVisitsData) {
+                const creativeField = reportType === 'in_person' ? (visit.positive_aspects || '') : (visit.creative_ideas || '');
+                const recommendations = visit.recommendations || '';
+                
+                const visitData = {
+                    date: visit.visit_date || '',
+                    school: visit.school_name || '',
+                    class: visit.class_name || '',
+                    section: visit.section || '',
+                    subject: visit.subject || '',
+                    teacher: visit.teacher_name || '',
+                    creative_ideas: creativeField,
+                    recommendations: recommendations
+                };
+                visits.push(visitData);
+            }
+            
+            return visits;
+        }
+        
+        // ==================== دوال إرسال الإشعارات ====================
+        
+        async function sendSummaryReportNotification(reportData, reportId, specialistName, actionType = 'create') {
+            try {
+                if (!window.sendSummaryReportNotifications) {
+                    console.error('sendSummaryReportNotifications function not available');
+                    return;
+                }
+                
+                await window.sendSummaryReportNotifications(
+                    reportData,
+                    reportId,
+                    specialistName,
+                    actionType
+                );
+                
+                console.log(`✅ Summary report ${actionType} notification sent successfully`);
+            } catch (error) {
+                console.error('Error sending summary report notification:', error);
+            }
+        }
+        
+        // ==================== حفظ التقرير مع الإشعارات ====================
+        
+        document.getElementById('summaryReportForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (isSaving) {
+                showMessage('جاري الحفظ... الرجاء الانتظار', 'info');
+                return;
+            }
+            
+            const reportId = document.getElementById('reportId').value;
+            const isEdit = !!reportId;
+            const reportType = document.getElementById('reportTypeSelect').value;
+            
+            if (!reportType) {
+                showMessage('الرجاء اختيار نوع التقرير', 'error');
+                return;
+            }
+            
+            const specialistId = document.getElementById('specialistId').value;
+            const districtId = document.getElementById('districtId').value;
+            const periodFrom = getDateForDatabase(periodFromPicker);
+            const periodTo = getDateForDatabase(periodToPicker);
+            
+            if (!specialistId || !districtId || !periodFrom || !periodTo) {
+                showMessage('الرجاء ملء جميع الحقول المطلوبة', 'error');
+                return;
+            }
+            
+            const visitsData = collectVisitsDataFromTable();
+            const activitiesData = collectActivitiesData();
+            
+            const reportData = {
+                report_type: reportType,
+                specialist_id: parseInt(specialistId),
+                district_id: parseInt(districtId),
+                period_from: periodFrom,
+                period_to: periodTo,
+                visits_data: JSON.stringify(visitsData),
+                supervisory_activities: JSON.stringify(activitiesData),
+                created_by: currentUser.id
+            };
+            
+            isSaving = true;
+            const saveBtn = document.getElementById('saveReportBtn');
+            const originalHtml = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            saveBtn.disabled = true;
+            
+            try {
+                let result;
+                let newReportId = reportId;
+                
+                if (isEdit) {
+                    result = await window.supabaseClient
+                        .from('summary_reports')
+                        .update(reportData)
+                        .eq('id', reportId);
+                } else {
+                    result = await window.supabaseClient
+                        .from('summary_reports')
+                        .insert([reportData])
+                        .select();
+                    
+                    if (result.data && result.data[0]) {
+                        newReportId = result.data[0].id;
+                    }
+                }
+                
+                if (result.error) throw result.error;
+                
+                if (newReportId && currentUser) {
+                    const specialistName = currentUser.name || currentUser.username || 'مختص';
+                    const actionType = isEdit ? 'update' : 'create';
+                    
+                    await sendSummaryReportNotification(reportData, newReportId, specialistName, actionType);
+                }
+                
+                closeModal();
+                await loadSummaryReports();
+                showMessage(isEdit ? 'تم تحديث التقرير بنجاح' : 'تم حفظ التقرير بنجاح', 'success');
+                
+            } catch (error) {
+                console.error('Error saving report:', error);
+                showMessage('حدث خطأ في حفظ التقرير: ' + error.message, 'error');
+            } finally {
+                isSaving = false;
+                saveBtn.innerHTML = originalHtml;
+                saveBtn.disabled = false;
+            }
+        });
+        
+        async function editReport(id) {
+            const report = currentReports.find(r => r.id == id);
+            if (!report) return;
+            if (!canEditSummaryReport(currentUser, report)) {
+                showMessage('لا تملك صلاحية تعديل هذا التقرير', 'error');
+                return;
+            }
+            
+            document.getElementById('reportId').value = report.id;
+            document.getElementById('reportTypeSelect').value = report.report_type;
+            document.getElementById('specialistId').value = report.specialist_id;
+            document.getElementById('districtId').value = report.district_id;
+            
+            if (periodFromPicker && report.period_from) {
+                setDatePickerValue(periodFromPicker, report.period_from);
+            }
+            if (periodToPicker && report.period_to) {
+                setDatePickerValue(periodToPicker, report.period_to);
+            }
+            
+            onReportTypeChange();
+            
+            const visits = JSON.parse(report.visits_data || '[]');
+            currentVisitsData = visits;
+            
+            if (visits.length > 0) {
+                let visitsHtml = '';
+                visits.forEach((v, i) => {
+                    visitsHtml += `
+                        <tr>
+                            <td style="padding: 8px;">${i+1}</td>
+                            <td style="padding: 8px;">${v.date || ''}</td>
+                            <td style="padding: 8px;">${v.school || ''}</td>
+                            <td style="padding: 8px;">${v.class || ''}</td>
+                            <td style="padding: 8px;">${v.section || ''}</td>
+                            <td style="padding: 8px;">${v.subject || ''}</td>
+                            <td style="padding: 8px;">${v.teacher || ''}</td>
+                            <td style="padding: 8px;">${v.creative_ideas || ''}</td>
+                            <td style="padding: 8px;">${v.recommendations || ''}</td>
+                        </table>
+                    `;
+                });
+                document.getElementById('visitsTableBody').innerHTML = visitsHtml;
+                document.getElementById('totalVisits').value = visits.length;
+            } else {
+                await loadVisitsData();
+            }
+            
+            if (report.specialist_id) {
+                try {
+                    const { data: userData, error: userError } = await window.supabaseClient
+                        .from('users')
+                        .select(`
+                            id,
+                            specialist_id,
+                            specialists:specialist_id (
+                                specialization
+                            )
+                        `)
+                        .eq('id', report.specialist_id)
+                        .single();
+                    
+                    if (!userError && userData) {
+                        const specialization = userData.specialists?.specialization || '';
+                        document.getElementById('specialization').value = specialization;
+                    }
+                } catch (err) {
+                    console.error('Error fetching specialization:', err);
+                }
+            }
+            
+            const activities = JSON.parse(report.supervisory_activities || '[]');
+            const activitiesContainer = document.getElementById('activitiesContainer');
+            if (activities.length > 0) {
+                activitiesContainer.innerHTML = activities.map((a, idx) => `
+                    <div class="activity-row" data-activity-id="${idx}">
+                        <input type="text" class="form-input activity-date" placeholder="dd/mm/yyyy">
+                        <input type="text" class="form-input activity-name" value="${a.name || ''}" placeholder="النشاط">
+                        <input type="text" class="form-input activity-topic" value="${a.topic || ''}" placeholder="الموضوع">
+                        <input type="text" class="form-input activity-target" value="${a.target || ''}" placeholder="الفئة المستهدفة">
+                        <button type="button" class="remove-activity-btn" onclick="removeActivityRow(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+                nextActivityId = activities.length;
+                
+                setTimeout(() => {
+                    reinitializeActivityDatePickers();
+                    activities.forEach((a, idx) => {
+                        const row = activitiesContainer.children[idx];
+                        if (row && a.date) {
+                            const dateInput = row.querySelector('.activity-date');
+                            if (dateInput && dateInput._flatpickr) {
+                                dateInput._flatpickr.setDate(new Date(a.date));
+                            }
+                        }
+                    });
+                }, 100);
+                
+                if (activitiesContainer.children.length > 0) {
+                    const firstRow = activitiesContainer.querySelector('.activity-row:first-child .remove-activity-btn');
+                    if (firstRow) firstRow.style.display = 'inline-flex';
+                }
+            } else {
+                activitiesContainer.innerHTML = `
+                    <div class="activity-row" data-activity-id="0">
+                        <input type="text" class="form-input activity-date" placeholder="dd/mm/yyyy">
+                        <input type="text" class="form-input activity-name" placeholder="النشاط">
+                        <input type="text" class="form-input activity-topic" placeholder="الموضوع">
+                        <input type="text" class="form-input activity-target" placeholder="الفئة المستهدفة">
+                        <button type="button" class="remove-activity-btn" onclick="removeActivityRow(this)" style="display: none;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                nextActivityId = 1;
+                
+                setTimeout(() => {
+                    reinitializeActivityDatePickers();
+                }, 100);
+            }
+            
+            document.getElementById('summaryReportModal').classList.add('active');
+        }
+        
+        async function viewReport(id) {
+            const report = currentReports.find(r => r.id == id);
+            if (!report) return;
+            await displayReportInModal(report);
+        }
+        
+        // ==================== فتح التقرير مباشرة من قاعدة البيانات (بدون تحميل القائمة) ====================
+        async function viewReportDirect(reportId) {
+            try {
+                // عرض مؤشر تحميل في المودال
+                document.getElementById('reportDetails').innerHTML = `
+                    <div class="loading-message" style="padding: 3rem;">
+                        <div class="loader"></div>
+                        <p style="margin-top: 1rem;">جاري تحميل التقرير...</p>
+                    </div>
+                `;
+                document.getElementById('viewModal').classList.add('active');
+                
+                // استعلام واحد فقط لجلب التقرير
+                let query = window.supabaseClient
+                    .from('summary_reports')
+                    .select('*, users:specialist_id(id, name), districts:district_id(id, name)')
+                    .eq('id', reportId);
+                
+                // تطبيق قيود الصلاحيات
+                if (currentUser.role === 'manger' && currentUser.district_id) {
+                    query = query.eq('district_id', currentUser.district_id);
+                } else if (currentUser.role === 'user') {
+                    query = query.eq('specialist_id', currentUser.id);
+                }
+                
+                const { data: report, error } = await query.single();
+                
+                if (error) throw error;
+                if (!report) {
+                    document.getElementById('reportDetails').innerHTML = `
+                        <div style="text-align: center; padding: 3rem; color: #e34f76;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>التقرير غير موجود أو لا تملك صلاحية الوصول إليه</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // حفظ التقرير للطباعة
+                currentViewReport = report;
+                
+                // عرض التقرير
+                await displayReportInModal(report);
+                
+            } catch (error) {
+                console.error('Error loading report directly:', error);
+                document.getElementById('reportDetails').innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: #e34f76;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>حدث خطأ في تحميل التقرير: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // ==================== عرض التقرير في المودال (دالة مساعدة مشتركة) ====================
+        async function displayReportInModal(report) {
+            let specialistSpecialization = '';
+            let specialistName = report.users?.name || '-';
+            
+            if (report.specialist_id) {
+                try {
+                    const { data: userData, error: userError } = await window.supabaseClient
+                        .from('users')
+                        .select(`id, name, specialist_id, specialists:specialist_id (specialization)`)
+                        .eq('id', report.specialist_id)
+                        .single();
+                    
+                    if (!userError && userData) {
+                        specialistName = userData.name || specialistName;
+                        specialistSpecialization = userData.specialists?.specialization || '';
+                    }
+                } catch (err) {
+                    console.error('Error fetching specialist specialization:', err);
+                }
+            }
+            
+            const visits = JSON.parse(report.visits_data || '[]');
+            const activities = JSON.parse(report.supervisory_activities || '[]');
+            const reportType = report.report_type === 'in_person' ? 'وجاهي' : 'عن بعد';
+            
+            let visitsHtml = '';
+            if (visits.length > 0) {
+                visits.forEach((v, i) => {
+                    visitsHtml += `
+                        <tr>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${i+1}</td>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${v.date || ''}</td>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${v.school || ''}</td>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${v.class || ''}</td>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${v.section || ''}</td>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${v.subject || ''}</td>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${v.teacher || ''}</td>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${v.creative_ideas || ''}</td>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${v.recommendations || ''}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                visitsHtml = '<tr><td colspan="9" style="padding: 30px; text-align: center; color: #6c757d;">لا توجد زيارات في هذه الفترة</td></tr>';
+            }
+            
+            let activitiesHtml = '';
+            if (activities.length > 0) {
+                activities.forEach((a, i) => {
+                    activitiesHtml += `
+                        <tr>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${i+1}</td>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${a.date || ''}</td>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${a.name || ''}</td>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${a.topic || ''}</td>
+                            <td style="padding: 10px 12px; border: 1px solid #dee2e6; text-align: center;">${a.target || ''}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                activitiesHtml = '<tr><td colspan="5" style="padding: 30px; text-align: center; color: #6c757d;">لا توجد أنشطة إشرافية</td></tr>';
+            }
+            
+            const periodFrom = new Date(report.period_from).toLocaleDateString('ar-SA');
+            const periodTo = new Date(report.period_to).toLocaleDateString('ar-SA');
+            
+            const htmlContent = `
+                <div style="direction: rtl; font-family: 'Traditional Arabic', 'Times New Roman', 'Segoe UI', Arial;">
+                    <div class="info-grid" style="display: flex; flex-wrap: wrap; gap: 15px; background: linear-gradient(135deg, #f8fafd, #f1f5f9); padding: 18px 20px; border-radius: 16px; margin-bottom: 25px; border: 1px solid #e2e8f0;">
+                        <div style="flex: 1; min-width: 180px;"><strong>المختص التربوي:</strong> ${specialistName}</div>
+                        <div style="flex: 1; min-width: 180px;"><strong>التخصص:</strong> ${specialistSpecialization || 'غير محدد'}</div>
+                        <div style="flex: 1; min-width: 180px;"><strong>المنطقة التعليمية:</strong> ${report.districts?.name || '-'}</div>
+                        <div style="flex: 1; min-width: 180px;"><strong>الفترة الزمنية:</strong> ${periodFrom} - ${periodTo}</div>
+                        <div style="flex: 1; min-width: 180px;"><strong>عدد الزيارات الكلية:</strong> ${visits.length}</div>
+                        <div style="flex: 1; min-width: 180px;"><strong>نوع التقرير:</strong> ${reportType}</div>
+                    </div>
+                    
+                    <h3 style="color: #1e3c72; margin: 25px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #1e3c72;">أولاً: الزيارات</h3>
+                    <div style="overflow-x: auto; margin-bottom: 25px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <table class="preview-table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="padding: 12px 10px;">#</th>
+                                    <th style="padding: 12px 10px;">التاريخ</th>
+                                    <th style="padding: 12px 10px;">المدرسة</th>
+                                    <th style="padding: 12px 10px;">الصف</th>
+                                    <th style="padding: 12px 10px;">الشعبة</th>
+                                    <th style="padding: 12px 10px;">المبحث</th>
+                                    <th style="padding: 12px 10px;">اسم المعلم</th>
+                                    <th style="padding: 12px 10px;">أفكار إبداعية / جوانب إيجابية</th>
+                                    <th style="padding: 12px 10px;">التوصيات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${visitsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <h3 style="color: #1e3c72; margin: 25px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #1e3c72;">ثانياً: أنشطة إشرافية أخرى</h3>
+                    <div style="overflow-x: auto; margin-bottom: 25px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <table class="preview-table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="padding: 12px 10px;">#</th>
+                                    <th style="padding: 12px 10px;">التاريخ</th>
+                                    <th style="padding: 12px 10px;">النشاط</th>
+                                    <th style="padding: 12px 10px;">الموضوع</th>
+                                    <th style="padding: 12px 10px;">الفئة المستهدفة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${activitiesHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('reportDetails').innerHTML = htmlContent;
+        }
+        
+        // ==================== تصدير PDF فائق السرعة ====================
+        function exportReportToPDF() {
+            if (!currentViewReport) {
+                showMessage('لا يوجد تقرير للتصدير', 'error');
+                return;
+            }
+
+            const userName = currentUser?.name || currentUser?.username || 'مستخدم';
+            const currentDate = new Date().toLocaleDateString('ar-SA');
+            const currentTime = new Date().toLocaleTimeString('ar-SA');
+
+            const reportContent = document.getElementById('reportDetails').innerHTML;
+
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>التقرير التجميعي</title>
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body {
+                            font-family: 'Segoe UI', 'Cairo', 'Tahoma', Arial, sans-serif;
+                            background: white;
+                            padding: 12mm 15mm;
+                            direction: rtl;
+                        }
+                        .print-report-container {
+                            max-width: 100%;
+                            margin: 0 auto;
+                            background: white;
+                        }
+                        h2 { text-align: center; color: #1e3c72; margin: 0 0 20px 0; font-size: 22px; }
+                        h3 { color: #1e3c72; margin: 20px 0 12px 0; font-size: 16px; border-bottom: 2px solid #1e3c72; padding-bottom: 5px; }
+                        .info-grid {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 12px;
+                            background: #f8fafd;
+                            padding: 15px;
+                            border-radius: 12px;
+                            margin-bottom: 20px;
+                            border: 1px solid #e2e8f0;
+                        }
+                        .info-item {
+                            flex: 1;
+                            min-width: 180px;
+                        }
+                        .info-label {
+                            font-weight: bold;
+                            color: #1e3c72;
+                        }
+                        .preview-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 20px;
+                            font-size: 12px;
+                        }
+                        .preview-table th,
+                        .preview-table td {
+                            border: 1px solid #000;
+                            padding: 8px 6px;
+                            text-align: center;
+                            vertical-align: top;
+                        }
+                        .preview-table th {
+                            background: #1e3c72;
+                            color: white;
+                            font-weight: 600;
+                        }
+                        .footer {
+                            margin-top: 25px;
+                            border-top: 1px solid #ccc;
+                            padding-top: 10px;
+                            text-align: center;
+                            font-size: 11px;
+                            color: #666;
+                        }
+                        
+                        /* منع انقسام الصفوف بين الصفحات */
+                        .preview-table tr,
+                        .info-grid,
+                        .text-section {
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                        }
+                        .preview-table {
+                            page-break-inside: auto;
+                        }
+                        h3 {
+                            page-break-after: avoid;
+                            break-after: avoid;
+                        }
+                        
+                        @media print {
+                            body { padding: 0; margin: 0; }
+                            .preview-table td, .preview-table th { border: 1px solid #000; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-report-container">
+                        <h2>التقرير النصف شهري للمختص التربوي</h2>
+                        ${reportContent}
+                        <div class="footer">
+                            تم إنشاء هذا التقرير بواسطة: <strong>${userName}</strong>
+                            | تاريخ الطباعة: ${currentDate} - ${currentTime}
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                showMessage('الرجاء السماح للنوافذ المنبثقة', 'error');
+                return;
+            }
+
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+
+            printWindow.onload = function() {
+                printWindow.print();
+                printWindow.onafterprint = function() {
+                    printWindow.close();
+                };
+            };
+
+            showMessage('تم فتح نافذة الطباعة', 'success');
+        }
+        
+        function closeModal() { document.getElementById('summaryReportModal').classList.remove('active'); }
+        function closeViewModal() { document.getElementById('viewModal').classList.remove('active'); currentViewReport = null; }
+        function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('active'); deleteReportData = null; }
+        
+        function openDeleteModal(id) {
+            deleteReportData = id;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+        
+        async function confirmDelete() {
+            if (!deleteReportData) return;
+            try {
+                const { error } = await window.supabaseClient.from('summary_reports').delete().eq('id', deleteReportData);
+                if (error) throw error;
+                showMessage('تم حذف التقرير بنجاح', 'success');
+                closeDeleteModal();
+                await loadSummaryReports();
+            } catch (error) {
+                console.error('Error deleting report:', error);
+                showMessage('حدث خطأ في حذف التقرير', 'error');
+            }
+        }
+        
+        function showMessage(msg, type) {
+            const container = document.getElementById('notificationsContainer');
+            if (!container) return;
+            const el = document.createElement('div');
+            el.className = `notification-item ${type}`;
+            el.innerHTML = `<div style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-${type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-circle'}"></i><span>${msg}</span></div>`;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+        
+        // ==================== دوال الإشعارات ====================
+        
+        async function updateUnreadBadge() {
+            try {
+                const result = await window.getUnreadNotificationsCount(currentUser?.id);
+                if (result.success) {
+                    const badge = document.getElementById('unreadBadge');
+                    if (badge) {
+                        if (result.count > 0) {
+                            badge.textContent = result.count > 99 ? '99+' : result.count;
+                            badge.style.display = 'flex';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating badge:', error);
+            }
+        }
+
+        async function toggleNotificationsPanel() {
+            const panel = document.getElementById('notificationsPanel');
+            const overlay = document.getElementById('panelOverlay');
+            if (panel.classList.contains('open')) {
+                closeNotificationsPanel();
+            } else {
+                await loadNotifications();
+                panel.classList.add('open');
+                overlay.classList.add('open');
+            }
+        }
+
+        function closeNotificationsPanel() {
+            const panel = document.getElementById('notificationsPanel');
+            const overlay = document.getElementById('panelOverlay');
+            panel.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+
+        async function loadNotifications() {
+            const listContainer = document.getElementById('notificationsList');
+            if (!listContainer) return;
+            listContainer.innerHTML = '<div class="empty-notifications"><div class="loader-small"></div><p>جاري تحميل الإشعارات...</p></div>';
+            try {
+                const result = await window.getRecentNotifications(currentUser?.id, 50);
+                if (result.success) {
+                    displayNotifications(result.data);
+                    await updateUnreadBadge();
+                    const markAllBtn = document.getElementById('markAllReadBtn');
+                    if (markAllBtn) {
+                        const hasUnread = result.data.some(n => !n.is_read);
+                        markAllBtn.style.display = hasUnread ? 'flex' : 'none';
+                    }
+                } else {
+                    listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>';
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>';
+            }
+        }
+
+        function displayNotifications(notifications) {
+            const listContainer = document.getElementById('notificationsList');
+            if (!notifications || notifications.length === 0) {
+                listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
+                return;
+            }
+            listContainer.innerHTML = notifications.map(notification => `
+                <div class="notification-list-item ${!notification.is_read ? 'unread' : ''}" onclick="viewNotification(${notification.id})">
+                    <div class="title">${escapeHtml(notification.title)}</div>
+                    <div class="message">${escapeHtml(notification.message)}</div>
+                    <div class="time">${formatNotificationTime(notification.created_at)}</div>
+                    <button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${notification.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function viewNotification(notificationId) {
+            try {
+                const result = await window.handleNotificationClick(notificationId);
+                
+                if (!result.success) {
+                    await window.markNotificationAsRead(notificationId);
+                    await updateUnreadBadge();
+                    await loadNotifications();
+                    showMessage('تم تحديث الإشعار', 'success');
+                }
+                
+            } catch (error) { 
+                console.error('Error handling notification:', error);
+                showMessage('حدث خطأ في فتح الإشعار', 'error');
+            }
+        }
+
+        async function deleteNotificationItem(notificationId) {
+            try {
+                await window.deleteNotification(notificationId);
+                await loadNotifications();
+                await updateUnreadBadge();
+            } catch (error) {
+                console.error('Error deleting notification:', error);
+                showMessage('حدث خطأ', 'لم نتمكن من حذف الإشعار', 'error');
+            }
+        }
+
+        async function markAllAsRead() {
+            try {
+                await window.markAllNotificationsAsRead(currentUser?.id);
+                await loadNotifications();
+                await updateUnreadBadge();
+                showMessage('تم التحديث', 'تم تعيين جميع الإشعارات كمقروءة', 'success');
+            } catch (error) {
+                console.error('Error marking all as read:', error);
+                showMessage('حدث خطأ', 'لم نتمكن من تحديث الإشعارات', 'error');
+            }
+        }
+
+        function formatNotificationTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            if (diffMins < 1) return 'الآن';
+            if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
+            if (diffHours < 24) return `منذ ${diffHours} ساعة`;
+            if (diffDays < 7) return `منذ ${diffDays} يوم`;
+            return date.toLocaleDateString('ar-SA');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        let notificationInterval = null;
+
+        function startNotificationPolling() {
+            if (notificationInterval) clearInterval(notificationInterval);
+            notificationInterval = setInterval(async () => {
+                if (currentUser && document.hasFocus()) {
+                    const result = await window.getUnreadNotificationsCount(currentUser.id);
+                    if (result.success && result.count > 0) updateUnreadBadge();
+                }
+            }, 30000);
+        }
+
+        function stopNotificationPolling() {
+            if (notificationInterval) { clearInterval(notificationInterval); notificationInterval = null; }
+        }
+
+        async function logout() {
+            stopNotificationPolling();
+            localStorage.removeItem('currentUser');
+            try { await window.supabaseClient.auth.signOut(); } catch(e) {}
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - نظام التقارير التربوية</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="lib/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="lib/favicon-16.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="lib/favicon-64.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="lib/apple-touch-icon-180.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- أولاً: تحميل مكتبة Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- ثانياً: تحميل ملف supabase.js -->
+    <script src="js/supabase.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #f0f4fa 0%, #e2e9f3 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-wrapper {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #1e3c72, #153155);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .logo-wrapper i {
+            font-size: 2.2rem;
+            color: white;
+        }
+
+        .login-header h1 {
+            color: #0b1f35;
+            font-size: 1.8rem;
+            margin-bottom: 0.3rem;
+            font-weight: 700;
+        }
+
+        .login-header p {
+            color: #4e6580;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #1e3a5f;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .input-field {
+            position: relative;
+        }
+
+        .input-field i:not(.toggle-password) {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6a7f9e;
+            font-size: 1.1rem;
+            z-index: 1;
+        }
+
+        .input-field .toggle-password {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6a7f9e;
+            font-size: 1.1rem;
+            cursor: pointer;
+            z-index: 2;
+            transition: color 0.2s;
+        }
+
+        .input-field .toggle-password:hover {
+            color: #1e3c72;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 1rem 2.5rem 1rem 2.8rem;
+            border: 1.5px solid #d7e0ea;
+            border-radius: 16px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .input-field input:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #1e3c72, #153155);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .login-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none;
+            font-weight: 500;
+        }
+
+        .message.error {
+            display: block;
+            background: #fff2f5;
+            color: #e34f76;
+            border: 1px solid #fecaca;
+        }
+
+        .message.success {
+            display: block;
+            background: #eef9f0;
+            color: #2e9b54;
+            border: 1px solid #b8e0c0;
+        }
+
+        .message.info {
+            display: block;
+            background: #e8f0fe;
+            color: #1e3c72;
+            border: 1px solid #b8d4f0;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .back-link a {
+            color: #4e6580;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .back-link a:hover {
+            color: #1e3c72;
+        }
+
+        .input-hint {
+            font-size: 0.75rem;
+            color: #6a7f9e;
+            margin-top: 0.25rem;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo-wrapper">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h1>نظام التقارير التربوية الموحد</h1>
+                <p>تسجيل الدخول إلى حسابك</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="input-group">
+                    <label class="input-label">
+                        <i class="fas fa-user" style="margin-left: 0.5rem;"></i>
+                       اسم المستخدم أو البريد الإلكتروني
+                    </label>
+                    <div class="input-field">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="usernameOrEmail" placeholder="أدخل اسم المستخدم أو البريد الإلكتروني" required>
+                    </div>
+                    <div class="input-hint">يمكنك استخدام اسم المستخدم أو البريد الإلكتروني</div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">
+                        <i class="fas fa-lock" style="margin-left: 0.5rem;"></i>
+                        كلمة المرور
+                    </label>
+                    <div class="input-field">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="أدخل كلمة المرور" required>
+                        <i class="fas fa-eye toggle-password" id="toggleIcon" onclick="togglePassword()"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    تسجيل الدخول
+                </button>
+
+                <div id="message" class="message"></div>
+            </form>
+
+            <div class="back-link">
+                <a href="index.html">
+                    <i class="fas fa-arrow-right"></i>
+                    العودة للصفحة الرئيسية
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+// التحقق من تحميل supabase
+console.log('Supabase library loaded:', typeof window.supabase !== 'undefined' ? 'Yes' : 'No');
+console.log('Supabase client exists:', typeof window.supabaseClient !== 'undefined' ? 'Yes' : 'No');
+
+// دالة إظهار/إخفاء كلمة المرور
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.getElementById('toggleIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
+}
+
+// دالة عرض الرسائل
+function showMessage(text, type) {
+    const messageDiv = document.getElementById('message');
+    messageDiv.className = `message ${type}`;
+    messageDiv.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-circle'}"></i> ${text}`;
+    messageDiv.style.display = 'block';
+    
+    setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, 4000);
+}
+
+// دالة جلب بيانات المنطقة والمدرسة للمستخدم
+async function fetchUserRelations(user) {
+    try {
+        const userData = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            name: user.name || user.full_name || user.username,
+            role: user.role,
+            district_id: user.district_id,
+            school_id: user.school_id
+        };
+        
+        // جلب اسم المنطقة إذا وجدت
+        if (user.district_id) {
+            const { data: district } = await window.supabaseClient
+                .from('districts')
+                .select('name')
+                .eq('id', user.district_id)
+                .single();
+            
+            if (district) {
+                userData.district_name = district.name;
+                userData.district = district.name;
+            }
+        }
+        
+        // جلب اسم المدرسة إذا وجدت
+        if (user.school_id) {
+            const { data: school } = await window.supabaseClient
+                .from('schools')
+                .select('name')
+                .eq('id', user.school_id)
+                .single();
+            
+            if (school) {
+                userData.school_name = school.name;
+                userData.school = school.name;
+            }
+        }
+        
+        return userData;
+    } catch (error) {
+        console.error('Error fetching user relations:', error);
+        return {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            name: user.name || user.full_name || user.username,
+            role: user.role
+        };
+    }
+}
+
+// دالة تسجيل الدخول (تدعم اسم المستخدم أو البريد الإلكتروني)
+async function handleLogin(event) {
+    event.preventDefault();
+    
+    const usernameOrEmail = document.getElementById('usernameOrEmail').value.trim();
+    const password = document.getElementById('password').value;
+    const loginBtn = document.getElementById('loginBtn');
+    
+    if (!usernameOrEmail || !password) {
+        showMessage('الرجاء إدخال اسم المستخدم/البريد الإلكتروني وكلمة المرور', 'error');
+        return;
+    }
+    
+    // التحقق من وجود supabaseClient
+    if (typeof window.supabaseClient === 'undefined' || !window.supabaseClient) {
+        showMessage('خطأ في تحميل قاعدة البيانات', 'error');
+        console.error('Supabase client is not available');
+        return;
+    }
+    
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
+    
+    try {
+        console.log('Attempting login with:', usernameOrEmail);
+        
+        // البحث باستخدام اسم المستخدم أو البريد الإلكتروني
+        const { data: users, error } = await window.supabaseClient
+            .from('users')
+            .select('*')
+            .or(`username.eq.${usernameOrEmail},email.eq.${usernameOrEmail}`)
+            .eq('password', password);
+        
+        if (error) {
+            console.error('Supabase query error:', error);
+            throw new Error('حدث خطأ في الاتصال بقاعدة البيانات');
+        }
+        
+        console.log('Query result:', users);
+        
+        if (users && users.length > 0) {
+            const user = users[0];
+            
+            showMessage('جاري تحميل بيانات المستخدم...', 'info');
+            
+            // جلب بيانات المنطقة والمدرسة
+            const fullUserData = await fetchUserRelations(user);
+            
+            // حفظ بيانات المستخدم الكاملة في localStorage
+            localStorage.setItem('currentUser', JSON.stringify(fullUserData));
+            
+            console.log('User logged in:', fullUserData);
+            
+            showMessage('تم تسجيل الدخول بنجاح', 'success');
+            
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1500);
+        } else {
+            showMessage('اسم المستخدم/البريد الإلكتروني أو كلمة المرور غير صحيحة', 'error');
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> تسجيل الدخول';
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        showMessage(error.message || 'حدث خطأ في تسجيل الدخول', 'error');
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> تسجيل الدخول';
+    }
+}
+
+// ربط حدث submit
+document.getElementById('loginForm').addEventListener('submit', handleLogin);
+
+// التحقق من حالة المستخدم
+window.addEventListener('load', () => {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        // التحقق من صحة البيانات المخزنة
+        try {
+            const user = JSON.parse(savedUser);
+            if (user && user.id) {
+                window.location.href = 'dashboard.html';
+            }
+        } catch (e) {
+            console.error('Invalid saved user data');
+            localStorage.removeItem('currentUser');
+        }
+    }
+});
+
+// إضافة دعم للضغط على Enter
+document.getElementById('password').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+    }
+});
+</script>
+</body>
+</html>

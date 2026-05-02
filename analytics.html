@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التحليلات - نظام التقارير التربوية</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="lib/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="lib/favicon-16.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="lib/favicon-64.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="lib/apple-touch-icon-180.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/modern-style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .loader {
+            border: 3px solid #eef2f7;
+            border-top: 3px solid #1e3c72;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .no-access-message {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 20px;
+            margin-top: 2rem;
+        }
+        
+        .no-access-message i {
+            font-size: 4rem;
+            color: #e34f76;
+            margin-bottom: 1rem;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-visited {
+            background: #eef9f0;
+            color: #2e9b54;
+        }
+        
+        .status-not-visited {
+            background: #fff2f5;
+            color: #e34f76;
+        }
+        
+        .flatpickr-calendar {
+            font-family: 'Inter', sans-serif;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border: none;
+        }
+        
+        .flatpickr-day.selected, 
+        .flatpickr-day.startRange, 
+        .flatpickr-day.endRange {
+            background: #1e3c72;
+            border-color: #1e3c72;
+        }
+        
+        .filter-date-picker {
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        /* تنسيقات الإشعارات */
+        .notifications-trigger button {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: right;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #4e6580;
+            transition: all 0.2s;
+        }
+        .notifications-trigger button:hover {
+            background: #f0f4fa;
+            color: #1e3c72;
+        }
+        .notification-badge {
+            position: relative;
+        }
+        .badge-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e34f76;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 600;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            margin-right: auto;
+        }
+        .loader-small {
+            border: 2px solid #eef2f7;
+            border-top: 2px solid #1e3c72;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        /* زر التحديث مع حالة التحميل */
+        .btn-primary {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .btn-primary .btn-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+        
+        .btn-primary i.fa-sync-alt {
+            transition: transform 0.3s ease;
+        }
+        
+        .btn-primary.loading i.fa-sync-alt {
+            animation: rotate 1s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* رسالة التحميل العامة */
+        .loading-overlay-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e3c72;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        .loading-overlay-message .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
+                <h2>نظام التقارير التربوية</h2>
+                <p class="user-role" id="userRoleDisplay">...</p>
+            </div>
+
+            <!-- زر الإشعارات -->
+            <div class="notifications-trigger" style="margin: 0.5rem 1rem;">
+                <button onclick="toggleNotificationsPanel()" class="notification-badge">
+                    <i class="fas fa-bell" style="font-size: 1.1rem;"></i>
+                    <span>الإشعارات</span>
+                    <span id="unreadBadge" class="badge-count" style="display: none;">0</span>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
+                <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
+                <a href="summary-reports.html" id="summaryReportsLink" style="display: none;"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
+                <a href="analytics.html" class="active"><i class="fas fa-chart-bar"></i> التحليلات</a>
+                <div id="adminLinks" style="display: none;">
+                    <a href="districts-management.html" id="districtsManagementLink"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+                    <a href="users-management.html" id="usersManagementLink"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar"><i class="fas fa-user"></i></div>
+                    <div class="user-details">
+                        <h4 class="user-name" id="userNameDisplay">...</h4>
+                        <p class="user-district" id="userDistrictDisplay">...</p>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div id="analyticsContent">
+                <div style="margin-bottom: 2rem;">
+                    <h1 class="section-title" style="margin-bottom: 0.5rem;">
+                        <i class="fas fa-chart-bar"></i>
+                        التحليلات والإحصائيات
+                    </h1>
+                    <p style="color: #4e6580;">تحليلات شاملة لأداء المختصين والمدارس</p>
+                </div>
+
+                <div class="filters-bar">
+                    <div class="filter-group">
+                        <label><i class="fas fa-calendar"></i> من تاريخ</label>
+                        <input type="text" id="analyticsDateFrom" class="form-input filter-date-picker" placeholder="اختر تاريخ البداية" readonly>
+                    </div>
+                    <div class="filter-group">
+                        <label><i class="fas fa-calendar"></i> إلى تاريخ</label>
+                        <input type="text" id="analyticsDateTo" class="form-input filter-date-picker" placeholder="اختر تاريخ النهاية" readonly>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button id="updateAnalyticsBtn" class="btn-primary" onclick="updateAnalyticsWithLoading()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>تحديث</span>
+                        </button>
+                        <button id="exportAnalyticsBtn" class="btn-secondary" onclick="exportAnalytics()">
+                            <i class="fas fa-file-excel"></i> تصدير إكسل
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"  style="background: linear-gradient(135deg, #e34f76, #c13b5c);"><i class="fas fa-chart-line"></i></div>
+                        <div class="stat-info">
+                            <h3>إجمالي الزيارات</h3>
+                            <div class="stat-number" id="totalVisits">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" ><i class="fas fa-school"></i></div>
+                        <div class="stat-info">
+                            <h3>زيارات وجاهي</h3>
+                            <div class="stat-number" id="inPersonVisits">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #2e9b54, #1e7b3a);"><i class="fas fa-laptop"></i></div>
+                        <div class="stat-info">
+                            <h3>زيارات عن بعد</h3>
+                            <div class="stat-number" id="remoteVisits">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fas fa-users"></i></div>
+                        <div class="stat-info">
+                            <h3>المختصين النشطين</h3>
+                            <div class="stat-number" id="activeSpecialists">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon"style="background: linear-gradient(135deg, #2e9b54, #1e7b3a);"><i class="fas fa-building"></i></div>
+                        <div class="stat-info">
+                            <h3>المدارس التي تمت زيارتها</h3>
+                            <div class="stat-number" id="visitedSchools">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #e34f76, #c13b5c);"><i class="fas fa-building"></i></div>
+                        <div class="stat-info">
+                            <h3>المدارس التي لم تزر</h3>
+                            <div class="stat-number" id="notVisitedSchools">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="table-container">
+                        <h3 class="section-title" style="font-size: 1.1rem; margin-bottom: 1rem;"><i class="fas fa-chart-pie"></i> توزيع الزيارات حسب النوع</h3>
+                        <canvas id="distributionChart" style="max-height: 300px;"></canvas>
+                    </div>
+                    <div class="table-container">
+                        <h3 class="section-title" style="font-size: 1.1rem; margin-bottom: 1rem;"><i class="fas fa-chart-line"></i> الزيارات الشهرية</h3>
+                        <canvas id="monthlyTrendChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 class="section-title" style="margin-bottom: 0;"><i class="fas fa-user-graduate"></i> إحصائيات المختصين</h3>
+                        <select id="specialistSort" onchange="sortSpecialists()" class="form-input" style="width: auto;">
+                            <option value="total">ترتيب حسب الإجمالي</option>
+                            <option value="in_person">ترتيب حسب الوجاهي</option>
+                            <option value="remote">ترتيب حسب عن بعد</option>
+                        </select>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="modern-table">
+                            <thead><tr><th>#</th><th>المختص</th><th>المنطقة</th><th>إجمالي الزيارات</th><th>زيارات وجاهي</th><th>زيارات عن بعد</th><th>النسبة</th></tr></thead>
+                            <tbody id="specialistsTable"><tr><td colspan="7" style="text-align: center; padding: 2rem;"><div class="loader"></div>  </td></tr>
+                        </tbody>
+                     </table>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3 class="section-title"><i class="fas fa-school"></i> أكثر المدارس زيارة</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="modern-table">
+                            <thead><tr><th>#</th><th>المدرسة</th><th>المنطقة</th><th>إجمالي الزيارات</th><th>زيارات وجاهي</th><th>زيارات عن بعد</th> </tr>
+                            </thead>
+                            <tbody id="schoolsTable"><tr><td colspan="6" style="text-align: center; padding: 2rem;"><div class="loader"></div> </td></tr>
+                        </tbody>
+                     </table>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3 class="section-title"><i class="fas fa-building"></i> تفاصيل المدارس</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>المدرسة</th>
+                                    <th>المنطقة</th>
+                                    <th>عدد الزيارات</th>
+                                    <th>زيارات وجاهي</th>
+                                    <th>زيارات عن بعد</th>
+                                    <th>الحالة</th>
+                                 </tr>
+                            </thead>
+                            <tbody id="allSchoolsTable">
+                                <tr><td colspan="7" style="text-align: center; padding: 2rem;"><div class="loader"></div> </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- حاوية الإشعارات المنبثقة -->
+    <div class="notifications-container" id="notificationsContainer"></div>
+
+    <!-- لوحة الإشعارات المنبثقة -->
+    <div id="panelOverlay" class="panel-overlay" onclick="closeNotificationsPanel()"></div>
+    <div id="notificationsPanel" class="notifications-panel">
+        <div class="notifications-panel-header">
+            <h3><i class="fas fa-bell"></i> الإشعارات</h3>
+            <button onclick="markAllAsRead()" class="mark-all-read" id="markAllReadBtn" style="display: none;">
+                <i class="fas fa-check-double"></i> تعيين الكل كمقروء
+            </button>
+            <button onclick="closeNotificationsPanel()" class="close-panel">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="notifications-list" id="notificationsList">
+            <div class="empty-notifications">
+                <i class="fas fa-bell-slash"></i>
+                <p>لا توجد إشعارات</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let analyticsData = null;
+        let distributionChart = null;
+        let monthlyChart = null;
+        let currentUser = null;
+        let districtsMap = {};
+        let allSchoolsList = [];
+        let isLoading = false; // متغير لمنع التحميل المتكرر
+        
+        let analyticsDateFromPicker = null;
+        let analyticsDateToPicker = null;
+
+        function canViewAnalytics(user) {
+            if (!user) return false;
+            return ['admin', 'support', 'manger'].includes(user.role);
+        }
+
+        function getUserSubtitle(user) {
+            if (!user) return '';
+            if (user.role === 'admin' || user.role === 'support') return 'مدير نظام';
+            if (user.role === 'manger') return user.district_name || user.district || 'مدير منطقة';
+            if (user.role === 'spuser') return user.school_name || user.school || 'مدير مدرسة';
+            if (user.role === 'user') return 'مشرف تربوي';
+            return '';
+        }
+
+        function getRoleName(role) {
+            const roles = { 'admin': 'مدير النظام', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'spuser': 'مدير مدرسة', 'user': 'مختص تربوي' };
+            return roles[role] || role;
+        }
+
+        function initDatePickers() {
+            const today = new Date();
+            analyticsDateFromPicker = flatpickr("#analyticsDateFrom", {
+                locale: "ar",
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                placeholder: "dd/mm/yyyy",
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (analyticsDateToPicker && selectedDates[0]) {
+                        analyticsDateToPicker.set('minDate', selectedDates[0]);
+                    }
+                }
+            });
+            analyticsDateToPicker = flatpickr("#analyticsDateTo", {
+                locale: "ar",
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                placeholder: "dd/mm/yyyy",
+                maxDate: today,
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (analyticsDateFromPicker && selectedDates[0]) {
+                        analyticsDateFromPicker.set('maxDate', selectedDates[0]);
+                    }
+                }
+            });
+        }
+        
+        function getDateFromPicker(picker) {
+            if (picker && picker.selectedDates && picker.selectedDates[0]) {
+                const date = picker.selectedDates[0];
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            return null;
+        }
+
+        // إظهار رسالة تحميل عائمة
+        function showLoadingMessage(message) {
+            let loadingMsg = document.getElementById('floatingLoadingMsg');
+            if (loadingMsg) loadingMsg.remove();
+            
+            loadingMsg = document.createElement('div');
+            loadingMsg.id = 'floatingLoadingMsg';
+            loadingMsg.className = 'loading-overlay-message';
+            loadingMsg.innerHTML = `<div class="spinner"></div><span>${message}</span>`;
+            document.body.appendChild(loadingMsg);
+        }
+
+        function hideLoadingMessage() {
+            const loadingMsg = document.getElementById('floatingLoadingMsg');
+            if (loadingMsg) loadingMsg.remove();
+        }
+
+        // وظيفة التحديث مع منع الضغط المتكرر وحالة التحميل
+        async function updateAnalyticsWithLoading() {
+            if (isLoading) {
+                showMessage('جاري التحديث حالياً، يرجى الانتظار...', 'info');
+                return;
+            }
+            
+            const updateBtn = document.getElementById('updateAnalyticsBtn');
+            
+            // تغيير حالة الزر إلى التحميل
+            isLoading = true;
+            updateBtn.classList.add('loading');
+            const originalBtnHTML = updateBtn.innerHTML;
+            updateBtn.innerHTML = `<div class="btn-spinner"></div><span>جاري التحديث...</span>`;
+            
+            showLoadingMessage('جاري تحميل التحليلات...');
+            
+            try {
+                await loadAnalytics();
+                showMessage('تم تحديث التحليلات بنجاح', 'success');
+            } catch (error) {
+                console.error('Update error:', error);
+                showMessage('حدث خطأ في تحديث التحليلات', 'error');
+            } finally {
+                // إعادة الزر إلى حالته الطبيعية
+                isLoading = false;
+                updateBtn.classList.remove('loading');
+                updateBtn.innerHTML = originalBtnHTML;
+                hideLoadingMessage();
+            }
+        }
+
+        async function loadUserData() {
+            try {
+                const localUser = localStorage.getItem('currentUser');
+                if (localUser) currentUser = JSON.parse(localUser);
+                const user = await getCurrentUser();
+                if (user) currentUser = user;
+                if (!currentUser) { window.location.href = 'login.html'; return null; }
+                if (!canViewAnalytics(currentUser)) { showNoAccessMessage(); return null; }
+                updateSidebarUI(currentUser);
+                return currentUser;
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                return null;
+            }
+        }
+        
+        function updateSidebarUI(user) {
+            if (!user) return;
+            document.getElementById('userNameDisplay').textContent = user.name || user.username || 'مستخدم';
+            document.getElementById('userRoleDisplay').textContent = getRoleName(user.role);
+            document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(user);
+            
+            const adminLinks = document.getElementById('adminLinks');
+            const districtsLink = document.getElementById('districtsManagementLink');
+            const usersLink = document.getElementById('usersManagementLink');
+            const showAdminLinks = (user.role === 'admin' || user.role === 'support');
+            if (adminLinks) adminLinks.style.display = showAdminLinks ? 'block' : 'none';
+            if (districtsLink) districtsLink.style.display = showAdminLinks ? 'flex' : 'none';
+            if (usersLink) usersLink.style.display = user.role === 'support' ? 'flex' : 'none';
+            
+            const summaryReportsLink = document.getElementById('summaryReportsLink');
+            if (summaryReportsLink) summaryReportsLink.style.display = (user.role === 'spuser') ? 'none' : 'flex';
+        }
+        
+        function showNoAccessMessage() {
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.innerHTML = `<div class="no-access-message"><i class="fas fa-lock"></i><h3>غير مصرح بالوصول</h3><p>عذراً، لا تملك صلاحية الوصول إلى صفحة التحليلات.</p><button onclick="window.location.href='dashboard.html'" class="btn-primary" style="margin-top: 1rem;"><i class="fas fa-home"></i> العودة للرئيسية</button></div>`;
+            }
+        }
+
+        async function getCurrentUser() {
+            const localUser = localStorage.getItem('currentUser');
+            if (localUser && JSON.parse(localUser).id) {
+                const parsed = JSON.parse(localUser);
+                if (parsed.district_name || parsed.school_name) return parsed;
+            }
+            try {
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                if (user) {
+                    const { data: userData } = await window.supabaseClient.from('users').select('*').eq('email', user.email).single();
+                    if (userData) {
+                        if (userData.district_id) {
+                            const { data: district } = await window.supabaseClient.from('districts').select('name').eq('id', userData.district_id).single();
+                            if (district) userData.district_name = district.name;
+                        }
+                        if (userData.school_id) {
+                            const { data: school } = await window.supabaseClient.from('schools').select('name').eq('id', userData.school_id).single();
+                            if (school) userData.school_name = school.name;
+                        }
+                        localStorage.setItem('currentUser', JSON.stringify(userData));
+                        return userData;
+                    }
+                }
+            } catch(e) { console.log('Error getting user:', e); }
+            return localUser ? JSON.parse(localUser) : null;
+        }
+
+        async function loadAllSchools() {
+            try {
+                const { data, error } = await window.supabaseClient.from('schools').select('id, name, district_id');
+                if (error) throw error;
+                allSchoolsList = data || [];
+                
+                const { data: districts } = await window.supabaseClient.from('districts').select('id, name');
+                if (districts) {
+                    districts.forEach(d => { districtsMap[d.id] = d.name; });
+                }
+            } catch (error) {
+                console.error('Error loading schools:', error);
+            }
+        }
+
+        async function loadAnalytics() {
+            try {
+                if (!currentUser) return;
+                
+                const dateFrom = getDateFromPicker(analyticsDateFromPicker);
+                const dateTo = getDateFromPicker(analyticsDateToPicker);
+                
+                await loadAllSchools();
+                
+                // دالة مساعدة لجلب جميع البيانات باستخدام الترحيل
+                async function fetchAllReports(tableName, queryBuilder = null) {
+                    let allData = [];
+                    let page = 0;
+                    const pageSize = 1000;
+                    let hasMore = true;
+                    
+                    while (hasMore) {
+                        let query = window.supabaseClient
+                            .from(tableName)
+                            .select(`*, schools:school_id (id, name, district_id), users:specialist_id (id, name)`)
+                            .order('visit_date', { ascending: false })
+                            .range(page * pageSize, (page + 1) * pageSize - 1);
+                        
+                        if (queryBuilder) {
+                            query = queryBuilder(query);
+                        }
+                        
+                        const { data, error } = await query;
+                        
+                        if (error) {
+                            console.error(`Error fetching ${tableName}:`, error);
+                            break;
+                        }
+                        
+                        if (data && data.length > 0) {
+                            allData = [...allData, ...data];
+                            page++;
+                            if (data.length < pageSize) {
+                                hasMore = false;
+                            }
+                        } else {
+                            hasMore = false;
+                        }
+                    }
+                    
+                    return allData;
+                }
+                
+                let inPersonReports = [];
+                let remoteReports = [];
+                
+                if (currentUser.role === 'admin' || currentUser.role === 'support') {
+                    inPersonReports = await fetchAllReports('in_person_reports');
+                    remoteReports = await fetchAllReports('remote_reports');
+                    
+                } else if (currentUser.role === 'manger' && currentUser.district_id) {
+                    const { data: schoolsInDistrict } = await window.supabaseClient
+                        .from('schools')
+                        .select('id')
+                        .eq('district_id', currentUser.district_id);
+                    const schoolIds = schoolsInDistrict?.map(s => s.id) || [];
+                    
+                    if (schoolIds.length > 0) {
+                        inPersonReports = await fetchAllReports('in_person_reports', (query) => 
+                            query.in('school_id', schoolIds)
+                        );
+                        
+                        remoteReports = await fetchAllReports('remote_reports', (query) => 
+                            query.in('school_id', schoolIds)
+                        );
+                        
+                        allSchoolsList = allSchoolsList.filter(s => schoolIds.includes(s.id));
+                    }
+                }
+                
+                let allReports = [...inPersonReports, ...remoteReports];
+                
+                if (dateFrom) {
+                    allReports = allReports.filter(r => r.visit_date >= dateFrom);
+                }
+                if (dateTo) {
+                    allReports = allReports.filter(r => r.visit_date <= dateTo);
+                }
+                
+                analyticsData = allReports;
+                
+                console.log(`تم تحميل ${allReports.length} تقرير (${inPersonReports.length} وجاهي، ${remoteReports.length} عن بعد)`);
+                
+                if (allReports.length > 2000) {
+                    showMessage(`تم تحميل ${allReports.length} تقرير. قد يستغرق عرض التحليلات بعض الوقت.`, 'info');
+                }
+                
+                updateAnalyticsDisplay();
+                
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                showMessage('حدث خطأ في تحميل التحليلات: ' + error.message, 'error');
+            }
+        }
+        
+        function updateAnalyticsDisplay() {
+            if (!analyticsData) return;
+            
+            const total = analyticsData.length;
+            const inPerson = analyticsData.filter(r => r.report_type === 'in_person').length;
+            const remote = analyticsData.filter(r => r.report_type === 'remote').length;
+            
+            const uniqueSpecialists = new Set(analyticsData.map(r => r.specialist_id));
+            const specialistsCount = uniqueSpecialists.size;
+            
+            const visitedSchoolIds = new Set(analyticsData.map(r => r.school_id));
+            const visitedSchoolsCount = visitedSchoolIds.size;
+            
+            const allSchoolIds = new Set(allSchoolsList.map(s => s.id));
+            const notVisitedSchoolsCount = allSchoolIds.size - visitedSchoolsCount;
+            
+            document.getElementById('totalVisits').textContent = total;
+            document.getElementById('inPersonVisits').textContent = inPerson;
+            document.getElementById('remoteVisits').textContent = remote;
+            document.getElementById('activeSpecialists').textContent = specialistsCount;
+            document.getElementById('visitedSchools').textContent = visitedSchoolsCount;
+            document.getElementById('notVisitedSchools').textContent = notVisitedSchoolsCount;
+            
+            updateCharts(inPerson, remote);
+            displaySpecialistsStats();
+            displaySchoolsStats();
+            displayAllSchoolsDetails(visitedSchoolIds);
+        }
+
+        function updateCharts(inPerson, remote) {
+            const distCtx = document.getElementById('distributionChart')?.getContext('2d');
+            if (distCtx) {
+                if (distributionChart) distributionChart.destroy();
+                distributionChart = new Chart(distCtx, {
+                    type: 'doughnut',
+                    data: { labels: ['تعليم وجاهي', 'تعلم عن بعد'], datasets: [{ data: [inPerson, remote], backgroundColor: ['#1e3c72', '#2e9b54'], borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter' } } } } }
+                });
+            }
+            
+            const monthlyCtx = document.getElementById('monthlyTrendChart')?.getContext('2d');
+            if (monthlyCtx) {
+                const monthlyData = {};
+                analyticsData.forEach(report => {
+                    if (report.visit_date) {
+                        const month = report.visit_date.substring(0, 7);
+                        monthlyData[month] = (monthlyData[month] || 0) + 1;
+                    }
+                });
+                const months = Object.keys(monthlyData).sort();
+                const counts = months.map(m => monthlyData[m]);
+                if (monthlyChart) monthlyChart.destroy();
+                monthlyChart = new Chart(monthlyCtx, {
+                    type: 'line',
+                    data: { labels: months.map(m => { const [year, month] = m.split('-'); return `${month}/${year}`; }), datasets: [{ label: 'عدد الزيارات', data: counts, borderColor: '#1e3c72', backgroundColor: 'rgba(30, 60, 114, 0.1)', tension: 0.4, fill: true }] },
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                });
+            }
+        }
+
+        function displaySpecialistsStats() {
+            const specialistStats = {};
+            analyticsData.forEach(report => {
+                const specialistId = report.specialist_id;
+                if (!specialistStats[specialistId]) {
+                    specialistStats[specialistId] = { id: specialistId, name: report.users?.name || 'غير معروف', total: 0, in_person: 0, remote: 0 };
+                }
+                specialistStats[specialistId].total++;
+                if (report.report_type === 'in_person') specialistStats[specialistId].in_person++;
+                else specialistStats[specialistId].remote++;
+            });
+            
+            const specialists = Object.values(specialistStats);
+            const sortBy = document.getElementById('specialistSort')?.value || 'total';
+            specialists.sort((a, b) => b[sortBy] - a[sortBy]);
+            
+            const tbody = document.getElementById('specialistsTable');
+            if (specialists.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">لا توجد بيانات</td></tr>'; return; }
+            
+            tbody.innerHTML = specialists.map((s, index) => {
+                const percentage = analyticsData.length > 0 ? ((s.total / analyticsData.length) * 100).toFixed(1) : 0;
+                return `<tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${escapeHtml(s.name)}</strong></td>
+                    <td>${currentUser.district_name || 'جميع المناطق'}</td>
+                    <td><strong>${s.total}</strong></td>
+                    <td style="color: #1e3c72;">${s.in_person}</td>
+                    <td style="color: #2e9b54;">${s.remote}</td>
+                    <td><div style="display: flex; align-items: center; gap: 0.5rem;"><div style="width: 100px; height: 6px; background: #eef2f7; border-radius: 3px;"><div style="width: ${percentage}%; height: 6px; background: #1e3c72; border-radius: 3px;"></div></div><span>${percentage}%</span></div></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function displaySchoolsStats() {
+            const schoolStats = {};
+            analyticsData.forEach(report => {
+                const schoolId = report.school_id;
+                if (!schoolStats[schoolId]) {
+                    schoolStats[schoolId] = { id: schoolId, name: report.schools?.name || 'غير معروف', district_id: report.schools?.district_id, total: 0, in_person: 0, remote: 0 };
+                }
+                schoolStats[schoolId].total++;
+                if (report.report_type === 'in_person') schoolStats[schoolId].in_person++;
+                else schoolStats[schoolId].remote++;
+            });
+            
+            const schools = Object.values(schoolStats).sort((a, b) => b.total - a.total).slice(0, 20);
+            const tbody = document.getElementById('schoolsTable');
+            if (schools.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">لا توجد بيانات</td></tr>'; return; }
+            
+            tbody.innerHTML = schools.map((s, index) => {
+                const districtName = districtsMap[s.district_id] || 'غير محدد';
+                return `<tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${escapeHtml(s.name)}</strong></td>
+                    <td>${districtName}</td>
+                    <td><strong>${s.total}</strong></td>
+                    <td style="color: #1e3c72;">${s.in_person}</td>
+                    <td style="color:#2e9b54 ;">${s.remote}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function displayAllSchoolsDetails(visitedSchoolIds) {
+            const tbody = document.getElementById('allSchoolsTable');
+            if (!allSchoolsList || allSchoolsList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">لا توجد بيانات</td></tr>';
+                return;
+            }
+            
+            const schoolStats = {};
+            analyticsData.forEach(report => {
+                const schoolId = report.school_id;
+                if (!schoolStats[schoolId]) {
+                    schoolStats[schoolId] = { total: 0, in_person: 0, remote: 0 };
+                }
+                schoolStats[schoolId].total++;
+                if (report.report_type === 'in_person') schoolStats[schoolId].in_person++;
+                else schoolStats[schoolId].remote++;
+            });
+            
+            const allSchools = allSchoolsList.map(school => {
+                const stats = schoolStats[school.id] || { total: 0, in_person: 0, remote: 0 };
+                const isVisited = visitedSchoolIds.has(school.id);
+                return {
+                    id: school.id,
+                    name: school.name,
+                    district_id: school.district_id,
+                    district_name: districtsMap[school.district_id] || 'غير محدد',
+                    total: stats.total,
+                    in_person: stats.in_person,
+                    remote: stats.remote,
+                    isVisited: isVisited
+                };
+            });
+            
+            allSchools.sort((a, b) => b.total - a.total);
+            
+            tbody.innerHTML = allSchools.map((school, index) => {
+                const statusBadge = school.isVisited 
+                    ? '<span class="status-badge status-visited"><i class="fas fa-check-circle"></i> تمت زيارتها</span>'
+                    : '<span class="status-badge status-not-visited"><i class="fas fa-times-circle"></i> لم تزر بعد</span>';
+                
+                return `<tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${escapeHtml(school.name)}</strong></td>
+                    <td>${school.district_name}</td>
+                    <td><strong>${school.total}</strong></td>
+                    <td style="color: #1e3c72;">${school.in_person}</td>
+                    <td style="color: #2e9b54;">${school.remote}</td>
+                    <td>${statusBadge}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function sortSpecialists() { displaySpecialistsStats(); }
+        function updateAnalytics() { updateAnalyticsWithLoading(); }
+
+        function exportAnalytics() {
+            if (!analyticsData || analyticsData.length === 0) { showMessage('لا توجد بيانات للتصدير', 'error'); return; }
+            
+            // منع التصدير المتكرر
+            const exportBtn = document.getElementById('exportAnalyticsBtn');
+            if (exportBtn.disabled) return;
+            
+            exportBtn.disabled = true;
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري التصدير...';
+            
+            try {
+                const exportData = analyticsData.map(report => ({
+                    'التاريخ': new Date(report.visit_date).toLocaleDateString('ar-SA'),
+                    'النوع': report.report_type === 'in_person' ? 'وجاهي' : 'عن بعد',
+                    'المدرسة': report.schools?.name || 'غير محدد',
+                    'المعلم': report.teacher_name || 'غير محدد',
+                    'المبحث': report.subject || 'غير محدد',
+                    'المختص': report.users?.name || 'غير محدد',
+                    'المنطقة': districtsMap[report.schools?.district_id] || 'غير محدد'
+                }));
+                const totalInPerson = analyticsData.filter(r => r.report_type === 'in_person').length;
+                const totalRemote = analyticsData.filter(r => r.report_type === 'remote').length;
+                exportData.push({ 'التاريخ': 'الإجمالي', 'النوع': `وجاهي: ${totalInPerson} | عن بعد: ${totalRemote}`, 'المدرسة': '', 'المعلم': '', 'المبحث': `إجمالي التقارير: ${analyticsData.length}`, 'المختص': '', 'المنطقة': '' });
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                ws['!cols'] = [{ wch: 15 }, { wch: 25 }, { wch: 40 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }];
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'التحليلات');
+                XLSX.writeFile(wb, `تحليلات_التقارير_${new Date().toISOString().split('T')[0]}.xlsx`);
+                showMessage('تم تصدير التحليلات بنجاح', 'success');
+            } catch (error) { 
+                console.error('Export error:', error); 
+                showMessage('حدث خطأ في تصدير التحليلات', 'error');
+            } finally {
+                setTimeout(() => {
+                    exportBtn.disabled = false;
+                    exportBtn.innerHTML = '<i class="fas fa-file-excel"></i> تصدير إكسل';
+                }, 1000);
+            }
+        }
+
+        function showMessage(message, type) {
+            const container = document.getElementById('notificationsContainer');
+            if (!container) return;
+            const notification = document.createElement('div');
+            notification.className = `notification-item ${type}`;
+            notification.innerHTML = `<div style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i><span>${escapeHtml(message)}</span></div>`;
+            container.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // ==================== دوال الإشعارات ====================
+        
+        async function updateUnreadBadge() {
+            try {
+                const result = await window.getUnreadNotificationsCount(currentUser?.id);
+                if (result.success) {
+                    const badge = document.getElementById('unreadBadge');
+                    if (badge) {
+                        if (result.count > 0) {
+                            badge.textContent = result.count > 99 ? '99+' : result.count;
+                            badge.style.display = 'flex';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating badge:', error);
+            }
+        }
+
+        async function toggleNotificationsPanel() {
+            const panel = document.getElementById('notificationsPanel');
+            const overlay = document.getElementById('panelOverlay');
+            
+            if (panel.classList.contains('open')) {
+                closeNotificationsPanel();
+            } else {
+                await loadNotifications();
+                panel.classList.add('open');
+                overlay.classList.add('open');
+            }
+        }
+
+        function closeNotificationsPanel() {
+            const panel = document.getElementById('notificationsPanel');
+            const overlay = document.getElementById('panelOverlay');
+            panel.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+
+        async function loadNotifications() {
+            const listContainer = document.getElementById('notificationsList');
+            if (!listContainer) return;
+            
+            listContainer.innerHTML = '<div class="empty-notifications"><div class="loader-small"></div><p>جاري تحميل الإشعارات...</p></div>';
+            
+            try {
+                const result = await window.getRecentNotifications(currentUser?.id, 50);
+                if (result.success) {
+                    displayNotifications(result.data);
+                    await updateUnreadBadge();
+                    
+                    const markAllBtn = document.getElementById('markAllReadBtn');
+                    if (markAllBtn) {
+                        const hasUnread = result.data.some(n => !n.is_read);
+                        markAllBtn.style.display = hasUnread ? 'flex' : 'none';
+                    }
+                } else {
+                    listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>';
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>';
+            }
+        }
+
+        function displayNotifications(notifications) {
+            const listContainer = document.getElementById('notificationsList');
+            
+            if (!notifications || notifications.length === 0) {
+                listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
+                return;
+            }
+            
+            listContainer.innerHTML = notifications.map(notification => `
+                <div class="notification-list-item ${!notification.is_read ? 'unread' : ''}" onclick="viewNotification(${notification.id})">
+                    <div class="title">${escapeHtml(notification.title)}</div>
+                    <div class="message">${escapeHtml(notification.message)}</div>
+                    <div class="time">${formatNotificationTime(notification.created_at)}</div>
+                    <button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${notification.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function showNotificationMessage(title, message, type = 'info') {
+            const container = document.getElementById('notificationsContainer');
+            if (!container) return;
+            
+            const notificationBtn = document.querySelector('.notification-badge');
+            if (notificationBtn) {
+                notificationBtn.classList.add('has-unread');
+                setTimeout(() => {
+                    const badge = document.getElementById('unreadBadge');
+                    if (badge && badge.style.display === 'none') {
+                        notificationBtn.classList.remove('has-unread');
+                    }
+                }, 600);
+            }
+            const notification = document.createElement('div');
+            notification.className = `notification-item ${type}`;
+            notification.innerHTML = `
+                <div class="notification-title">${escapeHtml(title)}</div>
+                <div class="notification-message">${escapeHtml(message)}</div>
+                <div class="notification-time">الآن</div>
+            `;
+            notification.onclick = () => {
+                notification.remove();
+                toggleNotificationsPanel();
+            };
+            
+            container.appendChild(notification);
+            updateUnreadBadge();
+            
+            setTimeout(() => {
+                if (notification && notification.remove) notification.remove();
+            }, 5000);
+        }
+
+        async function viewNotification(notificationId) {
+            try {
+                const result = await window.handleNotificationClick(notificationId);
+                
+                if (!result.success) {
+                    await window.markNotificationAsRead(notificationId);
+                    await updateUnreadBadge();
+                    await loadNotifications();
+                    showMessage('تم تحديث الإشعار', 'success');
+                }
+                
+            } catch (error) { 
+                console.error('Error handling notification:', error);
+                showMessage('حدث خطأ في فتح الإشعار', 'error');
+            }
+        }
+
+        async function deleteNotificationItem(notificationId) {
+            try {
+                await window.deleteNotification(notificationId);
+                await loadNotifications();
+                await updateUnreadBadge();
+            } catch (error) {
+                console.error('Error deleting notification:', error);
+                showNotificationMessage('حدث خطأ', 'لم نتمكن من حذف الإشعار', 'error');
+            }
+        }
+
+        async function markAllAsRead() {
+            try {
+                await window.markAllNotificationsAsRead(currentUser?.id);
+                await loadNotifications();
+                await updateUnreadBadge();
+                showNotificationMessage('تم التحديث', 'تم تعيين جميع الإشعارات كمقروءة', 'success');
+            } catch (error) {
+                console.error('Error marking all as read:', error);
+                showNotificationMessage('حدث خطأ', 'لم نتمكن من تحديث الإشعارات', 'error');
+            }
+        }
+
+        function formatNotificationTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'الآن';
+            if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
+            if (diffHours < 24) return `منذ ${diffHours} ساعة`;
+            if (diffDays < 7) return `منذ ${diffDays} يوم`;
+            
+            return date.toLocaleDateString('ar-SA');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        let notificationInterval = null;
+
+        function startNotificationPolling() {
+            if (notificationInterval) clearInterval(notificationInterval);
+            notificationInterval = setInterval(async () => {
+                if (currentUser && document.hasFocus()) {
+                    const result = await window.getUnreadNotificationsCount(currentUser.id);
+                    if (result.success && result.count > 0) {
+                        updateUnreadBadge();
+                    }
+                }
+            }, 30000);
+        }
+
+        function stopNotificationPolling() {
+            if (notificationInterval) {
+                clearInterval(notificationInterval);
+                notificationInterval = null;
+            }
+        }
+
+        async function logout() {
+            stopNotificationPolling();
+            localStorage.removeItem('currentUser');
+            try { if (typeof window.supabaseClient !== 'undefined') await window.supabaseClient.auth.signOut(); } catch (error) { console.log('Supabase logout error:', error); }
+            window.location.href = 'login.html';
+        }
+
+        window.addEventListener('load', async () => {
+            initDatePickers();
+            const user = await loadUserData();
+            if (user && canViewAnalytics(user)) {
+                await loadAnalytics();
+                await updateUnreadBadge();
+                startNotificationPolling();
+            }
+        });
+    </script>
+</body>
+</html>
