@@ -22,7 +22,6 @@
     <script src="js/supabase.js"></script>
     
     <style>
-        /* جميع الـ styles كما هي بدون تغيير */
         .notifications-container { position: fixed; top: 20px; left: 20px; z-index: 9999; max-width: 350px; }
         .notification-item { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-right: 4px solid #1e3c72; animation: slideIn 0.3s ease; cursor: pointer; }
         .notification-item.success { border-right-color: #2e9b54; }
@@ -100,62 +99,53 @@
         .btn-secondary .btn-spinner { border: 2px solid rgba(30,60,114,0.3); border-top-color: #1e3c72; }
         .btn-primary:disabled, .btn-secondary:disabled { cursor: wait !important; opacity: 0.6; }
         
-        @media print { 
-            .toolbar, .sidebar, .main-content > :not(.pdf-print-area), .modal, .modal-actions, .no-print, .filters-bar, .add-report-buttons, .section-title + p, .table-container > div:first-child > button, .notifications-trigger, .sidebar-footer, .logout-btn { display: none !important; } 
-            body { margin: 0; padding: 0; background: white; }
-            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .main-content { margin: 0 !important; padding: 0 !important; }
-            .print-report-container { direction: rtl; font-family: 'Segoe UI', 'Cairo', 'Tahoma', Arial, sans-serif; padding: 5mm 8mm !important; max-width: 100%; margin: 0 auto; background: white; }
-            .print-evaluation-table tr, .print-info-grid, .print-text-section { page-break-inside: avoid; break-inside: avoid; }
-            .print-evaluation-table { page-break-inside: auto; }
-            h3 { page-break-after: avoid; break-after: avoid; }
-        }
-        
-        .print-report-container { direction: rtl; font-family: 'Segoe UI', 'Cairo', 'Tahoma', Arial, sans-serif; padding: 20px; max-width: 210mm; margin: 0 auto; background: white; }
-        .print-report-container h2 { text-align: center; color: #1e3c72; margin: 0 0 20px 0; font-size: 22px; }
-        .print-report-container h3 { color: #1e3c72; margin: 25px 0 12px 0; font-size: 16px; border-bottom: 2px solid #1e3c72; padding-bottom: 5px; }
-        .print-evaluation-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
-        .print-evaluation-table th, .print-evaluation-table td { border: 1px solid #000; padding: 8px 6px; text-align: center; vertical-align: middle; }
-        .print-evaluation-table th { background: #1e3c72; color: white; font-weight: 600; font-size: 13px; }
-        .print-evaluation-table td:first-child { text-align: center; width: 50px; }
-        .print-evaluation-table td:nth-child(2) { text-align: right; }
-        .print-check-mark { font-size: 18px; font-weight: bold; color: #2e9b54; }
-        .print-info-grid { display: flex; flex-wrap: wrap; gap: 12px; background: #f8fafd; padding: 15px; border-radius: 12px; margin-bottom: 25px; }
-        .print-info-item { flex: 1; min-width: 170px; }
-        .print-info-label { font-weight: bold; color: #1e3c72; }
-        .print-text-section { margin-top: 25px; }
-        .print-text-content { background: #f8fafd; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; min-height: 60px; white-space: pre-wrap; line-height: 1.6; }
-        .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3c72; padding-bottom: 10px; margin-bottom: 20px; }
-        .print-footer { margin-top: 25px; border-top: 1px solid #ccc; padding-top: 10px; text-align: center; font-size: 11px; color: #666; }
+        .email-modal-content { max-width: 600px; width: 90%; }
+        .email-group { margin-bottom: 1.2rem; }
+        .email-group label { display: block; font-weight: 600; color: #1e3c72; margin-bottom: 0.4rem; font-size: 0.85rem; }
+        .email-group input, .email-group textarea { width: 100%; padding: 0.7rem 1rem; border: 1px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 0.9rem; background: #f8fafd; }
+        .email-group input:focus, .email-group textarea:focus { outline: none; border-color: #1e3c72; background: white; }
+        .email-actions { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+        .btn-outlook { background: linear-gradient(135deg, #0078D4, #005a9e); color: white;  border-radius: 15px;border: 2px solid rgba(255,255,255,0.3); padding:10px; }
+        .btn-outlook:hover { background: linear-gradient(135deg, #005a9e, #003d73); }
         
         @media (max-width: 768px) { .skill-item { flex-direction: column; align-items: flex-start; } .form-row { grid-template-columns: 1fr; } .filters-bar { flex-direction: column; } .notifications-panel { width: 100%; left: -100%; } }
         
-        .view-loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            color: #1e3c72;
-            gap: 10px;
-        }
+        .view-loading { display: flex; align-items: center; justify-content: center; padding: 40px; color: #1e3c72; gap: 10px; }
         
-        .modal.active {
-            display: flex !important;
-            animation: fadeIn 0.15s ease;
-        }
+        .modal.active { display: flex !important; animation: fadeIn 0.15s ease; }
         
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        #reportDetails {
-            transition: none;
-        }
+        #reportDetails { transition: none; }
+        .print-report-container { will-change: transform; }
         
-        .print-report-container {
-            will-change: transform;
-        }
+    .download-note {
+  font-size: 14px;
+  color:#fff;
+  background: #e34f76;
+  margin-top: 15px;
+  text-align: center;
+  animation: fadeLoop 3s infinite;
+  padding: 15px;
+  font-weight: bold;
+  border-radius: 15px;
+}
+
+
+@keyframes fadeLoop {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
     </style>
 </head>
 <body>
@@ -231,16 +221,15 @@
                     <thead>
                         <tr><th>#</th><th>التاريخ</th><th>النوع</th><th>المنطقة</th><th>المدرسة</th><th>المعلم</th><th>مدير المدرسة</th><th>الصف</th><th>الشعبة</th><th>المبحث</th><th>المختص</th><th>الإجراءات</th></tr>
                     </thead>
-                    <tbody id="reportsTableBody"><tr><td colspan="12" style="text-align: center; padding: 3rem;"><div class="loader"></div><p>جاري تحميل التقارير...</p></td></tr>
-                </tbody>
-            </table>
+                    <tbody id="reportsTableBody"><tr><td colspan="12" style="text-align: center; padding: 3rem;"><div class="loader"></div><p>جاري تحميل التقارير...</p></tbody>
+                </table>
             </div>
             <div style="margin-top: 1rem; color: #4e6580;" id="resultsCount">عدد النتائج: 0</div>
         </div>
     </main>
 </div>
 
-<!-- مودال المعاينة -->
+<!-- Modal المعاينة -->
 <div id="viewModal" class="modal">
     <div class="modal-content modal-large">
         <div class="modal-header">
@@ -248,11 +237,50 @@
             <button class="modal-close" onclick="closeViewModal()"><i class="fas fa-times"></i></button>
         </div>
         <div id="reportDetails" style="padding: 1rem; max-height: 65vh; overflow-y: auto; min-height: 300px;">
-            <!-- سيتم تعبئته ديناميكياً -->
         </div>
         <div class="modal-actions">
             <button onclick="closeViewModal()" class="btn-secondary">إغلاق</button>
-            <button onclick="exportReportToPDF()" id="exportPdfBtn" class="btn-primary" style="background: #e34f76;"><i class="fas fa-print"></i> طباعة / PDF</button>
+            <button onclick="exportReportToPDF()" id="exportPdfBtn" class="btn-primary" style="background: #e34f76;"><i class="fas fa-print"></i>حفظ التقرير PDF</button>
+            <button onclick="openEmailModal()" id="emailReportBtn" class="btn-primary" style="background: #2e9b54; display: none;"><i class="fas fa-envelope"></i> إرسال التقرير بالبريد الإلكتروني</button>
+        </div>
+    </div>
+</div>
+
+<!-- Email Modal -->
+<div id="emailModal" class="modal">
+    <div class="modal-content email-modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-envelope"></i> إرسال التقرير عبر البريد الإلكتروني</h2>
+            <button class="modal-close" onclick="closeEmailModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="padding: 0.5rem 0 1rem 0;">
+            <div class="email-group">
+                <label><i class="fas fa-user"></i> إلى (To):</label>
+                <input type="text" id="emailTo" class="form-input" readonly style="background: #f8fafd;">
+            </div>
+            <div class="email-group">
+                <label><i class="fas fa-copy"></i> نسخة (Cc):</label>
+                <input type="text" id="emailCc" class="form-input" readonly style="background: #f8fafd;">
+            </div>
+            <div class="email-group">
+                <label><i class="fas fa-tag"></i> الموضوع:</label>
+                <input type="text" id="emailSubject" class="form-input" readonly style="background: #f8fafd;">
+            </div>
+            <div class="email-group">
+                <label><i class="fas fa-align-left"></i> نص الرسالة:</label>
+                <textarea id="emailBody" rows="4" class="form-input" readonly style="background: #f8fafd;"></textarea>
+            </div>
+            <div class="email-actions">
+                <button onclick="openOutlookWithAttachment()" class="btn-outlook" id="openOutlookBtn"><i class="fab fa-windows"></i> فتح Outlook</button>
+                <button onclick="closeEmailModal()" class="btn-secondary">إلغاء</button>
+            </div>
+            <p style="font-size: 12px; color: #e34f76; margin-top: 15px; text-align: center;">
+                <i class="fas fa-info-circle"></i>يرجى تحميل التقرير من خلال زر (  حفظ التقرير PDF)
+            </p>
+            <p id="download" class="download-note">
+            <i class="fas fa-info-circle info-icon"></i>
+            في outlook إضغط على زر إرفاق وحمل التقرير الذي قمت بإنزاله سابقا يدوياً
+            </p>
         </div>
     </div>
 </div>
@@ -318,6 +346,7 @@ let currentUser = null;
 let currentViewReport = null;
 let districtsList = [];
 let schoolsData = [];
+let usersData = [];
 let isLoading = false;
 let dateFromPicker = null, dateToPicker = null, inPersonDatePicker = null, remoteDatePicker = null;
 let isInPersonSaving = false, isRemoteSaving = false;
@@ -327,6 +356,7 @@ let isExportingPDF = false;
 let reportsCache = new Map();
 let isLoadingReport = false;
 let currentOpenReportId = null;
+let currentReportHtmlBlob = null;
 
 function getRoleName(role) {
     const roles = { 'admin': 'مدير النظام', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'user': 'مختص تربوي', 'spuser': 'مدير مدرسة' };
@@ -350,6 +380,7 @@ function getUserSubtitle(user) {
 function canCreateReports(user) { return user && ['admin', 'support', 'user'].includes(user.role); }
 function canEditReport(user, report) { return user && report && (['admin', 'support'].includes(user.role) || (user.role === 'user' && report.specialist_id == user.id)); }
 function canDeleteReport(user, report) { return user && report && ['admin', 'support'].includes(user.role); }
+function canEmailReport(user) { return user && ['user', 'support'].includes(user.role); }
 
 function getVisibleReportsForUser(user, allReports) {
     if (!user || !allReports) return [];
@@ -445,18 +476,144 @@ function buildPrintHTMLFast(report, type) {
         const teachingTable = buildEvaluationTableFast(inPersonTeachingList, report.teaching_evaluation || {}, 'أولاً - الأنشطة التعليمية');
         const wellbeingTable = buildEvaluationTableFast(inPersonWellbeingList, report.wellbeing_evaluation || {}, 'ثانياً - الرفاه النفسي');
         
-        reportContent = `<div class="print-report-container"><div class="print-header"><div><h2>نظام التقارير التربوية</h2><p>وزارة التربية والتعليم</p></div></div><h2>تقرير الزيارة الوجاهية</h2><div class="print-info-grid"><div class="print-info-item"><span class="print-info-label">تاريخ الزيارة:</span> ${visitDate}</div><div class="print-info-item"><span class="print-info-label">المنطقة التعليمية:</span> ${districtName}</div><div class="print-info-item"><span class="print-info-label">المدرسة:</span> ${schoolName}</div><div class="print-info-item"><span class="print-info-label">مدير المدرسة:</span> ${principalName}</div><div class="print-info-item"><span class="print-info-label">المختص التربوي:</span> ${specialistName}</div><div class="print-info-item"><span class="print-info-label">اسم المعلم:</span> ${teacherName}</div><div class="print-info-item"><span class="print-info-label">الصف:</span> ${className}</div><div class="print-info-item"><span class="print-info-label">الشعبة:</span> ${section}</div><div class="print-info-item"><span class="print-info-label">المبحث:</span> ${subject}</div><div class="print-info-item"><span class="print-info-label">عنوان الدرس:</span> ${report.lesson || '-'}</div></div>${teachingTable}${wellbeingTable}<div class="print-text-section"><h3>جوانب إيجابية / أفكار إبداعية</h3><div class="print-text-content">${escapeHtmlText(report.positive_aspects) || 'لا توجد جوانب إيجابية مسجلة'}</div></div><div class="print-text-section"><h3>التحديات</h3><div class="print-text-content">${escapeHtmlText(report.challenges) || 'لا توجد تحديات مسجلة'}</div></div><div class="print-text-section"><h3>التوصيات</h3><div class="print-text-content">${escapeHtmlText(report.recommendations) || 'لا توجد توصيات مسجلة'}</div></div><div class="print-footer">تم إنشاء التقرير بواسطة: ${userName}<br>تاريخ التصدير: ${currentDate} - ${currentTime}</div></div>`;
+        reportContent = `<div class="print-report-container"><div class="print-header"><div><h2>نظام التقارير التربوية</h2><p>دائرة التربية والتعليم</p></div></div><h2>تقرير الزيارة الوجاهية</h2><div class="print-info-grid"><div class="print-info-item"><span class="print-info-label">تاريخ الزيارة:</span> ${visitDate}</div><div class="print-info-item"><span class="print-info-label">المنطقة التعليمية:</span> ${districtName}</div><div class="print-info-item"><span class="print-info-label">المدرسة:</span> ${schoolName}</div><div class="print-info-item"><span class="print-info-label">مدير المدرسة:</span> ${principalName}</div><div class="print-info-item"><span class="print-info-label">المختص التربوي:</span> ${specialistName}</div><div class="print-info-item"><span class="print-info-label">اسم المعلم:</span> ${teacherName}</div><div class="print-info-item"><span class="print-info-label">الصف:</span> ${className}</div><div class="print-info-item"><span class="print-info-label">الشعبة:</span> ${section}</div><div class="print-info-item"><span class="print-info-label">المبحث:</span> ${subject}</div><div class="print-info-item"><span class="print-info-label">عنوان الدرس:</span> ${report.lesson || '-'}</div></div>${teachingTable}${wellbeingTable}<div class="print-text-section"><h3>جوانب إيجابية / أفكار إبداعية</h3><div class="print-text-content">${escapeHtmlText(report.positive_aspects) || 'لا توجد جوانب إيجابية مسجلة'}</div></div><div class="print-text-section"><h3>التحديات</h3><div class="print-text-content">${escapeHtmlText(report.challenges) || 'لا توجد تحديات مسجلة'}</div></div><div class="print-text-section"><h3>التوصيات</h3><div class="print-text-content">${escapeHtmlText(report.recommendations) || 'لا توجد توصيات مسجلة'}</div></div><div class="print-footer">تم إنشاء التقرير بواسطة: ${userName}<br>تاريخ التصدير: ${currentDate} - ${currentTime}</div></div>`;
     } else {
         const adminTable = buildEvaluationTableFast(remoteAdminList, report.admin_evaluation || {}, 'أولاً - المهام الإدارية');
         const technicalTable = buildEvaluationTableFast(remoteTechnicalList, report.technical_evaluation || {}, 'ثانياً - المهام الفنية');
         
-        reportContent = `<div class="print-report-container"><div class="print-header"><div><h2>نظام التقارير التربوية</h2><p>وزارة التربية والتعليم</p></div></div><h2>تقرير متابعة التعليم عن بعد</h2><div class="print-info-grid"><div class="print-info-item"><span class="print-info-label">تاريخ الزيارة:</span> ${visitDate}</div><div class="print-info-item"><span class="print-info-label">المنطقة التعليمية:</span> ${districtName}</div><div class="print-info-item"><span class="print-info-label">المدرسة:</span> ${schoolName}</div><div class="print-info-item"><span class="print-info-label">مدير المدرسة:</span> ${principalName}</div><div class="print-info-item"><span class="print-info-label">المختص التربوي:</span> ${specialistName}</div><div class="print-info-item"><span class="print-info-label">اسم المعلم:</span> ${teacherName}</div><div class="print-info-item"><span class="print-info-label">الصف:</span> ${className}</div><div class="print-info-item"><span class="print-info-label">الشعبة:</span> ${section}</div><div class="print-info-item"><span class="print-info-label">المبحث:</span> ${subject}</div></div>${adminTable}${technicalTable}<div class="print-text-section"><h3>التحديات</h3><div class="print-text-content">${escapeHtmlText(report.challenges) || 'لا توجد تحديات مسجلة'}</div></div><div class="print-text-section"><h3>أفكار إبداعية</h3><div class="print-text-content">${escapeHtmlText(report.creative_ideas) || 'لا توجد أفكار إبداعية مسجلة'}</div></div><div class="print-text-section"><h3>التوصيات</h3><div class="print-text-content">${escapeHtmlText(report.recommendations) || 'لا توجد توصيات مسجلة'}</div></div><div class="print-footer">تم إنشاء التقرير بواسطة: ${userName}<br>تاريخ التصدير: ${currentDate} - ${currentTime}</div></div>`;
+        reportContent = `<div class="print-report-container"><div class="print-header"><div><h2>نظام التقارير التربوية</h2><p>دائرة التربية والتعليم</p></div></div><h2>تقرير متابعة التعليم عن بعد</h2><div class="print-info-grid"><div class="print-info-item"><span class="print-info-label">تاريخ الزيارة:</span> ${visitDate}</div><div class="print-info-item"><span class="print-info-label">المنطقة التعليمية:</span> ${districtName}</div><div class="print-info-item"><span class="print-info-label">المدرسة:</span> ${schoolName}</div><div class="print-info-item"><span class="print-info-label">مدير المدرسة:</span> ${principalName}</div><div class="print-info-item"><span class="print-info-label">المختص التربوي:</span> ${specialistName}</div><div class="print-info-item"><span class="print-info-label">اسم المعلم:</span> ${teacherName}</div><div class="print-info-item"><span class="print-info-label">الصف:</span> ${className}</div><div class="print-info-item"><span class="print-info-label">الشعبة:</span> ${section}</div><div class="print-info-item"><span class="print-info-label">المبحث:</span> ${subject}</div></div>${adminTable}${technicalTable}<div class="print-text-section"><h3>التحديات</h3><div class="print-text-content">${escapeHtmlText(report.challenges) || 'لا توجد تحديات مسجلة'}</div></div><div class="print-text-section"><h3>أفكار إبداعية</h3><div class="print-text-content">${escapeHtmlText(report.creative_ideas) || 'لا توجد أفكار إبداعية مسجلة'}</div></div><div class="print-text-section"><h3>التوصيات</h3><div class="print-text-content">${escapeHtmlText(report.recommendations) || 'لا توجد توصيات مسجلة'}</div></div><div class="print-footer">تم إنشاء التقرير بواسطة: ${userName}<br>تاريخ التصدير: ${currentDate} - ${currentTime}</div></div>`;
     }
     
     return `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير تربوي</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI','Cairo','Tahoma',Arial,sans-serif;background:white;padding:12mm 15mm;direction:rtl}.print-report-container{max-width:100%;margin:0 auto;background:white}.print-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1e3c72;padding-bottom:10px;margin-bottom:20px}.print-header h2{margin:0;font-size:18px;color:#1e3c72}.print-header p{margin:2px 0;font-size:12px}.print-footer{margin-top:25px;border-top:1px solid #ccc;padding-top:10px;text-align:center;font-size:11px;color:#666}h2{text-align:center;color:#1e3c72;margin:0 0 20px 0;font-size:22px}h3{color:#1e3c72;margin:25px 0 12px 0;font-size:16px;border-bottom:2px solid #1e3c72;padding-bottom:5px}.print-evaluation-table{width:100%;border-collapse:collapse;margin-bottom:25px}.print-evaluation-table th,.print-evaluation-table td{border:1px solid #000;padding:8px 6px;text-align:center;vertical-align:middle}.print-evaluation-table th{background:#1e3c72;color:white;font-weight:600;font-size:13px}.print-info-grid{display:flex;flex-wrap:wrap;gap:12px;background:#f8fafd;padding:15px;border-radius:12px;margin-bottom:25px;border:1px solid #e2e8f0}.print-info-item{flex:1;min-width:170px}.print-info-label{font-weight:bold;color:#1e3c72}.print-text-section{margin-top:25px}.print-text-content{background:#f8fafd;padding:15px;border-radius:12px;border:1px solid #e2e8f0;min-height:60px;white-space:pre-wrap;line-height:1.6}.print-evaluation-table tr,.print-info-grid,.print-text-section{page-break-inside:avoid;break-inside:avoid}.print-evaluation-table{page-break-inside:auto}h3{page-break-after:avoid;break-after:avoid}@media print{body{padding:0;margin:0}.print-info-grid{border:1px solid #ddd}.print-evaluation-table td,.print-evaluation-table th{border:1px solid #000}}</style></head><body>${reportContent}</body></html>`;
 }
 
-// ===================== دالة جديدة: جلب تقرير واحد مباشرة من قاعدة البيانات =====================
+// ===================== دوال البريد الإلكتروني =====================
+async function loadUsersData() {
+    try {
+        const { data, error } = await window.supabaseClient.from('users').select('id, email, name, role, district_id, school_id');
+        if (error) throw error;
+        usersData = data || [];
+        console.log('تم تحميل بيانات المستخدمين:', usersData.length);
+    } catch (error) {
+        console.error('Error loading users data:', error);
+    }
+}
+
+async function openEmailModal() {
+    if (!currentViewReport) {
+        showMessage('لا يوجد تقرير للإرسال', 'error');
+        return;
+    }
+    
+    const emailBtn = document.getElementById('emailReportBtn');
+    if (emailBtn) emailBtn.disabled = true;
+    
+    try {
+        const specialistName = currentViewReport.users?.name || 'المختص';
+        let subject = '';
+        if (currentViewReport.report_type === 'in_person') {
+            subject = `${specialistName}_TLSReport`;
+        } else {
+            subject = `${specialistName}_R.LReport`;
+        }
+        
+        const body = `قام المختص التربوي (${specialistName}) بإرسال تقرير لزيارة مدرسية
+        
+تفاصيل التقرير:
+- المدرسة: ${currentViewReport.schools?.name || '-'}
+- المعلم: ${currentViewReport.teacher_name || '-'}
+- تاريخ الزيارة: ${new Date(currentViewReport.visit_date).toLocaleDateString('ar-SA')}
+- الصف: ${getClassNameText(currentViewReport.class_name)}/${currentViewReport.section || '-'}
+- المبحث: ${currentViewReport.subject || '-'}`;
+        
+        const toEmails = [];
+        
+        if (currentViewReport.schools?.schoolPrincipalEmail) {
+            toEmails.push(currentViewReport.schools.schoolPrincipalEmail);
+        }
+        
+        const schoolDistrictId = currentViewReport.schools?.district_id;
+        let districtSupportEmail = null;
+        if (schoolDistrictId) {
+            const { data: districtData } = await window.supabaseClient
+                .from('districts')
+                .select('mangerEmail, supportEmail')
+                .eq('id', schoolDistrictId)
+                .single();
+            if (districtData?.mangerEmail) toEmails.push(districtData.mangerEmail);
+            districtSupportEmail = districtData?.supportEmail || null;
+        }
+        
+        const ccEmails = ['i.Najjar@UNRWA.ORG', 'Ma.Zaid@unrwa-edu.org'];
+        if (districtSupportEmail) {
+            ccEmails.push(districtSupportEmail);
+        }
+        
+        const toValue = toEmails.filter(e => e && e !== '').join('; ');
+        const ccValue = ccEmails.join('; ');
+        
+        document.getElementById('emailTo').value = toValue || '(لم يتم العثور على بريد إلكتروني)';
+        document.getElementById('emailCc').value = ccValue;
+        document.getElementById('emailSubject').value = subject;
+        document.getElementById('emailBody').value = body;
+        
+        let html = reportsCache.get(currentViewReport.id);
+        if (!html) {
+            html = buildPrintHTMLFast(currentViewReport, currentViewReport.report_type);
+        }
+        currentReportHtmlBlob = new Blob([html], { type: 'text/html' });
+        
+        document.getElementById('emailModal').classList.add('active');
+        
+    } catch (error) {
+        console.error('Error preparing email:', error);
+        showMessage('حدث خطأ في تجهيز البريد', 'error');
+    } finally {
+        if (emailBtn) emailBtn.disabled = false;
+    }
+}
+
+function closeEmailModal() {
+    document.getElementById('emailModal').classList.remove('active');
+    currentReportHtmlBlob = null;
+}
+
+function openOutlookWithAttachment() {
+    if (!currentViewReport) {
+        showMessage('لا يوجد تقرير للإرسال', 'error');
+        return;
+    }
+
+    // المستلمون الأساسيون
+    const toList = (document.getElementById('emailTo').value || '')
+        .split(/[;,]/)
+        .map(v => v.trim())
+        .filter(Boolean);
+
+    // سنضم CC إلى TO
+    const ccList = (document.getElementById('emailCc').value || '')
+        .split(/[;,]/)
+        .map(v => v.trim())
+        .filter(Boolean);
+
+    // دمج القائمتين + إزالة التكرار
+    const recipients = [...new Set([...toList, ...ccList])].join(',');
+
+    const subject = (document.getElementById('emailSubject').value || '').trim();
+    const body = (document.getElementById('emailBody').value || '').trim();
+
+    const url =
+        'https://outlook.cloud.microsoft/mail/0/deeplink/compose?' +
+        'to=' + encodeURIComponent(recipients) +
+        '&subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(body);
+
+    window.open(url, '_blank');
+
+    closeEmailModal();
+}
+
+// ===================== دوال التقارير =====================
 async function fetchSingleReportDirectly(reportId, reportType) {
     try {
         const districtsMap = {};
@@ -467,7 +624,7 @@ async function fetchSingleReportDirectly(reportId, reportType) {
         if (reportType === 'in_person') {
             const { data, error } = await window.supabaseClient
                 .from('in_person_reports')
-                .select(`*, schools:school_id(id,name,district_id), users:specialist_id(id,name)`)
+                .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
                 .eq('id', reportId)
                 .single();
             
@@ -484,7 +641,7 @@ async function fetchSingleReportDirectly(reportId, reportType) {
         } else {
             const { data, error } = await window.supabaseClient
                 .from('remote_reports')
-                .select(`*, schools:school_id(id,name,district_id), users:specialist_id(id,name)`)
+                .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
                 .eq('id', reportId)
                 .single();
             
@@ -508,7 +665,6 @@ async function fetchSingleReportDirectly(reportId, reportType) {
     }
 }
 
-// ===================== دالة جديدة: فتح تقرير مباشرة من الإشعار =====================
 async function openReportFromNotification(reportId, reportType) {
     if (isLoadingReport) {
         showMessage('جاري تحميل تقرير آخر، الرجاء الانتظار...', 'info');
@@ -529,7 +685,6 @@ async function openReportFromNotification(reportId, reportType) {
     
     isLoadingReport = true;
     
-    // التحقق من الـ cache أولاً
     let cachedHtml = reportsCache.get(reportId);
     
     if (cachedHtml) {
@@ -537,11 +692,14 @@ async function openReportFromNotification(reportId, reportType) {
         isLoadingReport = false;
         currentOpenReportId = reportId;
         showMessage('تم فتح التقرير من الإشعار', 'success');
+        const emailBtn = document.getElementById('emailReportBtn');
+        if (emailBtn && canEmailReport(currentUser)) {
+            emailBtn.style.display = 'inline-flex';
+        }
         return;
     }
     
     try {
-        // جلب التقرير مباشرة من قاعدة البيانات بدون تحميل كل التقارير
         const report = await fetchSingleReportDirectly(reportId, reportType);
         
         if (!report) {
@@ -553,7 +711,6 @@ async function openReportFromNotification(reportId, reportType) {
         
         currentViewReport = report;
         
-        // إضافة التقرير إلى currentReports إذا لم يكن موجوداً (للتحديث اللاحق)
         const existingIndex = currentReports.findIndex(r => r.id == reportId && r.report_type === reportType);
         if (existingIndex === -1) {
             currentReports.unshift(report);
@@ -561,10 +718,8 @@ async function openReportFromNotification(reportId, reportType) {
             currentReports[existingIndex] = report;
         }
         
-        // بناء HTML التقرير
         const html = buildPrintHTMLFast(report, reportType);
         
-        // تخزين في cache
         reportsCache.set(reportId, html);
         if (reportsCache.size > 50) {
             const firstKey = reportsCache.keys().next().value;
@@ -575,6 +730,11 @@ async function openReportFromNotification(reportId, reportType) {
         currentOpenReportId = reportId;
         showMessage('تم فتح التقرير بنجاح', 'success');
         
+        const emailBtn = document.getElementById('emailReportBtn');
+        if (emailBtn && canEmailReport(currentUser)) {
+            emailBtn.style.display = 'inline-flex';
+        }
+        
     } catch (error) {
         console.error('Error opening report from notification:', error);
         detailsDiv.innerHTML = '<div class="view-loading" style="color: red;"><i class="fas fa-exclamation-triangle"></i><span>حدث خطأ في تحميل التقرير</span></div>';
@@ -584,7 +744,6 @@ async function openReportFromNotification(reportId, reportType) {
     }
 }
 
-// ===================== دالة viewReport المحسنة =====================
 async function viewReport(type, id) {
     if (isLoadingReport) {
         showMessage('جاري تحميل تقرير آخر، الرجاء الانتظار...', 'info');
@@ -622,6 +781,10 @@ async function viewReport(type, id) {
     if (cachedHtml) {
         detailsDiv.innerHTML = cachedHtml;
         modal.classList.add('active');
+        const emailBtn = document.getElementById('emailReportBtn');
+        if (emailBtn && canEmailReport(currentUser)) {
+            emailBtn.style.display = 'inline-flex';
+        }
         return;
     }
     
@@ -641,6 +804,11 @@ async function viewReport(type, id) {
             }
             
             detailsDiv.innerHTML = html;
+            
+            const emailBtn = document.getElementById('emailReportBtn');
+            if (emailBtn && canEmailReport(currentUser)) {
+                emailBtn.style.display = 'inline-flex';
+            }
         } catch (error) {
             console.error('خطأ في بناء التقرير:', error);
             detailsDiv.innerHTML = '<div class="view-loading" style="color: red;"><i class="fas fa-exclamation-triangle"></i><span>حدث خطأ في تحميل التقرير</span></div>';
@@ -651,69 +819,66 @@ async function viewReport(type, id) {
     });
 }
 
-// تصدير PDF
-async function exportReportToPDF() {
-    if (!currentViewReport) {
-        showMessage('لا يوجد تقرير للتصدير', 'error');
+function exportReportToPDF(reportId = null) {
+    const report = reportId
+        ? reports.find(r => r.id === reportId)
+        : currentViewReport;
+
+    if (!report) {
+        showMessage('لم يتم العثور على التقرير', 'error');
         return;
     }
-    
-    if (isExportingPDF) {
-        showMessage('جاري التصدير، الرجاء الانتظار...', 'info');
-        return;
-    }
-    
-    const exportBtn = document.getElementById('exportPdfBtn');
-    const originalBtnHtml = exportBtn ? exportBtn.innerHTML : '';
-    
-    isExportingPDF = true;
-    if (exportBtn) {
-        exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحميل...';
-        exportBtn.disabled = true;
-    }
-    
-    try {
-        let html = reportsCache.get(currentViewReport.id);
-        if (!html) {
-            html = buildPrintHTMLFast(currentViewReport, currentViewReport.report_type);
-        }
-        
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-            showMessage('الرجاء السماح للنوافذ المنبثقة', 'error');
-            return;
-        }
-        
-        printWindow.document.write(html);
-        printWindow.document.close();
-        
-        printWindow.onload = function() {
-            printWindow.print();
-            printWindow.onafterprint = function() {
-                printWindow.close();
-            };
-        };
-        
-        showMessage('تم فتح نافذة الطباعة', 'success');
-        
-    } catch (error) {
-        console.error('Export error:', error);
-        showMessage('حدث خطأ في تصدير التقرير', 'error');
-    } finally {
-        setTimeout(() => {
-            if (exportBtn) {
-                exportBtn.innerHTML = originalBtnHtml;
-                exportBtn.disabled = false;
-            }
-            isExportingPDF = false;
-        }, 1000);
-    }
+
+    const html =
+        reportsCache.get(report.id) ||
+        buildPrintHTMLFast(report, report.report_type);
+
+    const fileName = generateReportFileName(report);
+
+    const printWindow = window.open('', '_blank');
+
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.title = fileName.replace('.pdf', '');
+    printWindow.document.close();
+
+    printWindow.focus();
+
+    // فتح نافذة الحفظ/الطباعة
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
 }
 
+function generateReportFileName(report) {
+    // تحديد البادئة حسب نوع التقرير
+    const prefix =
+        (report.report_type === 'remote' || report.report_type === 'remote_learning')
+            ? 'SP_RL'
+            : 'SP_TLS';
+
+    // تنظيف الاسم
+    const clean = (text = '') => {
+        return String(text)
+            .trim()
+            .replace(/[\\/:*?"<>|]/g, '')
+            .replace(/\s+/g, '_')
+            .replace(/_+/g, '_')
+            .replace(/^_+|_+$/g, '');
+    };
+
+    // الأسماء الصحيحة من بيانات التقرير
+    const specialist = clean(report.users?.name || 'مختص');
+    const school = clean(report.schools?.name || 'مدرسة');
+
+    return `${prefix}_${specialist}_${school}.pdf`;
+}
 function closeViewModal() { 
     const modal = document.getElementById('viewModal');
     modal.classList.remove('active');
     currentOpenReportId = null;
+    const emailBtn = document.getElementById('emailReportBtn');
+    if (emailBtn) emailBtn.style.display = 'none';
 }
 
 function updateUIBasedOnRole(user) {
@@ -727,16 +892,24 @@ function updateUIBasedOnRole(user) {
     const addReportBtns = document.querySelectorAll('.add-report-btn');
     const showAddButtons = canCreateReports(user);
     addReportBtns.forEach(btn => btn.style.display = showAddButtons ? 'inline-flex' : 'none');
+    
+    const emailBtn = document.getElementById('emailReportBtn');
+    if (emailBtn) {
+        emailBtn.style.display = canEmailReport(user) ? 'inline-flex' : 'none';
+    }
 }
 
-// ===================== تحميل البيانات =====================
-async function getCurrentUserData() {
-    const localUser = localStorage.getItem('currentUser');
-    if (localUser && JSON.parse(localUser).id) {
-        const parsed = JSON.parse(localUser);
-        if (parsed.district_name || parsed.school_name) return parsed;
-    }
+async function loadUserData() {
     try {
+        const localUser = localStorage.getItem('currentUser');
+        if (localUser) {
+            const parsed = JSON.parse(localUser);
+            if (parsed.district_name || parsed.school_name || parsed.id) {
+                console.log('تم تحميل المستخدم من localStorage:', parsed.name);
+                return parsed;
+            }
+        }
+        
         const { data: { user } } = await window.supabaseClient.auth.getUser();
         if (user) {
             const { data: userData } = await window.supabaseClient.from('users').select('*').eq('email', user.email).single();
@@ -746,20 +919,28 @@ async function getCurrentUserData() {
                     if (district) userData.district_name = district.name;
                 }
                 if (userData.school_id) {
-                    const { data: school } = await window.supabaseClient.from('schools').select('name').eq('id', userData.school_id).single();
-                    if (school) userData.school_name = school.name;
+                    const { data: school } = await window.supabaseClient.from('schools').select('name, schoolPrincipalEmail').eq('id', userData.school_id).single();
+                    if (school) {
+                        userData.school_name = school.name;
+                        userData.schoolPrincipalEmail = school.schoolPrincipalEmail;
+                    }
                 }
                 localStorage.setItem('currentUser', JSON.stringify(userData));
+                console.log('تم تحميل المستخدم من Supabase:', userData.name);
                 return userData;
             }
         }
-    } catch(e) { console.log(e); }
-    return localUser ? JSON.parse(localUser) : null;
+        
+        return null;
+    } catch (error) {
+        console.error('Error loading user data:', error);
+        return null;
+    }
 }
 
 async function loadDistricts() {
     try {
-        const { data, error } = await window.supabaseClient.from('districts').select('id, name').order('name');
+        const { data, error } = await window.supabaseClient.from('districts').select('id, name, mangerEmail, supportEmail').order('name');
         if (error) throw error;
         districtsList = data || [];
         
@@ -800,7 +981,7 @@ async function loadDistricts() {
 
 async function loadSchools() {
     try {
-        const { data, error } = await window.supabaseClient.from('schools').select('id, name, district_id, "schoolPrincipal"').order('name');
+        const { data, error } = await window.supabaseClient.from('schools').select('id, name, district_id, "schoolPrincipal", "schoolPrincipalEmail"').order('name');
         if (error) throw error;
         schoolsData = data || [];
     } catch (error) { console.error('Error loading schools:', error); }
@@ -837,7 +1018,7 @@ async function loadReports() {
         while (hasMore) {
             const { data, error } = await window.supabaseClient
                 .from('in_person_reports')
-                .select(`*, schools:school_id(id,name,district_id), users:specialist_id(id,name)`)
+                .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
                 .order('visit_date', { ascending: false })
                 .range(page * pageSize, (page + 1) * pageSize - 1);
             if (error) throw error;
@@ -855,7 +1036,7 @@ async function loadReports() {
         while (hasMore) {
             const { data, error } = await window.supabaseClient
                 .from('remote_reports')
-                .select(`*, schools:school_id(id,name,district_id), users:specialist_id(id,name)`)
+                .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
                 .order('visit_date', { ascending: false })
                 .range(page * pageSize, (page + 1) * pageSize - 1);
             if (error) throw error;
@@ -880,7 +1061,7 @@ async function loadReports() {
         
         currentReports = [...inPersonReports, ...remoteReports].sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date));
         displayReports(currentReports);
-        showMessage(`تم تحميل ${currentReports.length} تقرير بنجاح`, 'info');
+        console.log(`تم تحميل ${currentReports.length} تقرير بنجاح`);
         
     } catch (error) { 
         console.error('Error loading reports:', error);
@@ -892,7 +1073,7 @@ function displayReports(reports) {
     const visibleReports = getVisibleReportsForUser(currentUser, reports);
     const tbody = document.getElementById('reportsTableBody');
     if (!visibleReports || visibleReports.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير</p>NonNullable</tr>';
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير</p></td></tr>';
         document.getElementById('resultsCount').textContent = 'عدد النتائج: 0';
         return;
     }
@@ -930,7 +1111,7 @@ function filterReports() {
 
 function displayFilteredReports(reports) {
     const tbody = document.getElementById('reportsTableBody');
-    if (!reports || reports.length === 0) { tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p>NonNullable</td>'; document.getElementById('resultsCount').textContent = 'عدد النتائج: 0'; return; }
+    if (!reports || reports.length === 0) { tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>'; document.getElementById('resultsCount').textContent = 'عدد النتائج: 0'; return; }
     tbody.innerHTML = reports.map((report, index) => {
         const canEdit = canEditReport(currentUser, report);
         const canDelete = canDeleteReport(currentUser, report);
@@ -938,7 +1119,7 @@ function displayFilteredReports(reports) {
         if (canEdit) actionsHtml += `<a href="#" onclick="editReport('${report.report_type}', '${report.id}')" class="action-link edit" title="تعديل"><i class="fas fa-edit"></i></a>`;
         if (canDelete) actionsHtml += `<a href="#" onclick="openDeleteModal('${report.report_type}', '${report.id}')" class="action-link delete" title="حذف"><i class="fas fa-trash"></i></a>`;
         const typeBadge = report.report_type === 'in_person' ? '<span class="badge badge-success">وجاهي</span>' : '<span class="badge badge-primary">عن بعد</span>';
-        return `<tr><td style="padding:12px">${index + 1}</td><td style="padding:12px">${new Date(report.visit_date).toLocaleDateString('ar-SA')}</td><td style="padding:12px">${typeBadge}</td><td style="padding:12px">${report.district_name || '-'}</td><td style="padding:12px">${report.schools?.name || '-'}</td><td style="padding:12px">${report.teacher_name || '-'}</td><td style="padding:12px">${report.principal_name || '-'}</td><td style="padding:12px">${getClassNameText(report.class_name)}</td><td style="padding:12px">${report.section || '-'}</td><td style="padding:12px">${report.subject || '-'}</td><td style="padding:12px">${report.users?.name || '-'}</td><td style="padding:12px"><div style="display:flex;gap:0.5rem;">${actionsHtml}</div></td>42`;
+        return `<tr><td style="padding:12px">${index + 1}</td><td style="padding:12px">${new Date(report.visit_date).toLocaleDateString('ar-SA')}</td><td style="padding:12px">${typeBadge}</td><td style="padding:12px">${report.district_name || '-'}</td><td style="padding:12px">${report.schools?.name || '-'}</td><td style="padding:12px">${report.teacher_name || '-'}</td><td style="padding:12px">${report.principal_name || '-'}</td><td style="padding:12px">${getClassNameText(report.class_name)}</td><td style="padding:12px">${report.section || '-'}</td><td style="padding:12px">${report.subject || '-'}</td><td style="padding:12px">${report.users?.name || '-'}</td><td style="padding:12px"><div style="display:flex;gap:0.5rem;">${actionsHtml}</div></tr>`;
     }).join('');
     document.getElementById('resultsCount').textContent = `عدد النتائج: ${reports.length}`;
 }
@@ -1202,7 +1383,6 @@ async function loadNotifications() {
     }
 }
 
-// ===================== دالة معالجة النقر على الإشعار المحسنة =====================
 async function handleNotificationItemClick(notificationId, reportType, reportId) {
     try {
         if (!window.supabaseClient) {
@@ -1210,18 +1390,14 @@ async function handleNotificationItemClick(notificationId, reportType, reportId)
             return;
         }
         
-        // تحديث حالة الإشعار كمقروء
         await window.markNotificationAsRead(notificationId);
         await updateUnreadBadge();
-        
-        // إغلاق لوحة الإشعارات
         closeNotificationsPanel();
         
         if (reportId && reportType) {
             if (reportType === 'summary') {
                 window.location.href = `summary-reports.html?view=${reportId}&t=${Date.now()}`;
             } else if (reportType === 'in_person' || reportType === 'remote') {
-                // فتح التقرير مباشرة باستخدام الدالة الجديدة (بدون إعادة تحميل كل التقارير)
                 await openReportFromNotification(reportId, reportType);
             } else {
                 showMessage('نوع التقرير غير معروف', 'error');
@@ -1284,10 +1460,19 @@ async function logout() {
 
 // ===================== تهيئة الصفحة =====================
 window.addEventListener('load', async () => {
-    currentUser = await getCurrentUserData();
-    if (!currentUser) { window.location.href = 'login.html'; return; }
+    currentUser = await loadUserData();
     
-    document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username;
+    if (!currentUser) {
+        console.log('لم يتم العثور على مستخدم، التوجيه إلى صفحة التسجيل');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    console.log('تم تسجيل الدخول بنجاح:', currentUser.name, 'الدور:', currentUser.role);
+    
+    await loadUsersData();
+    
+    document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username || 'مستخدم';
     document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
     document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(currentUser);
     
@@ -1305,7 +1490,6 @@ window.addEventListener('load', async () => {
     const reportTypeToView = urlParams.get('type');
     
     if (reportIdToView && reportTypeToView && reportIdToView !== 'null' && reportTypeToView !== 'null') {
-        // استخدام الدالة الجديدة لفتح التقرير مباشرة بدون انتظار تحميل كل التقارير
         setTimeout(() => {
             openReportFromNotification(reportIdToView, reportTypeToView);
         }, 500);

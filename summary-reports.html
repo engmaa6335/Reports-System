@@ -23,6 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
     <style>
+        /* ==================== جميع الأنماط الأصلية محفوظة ==================== */
         .notifications-container {
             position: fixed;
             top: 20px;
@@ -391,7 +392,74 @@
         }
         .panel-overlay.open { display: block; }
         
-        /* ========== أنماط الطباعة المحسنة - تمنع انقسام الصفوف ========== */
+        /* تنسيقات مودال البريد الإلكتروني - مضافة جديدة */
+        .email-modal-content {
+            max-width: 600px;
+            width: 90%;
+        }
+        .email-group {
+            margin-bottom: 1.2rem;
+        }
+        .email-group label {
+            display: block;
+            font-weight: 600;
+            color: #1e3c72;
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
+        }
+        .email-group input, .email-group textarea {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            background: #f8fafd;
+        }
+        .email-group input:focus, .email-group textarea:focus {
+            outline: none;
+            border-color: #1e3c72;
+            background: white;
+        }
+        .email-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .btn-outlook {
+            background: linear-gradient(135deg, #0078D4, #005a9e);
+            color: white;
+            border-radius: 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-outlook:hover {
+            background: linear-gradient(135deg, #005a9e, #003d73);
+            transform: translateY(-2px);
+        }
+        .download-note {
+            font-size: 14px;
+            color: #fff;
+            background: #e34f76;
+            margin-top: 15px;
+            text-align: center;
+            animation: fadeLoop 3s infinite;
+            padding: 15px;
+            font-weight: bold;
+            border-radius: 15px;
+        }
+        @keyframes fadeLoop {
+            0% { opacity: 0; }
+            25% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        /* ========== أنماط الطباعة المحسنة ========== */
         @media print {
             .toolbar, .sidebar, .main-content > :not(.pdf-print-area), .modal, .modal-actions, .no-print,
             .filters-bar, .add-report-btn, .section-title + p, .notifications-trigger, .sidebar-footer, .logout-btn,
@@ -402,7 +470,6 @@
             .main-content { margin: 0 !important; padding: 0 !important; }
             * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             
-            /* منع انقسام الصفوف بين الصفحات */
             .preview-table tr,
             .visits-table tr,
             .activities-table tr,
@@ -434,6 +501,7 @@
                 width: 100%;
             }
             .notifications-panel { width: 100%; left: -100%; }
+            .email-modal-content { width: 95%; }
         }
     </style>
 </head>
@@ -687,8 +755,48 @@
             </div>
             <div id="reportDetails" style="padding: 1rem;"></div>
             <div class="modal-actions">
-                <button onclick="exportReportToPDF()" class="btn-primary"><i class="fas fa-print"></i> طباعة / PDF</button>
+                <button onclick="exportReportToPDF()" class="btn-primary"><i class="fas fa-print"></i> حفظ التقرير PDF</button>
+                <button onclick="openOutlookForSummaryReport()" id="emailSummaryBtn" class="btn-primary" style="background: #2e9b54; display: none;"><i class="fas fa-envelope"></i> إرسال التقرير بالبريد الإلكتروني</button>
                 <button onclick="closeViewModal()" class="btn-secondary">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال البريد الإلكتروني للتقرير التجميعي (مضاف جديد) -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content email-modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-envelope"></i> إرسال التقرير عبر البريد الإلكتروني</h2>
+                <button class="modal-close" onclick="closeEmailModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="padding: 0.5rem 0 1rem 0;">
+                <div class="email-group">
+                    <label><i class="fas fa-user"></i> إلى (To):</label>
+                    <input type="text" id="emailTo" class="form-input" readonly style="background: #f8fafd;">
+                </div>
+                <div class="email-group">
+                    <label><i class="fas fa-copy"></i> نسخة (Cc):</label>
+                    <input type="text" id="emailCc" class="form-input" readonly style="background: #f8fafd;">
+                </div>
+                <div class="email-group">
+                    <label><i class="fas fa-tag"></i> الموضوع:</label>
+                    <input type="text" id="emailSubject" class="form-input" readonly style="background: #f8fafd;">
+                </div>
+                <div class="email-group">
+                    <label><i class="fas fa-align-left"></i> نص الرسالة:</label>
+                    <textarea id="emailBody" rows="6" class="form-input" readonly style="background: #f8fafd;"></textarea>
+                </div>
+                <div class="email-actions">
+                    <button onclick="openOutlookForSummaryEmail()" class="btn-outlook" id="openOutlookBtn"><i class="fab fa-windows"></i> فتح Outlook</button>
+                    <button onclick="closeEmailModal()" class="btn-secondary">إلغاء</button>
+                </div>
+                <p style="font-size: 12px; color: #e34f76; margin-top: 15px; text-align: center;">
+                    <i class="fas fa-info-circle"></i> يرجى تحميل التقرير من خلال زر (حفظ التقرير PDF) ثم إرفاقه يدوياً
+                </p>
+                <p id="download" class="download-note">
+                    <i class="fas fa-info-circle info-icon"></i>
+                    في Outlook إضغط على زر إرفاق <i class="fas fa-paperclip"></i> وحمل التقرير الذي قمت بإنزاله سابقاً يدوياً
+                </p>
             </div>
         </div>
     </div>
@@ -750,6 +858,7 @@
         let filterDateFromPicker = null;
         let filterDateToPicker = null;
         let activityDatePickers = [];
+        let currentReportHtmlBlob = null;
 
         // ==================== دوال الصلاحيات ====================
         function canViewSummaryReports(user) {
@@ -935,7 +1044,6 @@
             
             updateSidebarLinks(currentUser);
             
-            // تحميل البيانات الأساسية فقط (المناطق والمختصين والمدارس)
             await loadDistricts();
             await loadSpecialists();
             await loadSchools();
@@ -950,18 +1058,14 @@
             await updateUnreadBadge();
             startNotificationPolling();
             
-            // فتح التقرير من رابط الإشعار - يجب أن يتم فوراً دون تحميل أي تقارير
             const urlParams = new URLSearchParams(window.location.search);
             const reportIdToView = urlParams.get('view');
             
             if (reportIdToView) {
-                // فتح التقرير مباشرة (بدون تحميل قائمة التقارير)
                 console.log('فتح التقرير مباشرة من الإشعار:', reportIdToView);
                 await viewReportDirect(reportIdToView);
                 window.history.replaceState({}, document.title, window.location.pathname);
-                // لا نقوم بتحميل التقارير في الخلفية للحفاظ على السرعة
             } else {
-                // فقط إذا لم يكن هناك إشعار، نقوم بتحميل قائمة التقارير
                 console.log('تحميل قائمة التقارير');
                 await loadSummaryReports();
             }
@@ -1003,7 +1107,7 @@
         
         async function loadDistricts() {
             try {
-                const { data, error } = await window.supabaseClient.from('districts').select('id, name').order('name');
+                const { data, error } = await window.supabaseClient.from('districts').select('id, name, mangerEmail, supportEmail').order('name');
                 if (error) throw error;
                 districtsList = data || [];
                 const options = '<option value="">اختر المنطقة</option>' + districtsList.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
@@ -1162,7 +1266,7 @@
                         <tr>
                             <td colspan="9" style="text-align: center; padding: 2rem; color: #4e6580;">
                                 لا توجد زيارات في هذه الفترة
-                              </td>
+                              <tr>
                         </tr>
                     `;
                 } else {
@@ -1427,7 +1531,7 @@
                     <td colspan="9" style="text-align: center; padding: 2rem; color: #4e6580;">
                         الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية
                        </td>
-                </tr>
+                </table>
             `;
             
             if (periodFromPicker) periodFromPicker.clear();
@@ -1716,7 +1820,7 @@
                             <td style="padding: 8px;">${v.teacher || ''}</td>
                             <td style="padding: 8px;">${v.creative_ideas || ''}</td>
                             <td style="padding: 8px;">${v.recommendations || ''}</td>
-                        </table>
+                        </tr>
                     `;
                 });
                 document.getElementById('visitsTableBody').innerHTML = visitsHtml;
@@ -1803,16 +1907,40 @@
             document.getElementById('summaryReportModal').classList.add('active');
         }
         
+        // ==================== دوال عرض التقرير ====================
         async function viewReport(id) {
-            const report = currentReports.find(r => r.id == id);
-            if (!report) return;
+            console.log('viewReport called with id:', id);
+            let report = currentReports.find(r => r.id == id);
+            
+            if (!report) {
+                console.log('Report not found in currentReports, fetching from DB...');
+                try {
+                    const { data, error } = await window.supabaseClient
+                        .from('summary_reports')
+                        .select('*, users:specialist_id(id, name), districts:district_id(id, name)')
+                        .eq('id', id)
+                        .single();
+                    
+                    if (error) throw error;
+                    report = data;
+                    if (!report) {
+                        showMessage('التقرير غير موجود', 'error');
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error fetching report:', error);
+                    showMessage('حدث خطأ في تحميل التقرير', 'error');
+                    return;
+                }
+            }
+            
+            currentViewReport = report;
             await displayReportInModal(report);
         }
         
-        // ==================== فتح التقرير مباشرة من قاعدة البيانات (بدون تحميل القائمة) ====================
         async function viewReportDirect(reportId) {
+            console.log('viewReportDirect called with id:', reportId);
             try {
-                // عرض مؤشر تحميل في المودال
                 document.getElementById('reportDetails').innerHTML = `
                     <div class="loading-message" style="padding: 3rem;">
                         <div class="loader"></div>
@@ -1821,13 +1949,11 @@
                 `;
                 document.getElementById('viewModal').classList.add('active');
                 
-                // استعلام واحد فقط لجلب التقرير
                 let query = window.supabaseClient
                     .from('summary_reports')
                     .select('*, users:specialist_id(id, name), districts:district_id(id, name)')
                     .eq('id', reportId);
                 
-                // تطبيق قيود الصلاحيات
                 if (currentUser.role === 'manger' && currentUser.district_id) {
                     query = query.eq('district_id', currentUser.district_id);
                 } else if (currentUser.role === 'user') {
@@ -1847,10 +1973,7 @@
                     return;
                 }
                 
-                // حفظ التقرير للطباعة
                 currentViewReport = report;
-                
-                // عرض التقرير
                 await displayReportInModal(report);
                 
             } catch (error) {
@@ -1864,8 +1987,9 @@
             }
         }
         
-        // ==================== عرض التقرير في المودال (دالة مساعدة مشتركة) ====================
         async function displayReportInModal(report) {
+            console.log('displayReportInModal called with report:', report.id);
+            
             let specialistSpecialization = '';
             let specialistName = report.users?.name || '-';
             
@@ -1879,15 +2003,26 @@
                     
                     if (!userError && userData) {
                         specialistName = userData.name || specialistName;
-                        specialistSpecialization = userData.specialists?.specialization || '';
+                        if (userData.specialists && userData.specialists.specialization) {
+                            specialistSpecialization = userData.specialists.specialization;
+                        }
                     }
                 } catch (err) {
                     console.error('Error fetching specialist specialization:', err);
                 }
             }
             
-            const visits = JSON.parse(report.visits_data || '[]');
-            const activities = JSON.parse(report.supervisory_activities || '[]');
+            let visits = [];
+            let activities = [];
+            try {
+                visits = JSON.parse(report.visits_data || '[]');
+                activities = JSON.parse(report.supervisory_activities || '[]');
+            } catch (e) {
+                console.error('Error parsing JSON data:', e);
+                visits = [];
+                activities = [];
+            }
+            
             const reportType = report.report_type === 'in_person' ? 'وجاهي' : 'عن بعد';
             
             let visitsHtml = '';
@@ -1928,15 +2063,16 @@
                 activitiesHtml = '<tr><td colspan="5" style="padding: 30px; text-align: center; color: #6c757d;">لا توجد أنشطة إشرافية</td></tr>';
             }
             
-            const periodFrom = new Date(report.period_from).toLocaleDateString('ar-SA');
-            const periodTo = new Date(report.period_to).toLocaleDateString('ar-SA');
+            const periodFrom = report.period_from ? new Date(report.period_from).toLocaleDateString('ar-SA') : '-';
+            const periodTo = report.period_to ? new Date(report.period_to).toLocaleDateString('ar-SA') : '-';
+            const districtName = report.districts?.name || '-';
             
             const htmlContent = `
                 <div style="direction: rtl; font-family: 'Traditional Arabic', 'Times New Roman', 'Segoe UI', Arial;">
                     <div class="info-grid" style="display: flex; flex-wrap: wrap; gap: 15px; background: linear-gradient(135deg, #f8fafd, #f1f5f9); padding: 18px 20px; border-radius: 16px; margin-bottom: 25px; border: 1px solid #e2e8f0;">
-                        <div style="flex: 1; min-width: 180px;"><strong>المختص التربوي:</strong> ${specialistName}</div>
-                        <div style="flex: 1; min-width: 180px;"><strong>التخصص:</strong> ${specialistSpecialization || 'غير محدد'}</div>
-                        <div style="flex: 1; min-width: 180px;"><strong>المنطقة التعليمية:</strong> ${report.districts?.name || '-'}</div>
+                        <div style="flex: 1; min-width: 180px;"><strong>المختص التربوي:</strong> ${escapeHtml(specialistName)}</div>
+                        <div style="flex: 1; min-width: 180px;"><strong>التخصص:</strong> ${escapeHtml(specialistSpecialization) || 'غير محدد'}</div>
+                        <div style="flex: 1; min-width: 180px;"><strong>المنطقة التعليمية:</strong> ${escapeHtml(districtName)}</div>
                         <div style="flex: 1; min-width: 180px;"><strong>الفترة الزمنية:</strong> ${periodFrom} - ${periodTo}</div>
                         <div style="flex: 1; min-width: 180px;"><strong>عدد الزيارات الكلية:</strong> ${visits.length}</div>
                         <div style="flex: 1; min-width: 180px;"><strong>نوع التقرير:</strong> ${reportType}</div>
@@ -1985,140 +2121,293 @@
             `;
             
             document.getElementById('reportDetails').innerHTML = htmlContent;
+            
+            const emailBtn = document.getElementById('emailSummaryBtn');
+            if (emailBtn && (currentUser.role === 'user' || currentUser.role === 'support')) {
+                emailBtn.style.display = 'inline-flex';
+            } else if (emailBtn) {
+                emailBtn.style.display = 'none';
+            }
+            
+            document.getElementById('viewModal').classList.add('active');
         }
         
-        // ==================== تصدير PDF فائق السرعة ====================
-        function exportReportToPDF() {
+        // ==================== دوال البريد الإلكتروني للتقرير التجميعي (مضافة جديدة) ====================
+        
+        async function openOutlookForSummaryReport() {
             if (!currentViewReport) {
-                showMessage('لا يوجد تقرير للتصدير', 'error');
+                showMessage('لا يوجد تقرير للإرسال', 'error');
                 return;
             }
-
-            const userName = currentUser?.name || currentUser?.username || 'مستخدم';
-            const currentDate = new Date().toLocaleDateString('ar-SA');
-            const currentTime = new Date().toLocaleTimeString('ar-SA');
-
-            const reportContent = document.getElementById('reportDetails').innerHTML;
-
-            const htmlContent = `
-                <!DOCTYPE html>
-                <html dir="rtl">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>التقرير التجميعي</title>
-                    <style>
-                        * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body {
-                            font-family: 'Segoe UI', 'Cairo', 'Tahoma', Arial, sans-serif;
-                            background: white;
-                            padding: 12mm 15mm;
-                            direction: rtl;
-                        }
-                        .print-report-container {
-                            max-width: 100%;
-                            margin: 0 auto;
-                            background: white;
-                        }
-                        h2 { text-align: center; color: #1e3c72; margin: 0 0 20px 0; font-size: 22px; }
-                        h3 { color: #1e3c72; margin: 20px 0 12px 0; font-size: 16px; border-bottom: 2px solid #1e3c72; padding-bottom: 5px; }
-                        .info-grid {
-                            display: flex;
-                            flex-wrap: wrap;
-                            gap: 12px;
-                            background: #f8fafd;
-                            padding: 15px;
-                            border-radius: 12px;
-                            margin-bottom: 20px;
-                            border: 1px solid #e2e8f0;
-                        }
-                        .info-item {
-                            flex: 1;
-                            min-width: 180px;
-                        }
-                        .info-label {
-                            font-weight: bold;
-                            color: #1e3c72;
-                        }
-                        .preview-table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            margin-bottom: 20px;
-                            font-size: 12px;
-                        }
-                        .preview-table th,
-                        .preview-table td {
-                            border: 1px solid #000;
-                            padding: 8px 6px;
-                            text-align: center;
-                            vertical-align: top;
-                        }
-                        .preview-table th {
-                            background: #1e3c72;
-                            color: white;
-                            font-weight: 600;
-                        }
-                        .footer {
-                            margin-top: 25px;
-                            border-top: 1px solid #ccc;
-                            padding-top: 10px;
-                            text-align: center;
-                            font-size: 11px;
-                            color: #666;
-                        }
-                        
-                        /* منع انقسام الصفوف بين الصفحات */
-                        .preview-table tr,
-                        .info-grid,
-                        .text-section {
-                            page-break-inside: avoid;
-                            break-inside: avoid;
-                        }
-                        .preview-table {
-                            page-break-inside: auto;
-                        }
-                        h3 {
-                            page-break-after: avoid;
-                            break-after: avoid;
-                        }
-                        
-                        @media print {
-                            body { padding: 0; margin: 0; }
-                            .preview-table td, .preview-table th { border: 1px solid #000; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="print-report-container">
-                        <h2>التقرير النصف شهري للمختص التربوي</h2>
-                        ${reportContent}
-                        <div class="footer">
-                            تم إنشاء هذا التقرير بواسطة: <strong>${userName}</strong>
-                            | تاريخ الطباعة: ${currentDate} - ${currentTime}
-                        </div>
-                    </div>
-                </body>
-                </html>
-            `;
-
-            const printWindow = window.open('', '_blank');
-            if (!printWindow) {
-                showMessage('الرجاء السماح للنوافذ المنبثقة', 'error');
-                return;
+            
+            // جلب بيانات المنطقة
+            const districtId = currentViewReport.district_id;
+            let managerEmail = '';
+            let supportEmail = '';
+            
+            if (districtId) {
+                const district = districtsList.find(d => d.id == districtId);
+                if (district) {
+                    managerEmail = district.mangerEmail || '';
+                    supportEmail = district.supportEmail || '';
+                }
             }
-
-            printWindow.document.write(htmlContent);
-            printWindow.document.close();
-
-            printWindow.onload = function() {
-                printWindow.print();
-                printWindow.onafterprint = function() {
-                    printWindow.close();
-                };
-            };
-
-            showMessage('تم فتح نافذة الطباعة', 'success');
+            
+            // جلب اسم المختص وتخصصه
+            let specialistName = currentViewReport.users?.name || 'مختص';
+            let specialization = '';
+            
+            if (currentViewReport.specialist_id) {
+                try {
+                    const { data: userData } = await window.supabaseClient
+                        .from('users')
+                        .select(`name, specialists:specialist_id (specialization)`)
+                        .eq('id', currentViewReport.specialist_id)
+                        .single();
+                    if (userData) {
+                        specialistName = userData.name || specialistName;
+                        specialization = userData.specialists?.specialization || '';
+                    }
+                } catch (err) {
+                    console.error('Error fetching specialist specialization for email:', err);
+                }
+            }
+            
+            // تحديد الموضوع حسب نوع التقرير
+            const subjectPrefix = currentViewReport.report_type === 'in_person' ? 'TLS-BiWeekly' : 'RL-BiWeekly';
+            const subject = `${subjectPrefix} - التقرير الدوري للمختص ${specialistName}`;
+            
+            // تنسيق التاريخ والوقت
+            const periodFrom = new Date(currentViewReport.period_from).toLocaleDateString('ar-SA');
+            const periodTo = new Date(currentViewReport.period_to).toLocaleDateString('ar-SA');
+            const now = new Date();
+            const sendDate = now.toLocaleDateString('ar-SA');
+            const sendTime = now.toLocaleTimeString('ar-SA');
+            
+            // بناء نص الرسالة
+            const body = `قام المختص التربوي (${specialistName}) بإرسال تقرير نصف شهري
+        
+تفاصيل التقرير:
+- الفترة الزمنية للتقرير: ${periodFrom} - ${periodTo}
+- تاريخ إرسال التقرير: ${sendDate}
+- وقت إرسال التقرير: ${sendTime}
+- المبحث: ${specialization || 'غير محدد'}`;
+            
+            // تحديد المستلمين
+            const toEmails = [];
+            if (managerEmail) toEmails.push(managerEmail);
+            
+            const ccEmails = ['i.Najjar@UNRWA.ORG', 'Ma.Zaid@unrwa-edu.org'];
+            if (supportEmail && supportEmail !== managerEmail) {
+                ccEmails.unshift(supportEmail);
+            }
+            
+            const toValue = toEmails.join('; ') || '(لم يتم العثور على بريد إلكتروني لمدير المنطقة)';
+            const ccValue = ccEmails.join('; ');
+            
+            // تعبئة المودال
+            document.getElementById('emailTo').value = toValue;
+            document.getElementById('emailCc').value = ccValue;
+            document.getElementById('emailSubject').value = subject;
+            document.getElementById('emailBody').value = body;
+            
+            // فتح مودال البريد
+            document.getElementById('emailModal').classList.add('active');
         }
         
+        function closeEmailModal() {
+            document.getElementById('emailModal').classList.remove('active');
+            currentReportHtmlBlob = null;
+        }
+        
+        function openOutlookForSummaryEmail() {
+            // جلب المستلمين من المودال
+            const toList = (document.getElementById('emailTo').value || '')
+                .split(/[;,]/)
+                .map(v => v.trim())
+                .filter(v => v !== '(لم يتم العثور على بريد إلكتروني لمدير المنطقة)');
+            
+            const ccList = (document.getElementById('emailCc').value || '')
+                .split(/[;,]/)
+                .map(v => v.trim())
+                .filter(Boolean);
+            
+            // دمج TO و CC
+            const recipients = [...new Set([...toList, ...ccList])].join(',');
+            
+            const subject = (document.getElementById('emailSubject').value || '').trim();
+            const body = (document.getElementById('emailBody').value || '').trim();
+            
+            const url = 'https://outlook.cloud.microsoft/mail/0/deeplink/compose?' +
+                'to=' + encodeURIComponent(recipients) +
+                '&subject=' + encodeURIComponent(subject) +
+                '&body=' + encodeURIComponent(body);
+            
+            window.open(url, '_blank');
+            
+            closeEmailModal();
+            showMessage('تم فتح Outlook، يرجى إرفاق ملف PDF للتقرير إذا لزم الأمر', 'success');
+        }
+
+        // ==================== تصدير PDF ====================
+function exportReportToPDF() {
+    if (!currentViewReport) {
+        showMessage('لا يوجد تقرير للتصدير', 'error');
+        return;
+    }
+
+    // تحديد البادئة حسب نوع التقرير (مثل reports.html)
+    let prefix = '';
+    if (currentViewReport.report_type === 'in_person') {
+        prefix = 'TLS-BiWeekly';
+    } else {
+        prefix = 'RL-BiWeekly';
+    }
+
+    // جلب اسم المختص
+    let specialistName = currentViewReport.users?.name || 'مختص';
+    
+    // تنظيف اسم المختص (إزالة الأحرف غير المسموحة في أسماء الملفات)
+    const clean = (text = '') => {
+        return String(text)
+            .trim()
+            .replace(/[\\/:*?"<>|]/g, '')
+            .replace(/\s+/g, '_')
+            .replace(/_+/g, '_')
+            .replace(/^_+|_+$/g, '');
+    };
+    
+    const cleanSpecialistName = clean(specialistName);
+    
+    // بناء اسم الملف: البادئة - اسم المختص.pdf
+    const fileName = `${prefix} - ${cleanSpecialistName}.pdf`;
+
+    const userName = currentUser?.name || currentUser?.username || 'مستخدم';
+    const currentDate = new Date().toLocaleDateString('ar-SA');
+    const currentTime = new Date().toLocaleTimeString('ar-SA');
+
+    const reportContent = document.getElementById('reportDetails').innerHTML;
+
+    const htmlContent = `
+        <!DOCTYPE html>
+        <html dir="rtl">
+        <head>
+            <meta charset="UTF-8">
+            <title>التقرير التجميعي</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: 'Segoe UI', 'Cairo', 'Tahoma', Arial, sans-serif;
+                    background: white;
+                    padding: 12mm 15mm;
+                    direction: rtl;
+                }
+                .print-report-container {
+                    max-width: 100%;
+                    margin: 0 auto;
+                    background: white;
+                }
+                h2 { text-align: center; color: #1e3c72; margin: 0 0 20px 0; font-size: 22px; }
+                h3 { color: #1e3c72; margin: 20px 0 12px 0; font-size: 16px; border-bottom: 2px solid #1e3c72; padding-bottom: 5px; }
+                .info-grid {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 12px;
+                    background: #f8fafd;
+                    padding: 15px;
+                    border-radius: 12px;
+                    margin-bottom: 20px;
+                    border: 1px solid #e2e8f0;
+                }
+                .info-item {
+                    flex: 1;
+                    min-width: 180px;
+                }
+                .info-label {
+                    font-weight: bold;
+                    color: #1e3c72;
+                }
+                .preview-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                    font-size: 12px;
+                }
+                .preview-table th,
+                .preview-table td {
+                    border: 1px solid #000;
+                    padding: 8px 6px;
+                    text-align: center;
+                    vertical-align: top;
+                }
+                .preview-table th {
+                    background: #1e3c72;
+                    color: white;
+                    font-weight: 600;
+                }
+                .footer {
+                    margin-top: 25px;
+                    border-top: 1px solid #ccc;
+                    padding-top: 10px;
+                    text-align: center;
+                    font-size: 11px;
+                    color: #666;
+                }
+                
+                /* منع انقسام الصفوف بين الصفحات */
+                .preview-table tr,
+                .info-grid,
+                .text-section {
+                    page-break-inside: avoid;
+                    break-inside: avoid;
+                }
+                .preview-table {
+                    page-break-inside: auto;
+                }
+                h3 {
+                    page-break-after: avoid;
+                    break-after: avoid;
+                }
+                
+                @media print {
+                    body { padding: 0; margin: 0; }
+                    .preview-table td, .preview-table th { border: 1px solid #000; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-report-container">
+                <h2>التقرير النصف شهري للمختص التربوي</h2>
+                ${reportContent}
+                <div class="footer">
+                    تم إنشاء هذا التقرير بواسطة: <strong>${userName}</strong>
+                    | تاريخ الطباعة: ${currentDate} - ${currentTime}
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    // إنشاء Blob وفتح نافذة الطباعة التي تسمح بحفظ الملف باسم مخصص
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        showMessage('الرجاء السماح للنوافذ المنبثقة', 'error');
+        return;
+    }
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.title = fileName.replace('.pdf', '');
+    printWindow.document.close();
+
+    printWindow.onload = function() {
+        printWindow.print();
+        printWindow.onafterprint = function() {
+            printWindow.close();
+        };
+    };
+
+    showMessage('تم فتح نافذة الطباعة، يمكنك حفظ الملف باسم: ' + fileName, 'success');
+}        
         function closeModal() { document.getElementById('summaryReportModal').classList.remove('active'); }
         function closeViewModal() { document.getElementById('viewModal').classList.remove('active'); currentViewReport = null; }
         function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('active'); deleteReportData = null; }
