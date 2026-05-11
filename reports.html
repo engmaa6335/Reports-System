@@ -22,6 +22,7 @@
     <script src="js/supabase.js"></script>
     
     <style>
+        /* ===== جميع الأنماط ===== */
         .notifications-container { position: fixed; top: 20px; left: 20px; z-index: 9999; max-width: 350px; }
         .notification-item { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-right: 4px solid #1e3c72; animation: slideIn 0.3s ease; cursor: pointer; }
         .notification-item.success { border-right-color: #2e9b54; }
@@ -35,7 +36,40 @@
         .skill-rating label { display: flex; align-items: center; gap: 0.3rem; cursor: pointer; }
         .skill-rating input[type="radio"] { width: 16px; height: 16px; cursor: pointer; }
         
-        .modal-content { max-width: 950px; max-height: 85vh; overflow-y: auto; }
+        /* ===== تحسين المودال ليظهر في أعلى الصفحة ===== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 999999 !important;
+            display: none;
+            align-items: flex-start !important;
+            justify-content: center !important;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
+        .modal.active {
+            display: flex !important;
+        }
+        
+        .modal-content {
+            margin: 0.5rem auto 2rem auto !important;
+            max-width: 95%;
+            width: 100%;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1000000;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
         .form-section { background: #f8fafd; border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid #eef2f7; }
         .form-section h3 { color: #1e3c72; font-size: 1.1rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #1e3c72; display: inline-block; }
         .form-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
@@ -48,9 +82,133 @@
         .flatpickr-input[readonly] { background-color: white; cursor: pointer !important; }
         .filter-date-picker { cursor: pointer !important; background-color: white; }
         
-        .filters-bar { display: flex; flex-wrap: wrap; gap: 1rem; background: #f8fafd; padding: 1.25rem; border-radius: 20px; margin-bottom: 1.5rem; align-items: flex-end; }
+        .filters-bar { display: flex; flex-wrap: wrap; gap: 1rem; background: #f8fafd; padding: 1.25rem; border-radius: 20px; margin-bottom: 1rem; align-items: flex-end; }
         .filter-group { flex: 1; min-width: 150px; }
         .filter-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #1e3c72; margin-bottom: 0.3rem; }
+        
+        .reports-control-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafd;
+            padding: 0.75rem 1.25rem;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .reports-info {
+            color: #4e6580;
+            font-size: 0.85rem;
+            background: white;
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            border: 1px solid #e2e8f0;
+        }
+        .reports-info strong {
+            color: #1e3c72;
+            font-weight: 700;
+        }
+        
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem 0.9rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e3c72;
+            transition: all 0.2s;
+        }
+        .pagination-btn:hover:not(:disabled) {
+            background: #1e3c72;
+            color: white;
+            border-color: #1e3c72;
+        }
+        .pagination-btn.active {
+            background: #1e3c72;
+            color: white;
+            border-color: #1e3c72;
+        }
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .page-info {
+            background: #f8fafd;
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            color: #4e6580;
+        }
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8fafd;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+        }
+        .page-size-selector select {
+            padding: 0.3rem 0.5rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: white;
+        }
+        
+        .loading-indicator-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #eef2ff;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            color: #1e3c72;
+            font-weight: 500;
+        }
+        .loading-indicator-inline i {
+            font-size: 0.75rem;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .progress-bar-bg {
+            background: #eef2f7;
+            border-radius: 30px;
+            height: 8px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        .progress-bar-fill {
+            background: linear-gradient(90deg, #1e3c72, #2e9b54);
+            width: 0%;
+            height: 100%;
+            border-radius: 30px;
+            transition: width 0.3s ease;
+        }
+        .loading-stats {
+            font-size: 0.8rem;
+            color: #4e6580;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+        .loading-progress {
+            background: white;
+            border-radius: 16px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
         
         .badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 500; }
         .badge-success { background: #eef2ff; color: #1e3c72; }
@@ -64,6 +222,9 @@
         
         .modal-actions { display: flex; gap: 1rem; justify-content: flex-start; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eef2f7; }
         .modal-large { max-width: 1200px; width: 95%; }
+        .modal-header { position: sticky; top: 0; background: white; z-index: 10; border-bottom: 1px solid #eef2f7; padding: 1rem 1.5rem; border-radius: 28px 28px 0 0; }
+        .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #8ba0bc; transition: all 0.2s; }
+        .modal-close:hover { color: #e34f76; }
         
         .notifications-trigger button { background: none; border: none; width: 100%; text-align: right; padding: 0.75rem 1rem; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; color: #4e6580; transition: all 0.2s; }
         .notifications-trigger button:hover { background: #f0f4fa; color: #1e3c72; }
@@ -105,10 +266,21 @@
         .email-group input, .email-group textarea { width: 100%; padding: 0.7rem 1rem; border: 1px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 0.9rem; background: #f8fafd; }
         .email-group input:focus, .email-group textarea:focus { outline: none; border-color: #1e3c72; background: white; }
         .email-actions { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
-        .btn-outlook { background: linear-gradient(135deg, #0078D4, #005a9e); color: white;  border-radius: 15px;border: 2px solid rgba(255,255,255,0.3); padding:10px; }
+        .btn-outlook { background: linear-gradient(135deg, #0078D4, #005a9e); color: white; border-radius: 15px; border: 2px solid rgba(255,255,255,0.3); padding: 10px; cursor: pointer; }
         .btn-outlook:hover { background: linear-gradient(135deg, #005a9e, #003d73); }
         
-        @media (max-width: 768px) { .skill-item { flex-direction: column; align-items: flex-start; } .form-row { grid-template-columns: 1fr; } .filters-bar { flex-direction: column; } .notifications-panel { width: 100%; left: -100%; } }
+        @media (max-width: 768px) { 
+            .skill-item { flex-direction: column; align-items: flex-start; } 
+            .form-row { grid-template-columns: 1fr; } 
+            .filters-bar { flex-direction: column; } 
+            .notifications-panel { width: 100%; left: -100%; }
+            .pagination-container { gap: 0.3rem; }
+            .pagination-btn { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+            .modal { padding: 0.5rem; align-items: flex-start !important; }
+            .modal-content { margin: 0.5rem auto !important; max-height: 95vh; }
+            .modal-header { padding: 0.75rem 1rem; }
+            .modal-header h2 { font-size: 1.2rem; }
+        }
         
         .view-loading { display: flex; align-items: center; justify-content: center; padding: 40px; color: #1e3c72; gap: 10px; }
         
@@ -119,36 +291,92 @@
         #reportDetails { transition: none; }
         .print-report-container { will-change: transform; }
         
-    .download-note {
-  font-size: 14px;
-  color:#fff;
-  background: #e34f76;
-  margin-top: 15px;
-  text-align: center;
-  animation: fadeLoop 3s infinite;
-  padding: 15px;
-  font-weight: bold;
-  border-radius: 15px;
-}
+        .download-note {
+            font-size: 14px;
+            color: #fff;
+            background: #e34f76;
+            margin-top: 15px;
+            text-align: center;
+            animation: fadeLoop 3s infinite;
+            padding: 15px;
+            font-weight: bold;
+            border-radius: 15px;
+        }
 
+        @keyframes fadeLoop {
+            0% { opacity: 0; }
+            25% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { opacity: 0; }
+        }
 
-@keyframes fadeLoop {
-  0% {
-    opacity: 0;
-  }
-  25% {
-    opacity: 1;
-  }
-  75% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
+        .confirm-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            z-index: 20000; display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        .confirm-modal-overlay.active { opacity: 1; visibility: visible; }
+        .confirm-modal {
+            background: white; border-radius: 24px; width: 90%; max-width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            transform: scale(0.9); transition: transform 0.3s ease; overflow: hidden;
+        }
+        .confirm-modal-overlay.active .confirm-modal { transform: scale(1); }
+        .confirm-modal-header { padding: 1.5rem 1.5rem 0 1.5rem; text-align: center; }
+        .confirm-modal-icon {
+            width: 70px; height: 70px;
+            background: linear-gradient(135deg, #fff2f0, #ffe8e5);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        .confirm-modal-icon i { font-size: 2.5rem; color: #e34f76; }
+        .confirm-modal-header h3 { font-size: 1.4rem; color: #1e3c72; margin-bottom: 0.5rem; }
+        .confirm-modal-header p { color: #4e6580; font-size: 0.95rem; line-height: 1.5; }
+        .confirm-modal-content { padding: 1rem 1.5rem; text-align: center; }
+        .confirm-modal-options { display: flex; gap: 1rem; margin-top: 1rem; }
+        .confirm-modal-options button {
+            flex: 1; padding: 0.85rem; border: none; border-radius: 16px;
+            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-confirm-yes { background: linear-gradient(135deg, #2e9b54, #257a44); color: white; }
+        .btn-confirm-yes:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46,155,84,0.3); }
+        .btn-confirm-no { background: #f1f5f9; color: #4e6580; border: 1px solid #e2e8f0; }
+        .btn-confirm-no:hover { background: #eef2ff; color: #1e3c72; }
+        .confirm-modal-footer { padding: 1rem 1.5rem 1.5rem; text-align: center; border-top: 1px solid #eef2f7; background: #f8fafd; }
+        .confirm-modal-footer small { color: #8ba0bc; font-size: 0.75rem; }
+
+        /* تحسين عرض الجدول */
+        .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 16px; }
+        .modern-table { min-width: 100%; width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        .modern-table th, .modern-table td { padding: 8px 5px !important; white-space: nowrap; }
+        
+        .modern-table th:nth-child(1) { min-width: 40px; max-width: 50px; }
+        .modern-table th:nth-child(2) { min-width: 70px; }
+        .modern-table th:nth-child(3) { min-width: 55px; }
+        .modern-table th:nth-child(4) { min-width: 90px; }
+        .modern-table th:nth-child(5) { min-width: 110px; }
+        .modern-table th:nth-child(6) { min-width: 80px; }
+        .modern-table th:nth-child(7) { min-width: 80px; }
+        .modern-table th:nth-child(8) { min-width: 45px; }
+        .modern-table th:nth-child(9) { min-width: 45px; }
+        .modern-table th:nth-child(10) { min-width: 70px; }
+        .modern-table th:nth-child(11) { min-width: 80px; }
+        .modern-table th:nth-child(12) { min-width: 85px; }
+
+        @media (max-width: 1000px) {
+            .modern-table { font-size: 0.7rem; }
+            .modern-table th, .modern-table td { padding: 6px 3px !important; }
+        }
+        
+        .table-container::-webkit-scrollbar { height: 6px; }
+        .table-container::-webkit-scrollbar-track { background: #eef2f7; border-radius: 10px; }
+        .table-container::-webkit-scrollbar-thumb { background: #1e3c72; border-radius: 10px; }
+        
+        body.modal-open { overflow: hidden; }
     </style>
 </head>
-<body>
+<body id="appBody">
 
 <div class="app-container">
     <aside class="sidebar">
@@ -193,7 +421,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <h1 class="section-title" style="margin-bottom: 0.5rem;"><i class="fas fa-file-alt"></i> التقارير</h1>
-                <p style="color: #4e6580;">إدارة وعرض جميع التقارير التربوية (وجاهي / عن بعد)</p>
+                <p style="color: #4e6580;">إدارة وعرض جميع التقارير التربوية (وجاهي / عن بعد) - إجمالي <span id="totalReportsHint">0</span> تقرير</p>
             </div>
             <div style="display: flex; gap: 1rem;" class="add-report-buttons">
                 <button onclick="openAddReportModal('in_person')" class="btn-primary add-report-btn" style="display: none;"><i class="fas fa-school"></i> تقرير وجاهي جديد</button>
@@ -215,21 +443,47 @@
             </div>
         </div>
 
+        <div class="reports-control-bar">
+            <div class="reports-info" id="reportsInfo">
+                <i class="fas fa-chart-line"></i> إجمالي التقارير: <strong id="totalCountDisplay">0</strong>
+            </div>
+            <div class="page-size-selector">
+                <span>عرض:</span>
+                <select id="pageSizeSelect">
+                    <option value="50">50</option>
+                    <option value="100" selected>100</option>
+                    <option value="150">150</option>
+                    <option value="200">200</option>
+                </select>
+                <span>تقرير لكل صفحة</span>
+            </div>
+        </div>
+
+        <div id="loadingProgress" class="loading-progress" style="display: none;">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+            <div class="loading-stats" id="loadingStats"></div>
+        </div>
+
         <div class="table-container">
             <div style="overflow-x: auto;">
                 <table class="modern-table" id="reportsTable">
                     <thead>
                         <tr><th>#</th><th>التاريخ</th><th>النوع</th><th>المنطقة</th><th>المدرسة</th><th>المعلم</th><th>مدير المدرسة</th><th>الصف</th><th>الشعبة</th><th>المبحث</th><th>المختص</th><th>الإجراءات</th></tr>
                     </thead>
-                    <tbody id="reportsTableBody"><tr><td colspan="12" style="text-align: center; padding: 3rem;"><div class="loader"></div><p>جاري تحميل التقارير...</p></tbody>
+                    <tbody id="reportsTableBody">
+                        <tr><td colspan="12" style="text-align: center; padding: 3rem;"><div class="loader"></div><p>جاري تحميل التقارير...</p></td></tbody>
                 </table>
             </div>
-            <div style="margin-top: 1rem; color: #4e6580;" id="resultsCount">عدد النتائج: 0</div>
+            
+            <div id="paginationContainer" class="pagination-container"></div>
+            <div style="margin-top: 1rem; color: #4e6580; text-align: center;" id="resultsCount"></div>
         </div>
     </main>
 </div>
 
-<!-- Modal المعاينة -->
+<!-- ===================== المودالات ===================== -->
 <div id="viewModal" class="modal">
     <div class="modal-content modal-large">
         <div class="modal-header">
@@ -240,13 +494,12 @@
         </div>
         <div class="modal-actions">
             <button onclick="closeViewModal()" class="btn-secondary">إغلاق</button>
-            <button onclick="exportReportToPDF()" id="exportPdfBtn" class="btn-primary" style="background: #e34f76;"><i class="fas fa-print"></i>حفظ التقرير PDF</button>
+            <button onclick="exportReportToPDF()" id="exportPdfBtn" class="btn-primary" style="background: #e34f76;"><i class="fas fa-print"></i> حفظ التقرير PDF</button>
             <button onclick="openEmailModal()" id="emailReportBtn" class="btn-primary" style="background: #2e9b54; display: none;"><i class="fas fa-envelope"></i> إرسال التقرير بالبريد الإلكتروني</button>
         </div>
     </div>
 </div>
 
-<!-- Email Modal -->
 <div id="emailModal" class="modal">
     <div class="modal-content email-modal-content">
         <div class="modal-header">
@@ -275,17 +528,16 @@
                 <button onclick="closeEmailModal()" class="btn-secondary">إلغاء</button>
             </div>
             <p style="font-size: 12px; color: #e34f76; margin-top: 15px; text-align: center;">
-                <i class="fas fa-info-circle"></i>يرجى تحميل التقرير من خلال زر (  حفظ التقرير PDF)
+                <i class="fas fa-info-circle"></i> يرجى تحميل التقرير من خلال زر (حفظ التقرير PDF)
             </p>
             <p id="download" class="download-note">
-            <i class="fas fa-info-circle info-icon"></i>
-            في outlook إضغط على زر إرفاق وحمل التقرير الذي قمت بإنزاله سابقا يدوياً
+                <i class="fas fa-info-circle info-icon"></i>
+                في outlook إضغط على زر إرفاق وحمل التقرير الذي قمت بإنزاله سابقا يدوياً
             </p>
         </div>
     </div>
 </div>
 
-<!-- باقي المودالات -->
 <div id="inPersonModal" class="modal"><div class="modal-content" style="max-width: 950px;"><div class="modal-header"><h2>تقرير زيارة وجاهية</h2><button class="modal-close" onclick="closeModal('inPersonModal')"><i class="fas fa-times"></i></button></div><form id="inPersonForm"><input type="hidden" id="inPersonReportId"><div class="form-row"><div class="form-group"><label>تاريخ الزيارة *</label><input type="text" id="inPersonVisitDate" class="form-input date-picker" required readonly></div><div class="form-group"><label>المنطقة التعليمية *</label><select id="inPersonDistrict" class="form-input" required onchange="loadSchoolsByDistrict('inPerson')"><option value="">اختر المنطقة</option></select></div><div class="form-group"><label>المدرسة *</label><select id="inPersonSchoolId" class="form-input" required onchange="loadSchoolPrincipal('inPerson')"><option value="">اختر المنطقة أولاً</option></select></div><div class="form-group"><label>مدير المدرسة *</label><input type="text" id="inPersonPrincipalName" class="form-input" required></div><div class="form-group"><label>اسم المعلم *</label><input type="text" id="inPersonTeacherName" class="form-input" required></div><div class="form-group"><label>الصف *</label><select id="inPersonClass" class="form-input" required><option value="">اختر الصف</option><option value="1">الأول</option><option value="2">الثاني</option><option value="3">الثالث</option><option value="4">الرابع</option><option value="5">الخامس</option><option value="6">السادس</option><option value="7">السابع</option><option value="8">الثامن</option><option value="9">التاسع</option></select></div><div class="form-group"><label>الشعبة *</label><input type="text" id="inPersonSection" class="form-input" required placeholder="مثال: 1"></div><div class="form-group"><label>المبحث *</label><select id="inPersonSubject" class="form-input" required><option value="">اختر المبحث</option><option value="رياضيات">رياضيات</option><option value="علوم">علوم</option><option value="لغة عربية">لغة عربية</option><option value="لغة إنجليزية">لغة إنجليزية</option></select></div><div class="form-group"><label>عنوان الدرس</label><input type="text" id="inPersonLesson" class="form-input" placeholder="عنوان الدرس"></div></div><div class="form-section"><h3>أولاً - الأنشطة التعليمية</h3><div id="inPersonTeachingActivities"></div></div><div class="form-section"><h3>ثانياً - الرفاه النفسي</h3><div id="inPersonWellbeing"></div></div><div class="form-section"><h3>جوانب إيجابية / أفكار إبداعية</h3><textarea id="inPersonPositiveAspects" class="form-input" rows="3"></textarea></div><div class="form-section"><h3>التحديات</h3><textarea id="inPersonChallenges" class="form-input" rows="3"></textarea></div><div class="form-section"><h3>التوصيات</h3><textarea id="inPersonRecommendations" class="form-input" rows="3"></textarea></div><div style="display: flex; gap: 1rem; margin-top: 1.5rem;"><button type="button" onclick="closeModal('inPersonModal')" class="btn-secondary" style="flex: 1;">إلغاء</button><button type="submit" id="inPersonSaveBtn" class="btn-primary" style="flex: 1;">حفظ التقرير</button></div></form></div></div>
 
 <div id="remoteModal" class="modal"><div class="modal-content" style="max-width: 950px;"><div class="modal-header"><h2>تقرير متابعة التعليم عن بعد</h2><button class="modal-close" onclick="closeModal('remoteModal')"><i class="fas fa-times"></i></button></div><form id="remoteForm"><input type="hidden" id="remoteReportId"><div class="form-row"><div class="form-group"><label>تاريخ الزيارة *</label><input type="text" id="remoteVisitDate" class="form-input date-picker" required readonly></div><div class="form-group"><label>المنطقة التعليمية *</label><select id="remoteDistrict" class="form-input" required onchange="loadSchoolsByDistrict('remote')"><option value="">اختر المنطقة</option></select></div><div class="form-group"><label>المدرسة *</label><select id="remoteSchoolId" class="form-input" required onchange="loadSchoolPrincipal('remote')"><option value="">اختر المنطقة أولاً</option></select></div><div class="form-group"><label>مدير المدرسة</label><input type="text" id="remotePrincipalName" class="form-input" readonly placeholder="يتم جلب الاسم تلقائياً"></div><div class="form-group"><label>اسم المعلم *</label><input type="text" id="remoteTeacherName" class="form-input" required></div><div class="form-group"><label>الصف *</label><select id="remoteClass" class="form-input" required><option value="">اختر الصف</option><option value="1">الأول</option><option value="2">الثاني</option><option value="3">الثالث</option><option value="4">الرابع</option><option value="5">الخامس</option><option value="6">السادس</option><option value="7">السابع</option><option value="8">الثامن</option><option value="9">التاسع</option></select></div><div class="form-group"><label>الشعبة *</label><input type="text" id="remoteSection" class="form-input" required placeholder="مثال: 1"></div><div class="form-group"><label>المبحث</label><select id="remoteSubject" class="form-input"><option value="">اختر المبحث</option><option value="رياضيات">رياضيات</option><option value="علوم">علوم</option><option value="لغة عربية">لغة عربية</option><option value="لغة إنجليزية">لغة إنجليزية</option></select></div></div><div class="form-section"><h3>أولاً - المهام الإدارية (مجتمع الواتس أب)</h3><div id="remoteAdminTasks"></div></div><div class="form-section"><h3>ثانياً - المهام الفنية</h3><div id="remoteTechnicalTasks"></div></div><div class="form-section"><h3>التحديات</h3><textarea id="remoteChallenges" class="form-input" rows="3"></textarea></div><div class="form-section"><h3>أفكار إبداعية</h3><textarea id="remoteCreativeIdeas" class="form-input" rows="3"></textarea></div><div class="form-section"><h3>التوصيات</h3><textarea id="remoteRecommendations" class="form-input" rows="3"></textarea></div><div style="display: flex; gap: 1rem; margin-top: 1.5rem;"><button type="button" onclick="closeModal('remoteModal')" class="btn-secondary" style="flex: 1;">إلغاء</button><button type="submit" id="remoteSaveBtn" class="btn-primary" style="flex: 1;">حفظ التقرير</button></div></form></div></div>
@@ -295,6 +547,25 @@
 <div class="notifications-container" id="notificationsContainer"></div>
 <div id="panelOverlay" class="panel-overlay" onclick="closeNotificationsPanel()"></div>
 <div id="notificationsPanel" class="notifications-panel"><div class="notifications-panel-header"><h3>الإشعارات</h3><button onclick="markAllAsRead()" class="mark-all-read" id="markAllReadBtn" style="display: none;">تعيين الكل كمقروء</button><button onclick="closeNotificationsPanel()" class="close-panel"><i class="fas fa-times"></i></button></div><div class="notifications-list" id="notificationsList"><div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div></div></div>
+
+<div id="confirmModal" class="confirm-modal-overlay">
+    <div class="confirm-modal">
+        <div class="confirm-modal-header">
+            <div class="confirm-modal-icon"><i class="fas fa-envelope"></i></div>
+            <h3>تأكيد إرسال البريد</h3>
+            <p>هل قمت بتحميل ملف التقرير (PDF) على جهازك؟</p>
+        </div>
+        <div class="confirm-modal-content">
+            <div class="confirm-modal-options">
+                <button class="btn-confirm-yes" id="confirmYesBtn"><i class="fas fa-check-circle"></i> نعم، قمت بالتحميل</button>
+                <button class="btn-confirm-no" id="confirmNoBtn"><i class="fas fa-download"></i> لا، أحتاج للتحميل</button>
+            </div>
+        </div>
+        <div class="confirm-modal-footer">
+            <small><i class="fas fa-info-circle"></i> سيتم فتح Outlook بعد تأكيد التحميل</small>
+        </div>
+    </div>
+</div>
 
 <script>
 // ===================== قوائم التقييم =====================
@@ -340,23 +611,64 @@ const remoteTechnicalList = [
 ];
 
 // ===================== متغيرات عامة =====================
-let currentReports = [];
+let allReportsCache = [];
+let filteredReportsCache = [];
 let deleteReportData = null;
 let currentUser = null;
 let currentViewReport = null;
 let districtsList = [];
 let schoolsData = [];
 let usersData = [];
-let isLoading = false;
+let isLoadingMore = false;
 let dateFromPicker = null, dateToPicker = null, inPersonDatePicker = null, remoteDatePicker = null;
 let isInPersonSaving = false, isRemoteSaving = false;
 let currentEditingId = null;
 let currentEditingType = null;
-let isExportingPDF = false;
 let reportsCache = new Map();
 let isLoadingReport = false;
 let currentOpenReportId = null;
 let currentReportHtmlBlob = null;
+
+// Pagination variables
+let currentPage = 1;
+let pageSize = 100;
+let totalFilteredCount = 0;
+
+// ===================== دوال مساعدة =====================
+function toggleBodyScroll(disable) {
+    if (disable) {
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        document.body.style.top = `-${window.scrollY}px`;
+    } else {
+        const scrollY = document.body.style.top;
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.top = '';
+        if (scrollY) {
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        }
+    }
+}
+
+function openModalWithScroll(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        toggleBodyScroll(true);
+        modal.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+function closeModalWithScroll(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('active');
+        toggleBodyScroll(false);
+    }
+}
 
 function getRoleName(role) {
     const roles = { 'admin': 'مدير النظام', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'user': 'مختص تربوي', 'spuser': 'مدير مدرسة' };
@@ -381,15 +693,6 @@ function canCreateReports(user) { return user && ['admin', 'support', 'user'].in
 function canEditReport(user, report) { return user && report && (['admin', 'support'].includes(user.role) || (user.role === 'user' && report.specialist_id == user.id)); }
 function canDeleteReport(user, report) { return user && report && ['admin', 'support'].includes(user.role); }
 function canEmailReport(user) { return user && ['user', 'support'].includes(user.role); }
-
-function getVisibleReportsForUser(user, allReports) {
-    if (!user || !allReports) return [];
-    if (['admin', 'support'].includes(user.role)) return allReports;
-    if (user.role === 'manger' && user.district_id) return allReports.filter(r => r.schools?.district_id == user.district_id);
-    if (user.role === 'spuser' && user.school_id) return allReports.filter(r => r.school_id == user.school_id);
-    if (user.role === 'user') return allReports.filter(r => r.specialist_id == user.id);
-    return [];
-}
 
 function getDateFromPicker(picker) {
     if (picker && picker.selectedDates && picker.selectedDates[0]) {
@@ -563,7 +866,7 @@ async function openEmailModal() {
         }
         currentReportHtmlBlob = new Blob([html], { type: 'text/html' });
         
-        document.getElementById('emailModal').classList.add('active');
+        openModalWithScroll('emailModal');
         
     } catch (error) {
         console.error('Error preparing email:', error);
@@ -574,7 +877,7 @@ async function openEmailModal() {
 }
 
 function closeEmailModal() {
-    document.getElementById('emailModal').classList.remove('active');
+    closeModalWithScroll('emailModal');
     currentReportHtmlBlob = null;
 }
 
@@ -584,36 +887,404 @@ function openOutlookWithAttachment() {
         return;
     }
 
-    // المستلمون الأساسيون
-    const toList = (document.getElementById('emailTo').value || '')
-        .split(/[;,]/)
-        .map(v => v.trim())
-        .filter(Boolean);
+    const executeOpenOutlook = function() {
+        const toList = (document.getElementById('emailTo').value || '')
+            .split(/[;,]/)
+            .map(v => v.trim())
+            .filter(Boolean);
 
-    // سنضم CC إلى TO
-    const ccList = (document.getElementById('emailCc').value || '')
-        .split(/[;,]/)
-        .map(v => v.trim())
-        .filter(Boolean);
+        const ccList = (document.getElementById('emailCc').value || '')
+            .split(/[;,]/)
+            .map(v => v.trim())
+            .filter(Boolean);
 
-    // دمج القائمتين + إزالة التكرار
-    const recipients = [...new Set([...toList, ...ccList])].join(',');
+        const recipients = [...new Set([...toList, ...ccList])].join(',');
+        const subject = (document.getElementById('emailSubject').value || '').trim();
+        const body = (document.getElementById('emailBody').value || '').trim();
+        const url = 'https://outlook.cloud.microsoft/mail/0/deeplink/compose?' +
+            'to=' + encodeURIComponent(recipients) +
+            '&subject=' + encodeURIComponent(subject) +
+            '&body=' + encodeURIComponent(body);
+        window.open(url, '_blank');
+        closeEmailModal();
+        showMessage('تم فتح Outlook، يرجى إرفاق ملف PDF للتقرير', 'success');
+    };
 
-    const subject = (document.getElementById('emailSubject').value || '').trim();
-    const body = (document.getElementById('emailBody').value || '').trim();
+    const openPrintSave = function() {
+        showMessage('سيتم فتح نافذة حفظ التقرير، يرجى حفظ الملف ثم الضغط على فتح Outlook مرة أخرى', 'info');
+        if (typeof exportReportToPDF === 'function') {
+            exportReportToPDF();
+        } else {
+            showMessage('حدث خطأ في فتح نافذة الطباعة', 'error');
+        }
+    };
 
-    const url =
-        'https://outlook.cloud.microsoft/mail/0/deeplink/compose?' +
-        'to=' + encodeURIComponent(recipients) +
-        '&subject=' + encodeURIComponent(subject) +
-        '&body=' + encodeURIComponent(body);
-
-    window.open(url, '_blank');
-
-    closeEmailModal();
+    const confirmModal = document.getElementById('confirmModal');
+    
+    if (!confirmModal) {
+        const userConfirmed = confirm('⚠️ تأكيد قبل إرسال البريد الإلكتروني\n\nهل قمت بتحميل ملف التقرير (PDF) على جهازك?\n\n• إذا اخترت "نعم": سيتم فتح Outlook مع تعبئة بيانات البريد.\n• إذا اخترت "لا": سيتم فتح نافذة حفظ التقرير أولاً.');
+        if (userConfirmed) {
+            executeOpenOutlook();
+        } else {
+            openPrintSave();
+        }
+        return;
+    }
+    
+    confirmModal.classList.add('active');
+    
+    const yesBtn = document.getElementById('confirmYesBtn');
+    const noBtn = document.getElementById('confirmNoBtn');
+    
+    if (yesBtn) {
+        const newYesBtn = yesBtn.cloneNode(true);
+        yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
+        newYesBtn.onclick = function() {
+            confirmModal.classList.remove('active');
+            executeOpenOutlook();
+        };
+    }
+    
+    if (noBtn) {
+        const newNoBtn = noBtn.cloneNode(true);
+        noBtn.parentNode.replaceChild(newNoBtn, noBtn);
+        newNoBtn.onclick = function() {
+            confirmModal.classList.remove('active');
+            openPrintSave();
+        };
+    }
+    
+    confirmModal.onclick = function(e) {
+        if (e.target === confirmModal) {
+            confirmModal.classList.remove('active');
+        }
+    };
 }
 
-// ===================== دوال التقارير =====================
+// ===================== دوال التقارير الرئيسية =====================
+
+// دالة تحميل جميع التقارير إلى الكاش (مع التكرار لجلب جميع البيانات)
+async function loadAllReportsToCache() {
+    if (isLoadingMore) return;
+    isLoadingMore = true;
+    
+    const progressDiv = document.getElementById('loadingProgress');
+    const progressFill = document.getElementById('progressFill');
+    const loadingStats = document.getElementById('loadingStats');
+    
+    progressDiv.style.display = 'block';
+    progressFill.style.width = '5%';
+    loadingStats.innerHTML = 'جاري تحميل جميع التقارير إلى الكاش...';
+    
+    try {
+        const districtsMap = {};
+        districtsList.forEach(d => { districtsMap[d.id] = d.name; });
+        
+        progressFill.style.width = '10%';
+        loadingStats.innerHTML = 'جاري جلب التقارير الوجاهية (قد يستغرق وقتاً)...';
+        
+        // ========== جلب جميع التقارير الوجاهية مع التكرار ==========
+        let allInPersonReports = [];
+        let inPersonPage = 0;
+        const pageSizeFetch = 1000;
+        
+        let inPersonQuery = window.supabaseClient
+            .from('in_person_reports')
+            .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
+            .order('visit_date', { ascending: false });
+        
+        if (currentUser.role === 'user') {
+            inPersonQuery = inPersonQuery.eq('specialist_id', currentUser.id);
+        } else if (currentUser.role === 'manger' && currentUser.district_id) {
+            const { data: schools } = await window.supabaseClient.from('schools').select('id').eq('district_id', currentUser.district_id);
+            const schoolIds = schools?.map(s => s.id) || [];
+            if (schoolIds.length > 0) {
+                inPersonQuery = inPersonQuery.in('school_id', schoolIds);
+            } else {
+                inPersonQuery = inPersonQuery.eq('school_id', -1);
+            }
+        } else if (currentUser.role === 'spuser' && currentUser.school_id) {
+            inPersonQuery = inPersonQuery.eq('school_id', currentUser.school_id);
+        }
+        
+        let hasMore = true;
+        while (hasMore) {
+            const start = inPersonPage * pageSizeFetch;
+            const end = start + pageSizeFetch - 1;
+            
+            const { data, error } = await inPersonQuery.range(start, end);
+            
+            if (error) throw error;
+            
+            if (data && data.length > 0) {
+                allInPersonReports = [...allInPersonReports, ...data];
+                inPersonPage++;
+                
+                const percent = Math.min(10 + (allInPersonReports.length / 6000) * 30, 40);
+                progressFill.style.width = `${percent}%`;
+                loadingStats.innerHTML = `📊 جاري تحميل التقارير الوجاهية: ${allInPersonReports.length.toLocaleString()} تقرير حتى الآن...`;
+                
+                if (data.length < pageSizeFetch) hasMore = false;
+            } else {
+                hasMore = false;
+            }
+        }
+        
+        progressFill.style.width = '45%';
+        loadingStats.innerHTML = 'جاري جلب التقارير عن بعد (قد يستغرق وقتاً)...';
+        
+        let allRemoteReports = [];
+        let remotePage = 0;
+        
+        let remoteQuery = window.supabaseClient
+            .from('remote_reports')
+            .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
+            .order('visit_date', { ascending: false });
+        
+        if (currentUser.role === 'user') {
+            remoteQuery = remoteQuery.eq('specialist_id', currentUser.id);
+        } else if (currentUser.role === 'manger' && currentUser.district_id) {
+            const { data: schools } = await window.supabaseClient.from('schools').select('id').eq('district_id', currentUser.district_id);
+            const schoolIds = schools?.map(s => s.id) || [];
+            if (schoolIds.length > 0) {
+                remoteQuery = remoteQuery.in('school_id', schoolIds);
+            } else {
+                remoteQuery = remoteQuery.eq('school_id', -1);
+            }
+        } else if (currentUser.role === 'spuser' && currentUser.school_id) {
+            remoteQuery = remoteQuery.eq('school_id', currentUser.school_id);
+        }
+        
+        hasMore = true;
+        while (hasMore) {
+            const start = remotePage * pageSizeFetch;
+            const end = start + pageSizeFetch - 1;
+            
+            const { data, error } = await remoteQuery.range(start, end);
+            
+            if (error) throw error;
+            
+            if (data && data.length > 0) {
+                allRemoteReports = [...allRemoteReports, ...data];
+                remotePage++;
+                
+                const percent = Math.min(45 + (allRemoteReports.length / 6000) * 30, 75);
+                progressFill.style.width = `${percent}%`;
+                loadingStats.innerHTML = `📊 جاري تحميل التقارير عن بعد: ${allRemoteReports.length.toLocaleString()} تقرير حتى الآن...`;
+                
+                if (data.length < pageSizeFetch) hasMore = false;
+            } else {
+                hasMore = false;
+            }
+        }
+        
+        progressFill.style.width = '80%';
+        loadingStats.innerHTML = 'جاري معالجة البيانات وترتيبها...';
+        
+        const inPersonData = allInPersonReports.map(r => ({ 
+            ...r, report_type: 'in_person', schools: r.schools, users: r.users, 
+            district_name: districtsMap[r.schools?.district_id] || '-', 
+            principal_name: r.principal_name || r.schools?.schoolPrincipal || '' 
+        }));
+        
+        const remoteData = allRemoteReports.map(r => ({ 
+            ...r, report_type: 'remote', schools: r.schools, users: r.users, 
+            district_name: districtsMap[r.schools?.district_id] || '-', 
+            principal_name: r.principal_name || r.schools?.schoolPrincipal || '' 
+        }));
+        
+        const allReports = [...inPersonData, ...remoteData].sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date));
+        
+        allReportsCache = allReports;
+        filteredReportsCache = [...allReports];
+        totalFilteredCount = filteredReportsCache.length;
+        
+        progressFill.style.width = '100%';
+        loadingStats.innerHTML = `✅ تم تحميل ${allReports.length.toLocaleString()} تقرير بنجاح إلى الكاش! (${allInPersonReports.length} وجاهي + ${allRemoteReports.length} عن بعد)`;
+        
+        setTimeout(() => {
+            progressDiv.style.display = 'none';
+        }, 800);
+        
+        const totalCountSpan = document.getElementById('totalCountDisplay');
+        if (totalCountSpan) totalCountSpan.textContent = allReports.length.toLocaleString();
+        
+        const totalHint = document.getElementById('totalReportsHint');
+        if (totalHint) totalHint.textContent = allReports.length.toLocaleString();
+        
+        console.log(`✅ تم تحميل ${allReports.length} تقرير (${allInPersonReports.length} وجاهي + ${allRemoteReports.length} عن بعد)`);
+        
+        return allReports;
+        
+    } catch (error) {
+        console.error('Error loading all reports:', error);
+        loadingStats.innerHTML = '❌ حدث خطأ في تحميل التقارير';
+        loadingStats.style.color = '#e34f76';
+        setTimeout(() => {
+            progressDiv.style.display = 'none';
+        }, 2000);
+        throw error;
+    } finally {
+        isLoadingMore = false;
+    }
+}
+
+function displayCurrentPage() {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const pageReports = filteredReportsCache.slice(startIndex, endIndex);
+    
+    const tbody = document.getElementById('reportsTableBody');
+    if (!pageReports || pageReports.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>';
+        document.getElementById('resultsCount').innerHTML = 'عدد النتائج: 0';
+        return;
+    }
+    
+    tbody.innerHTML = pageReports.map((report, idx) => {
+        const globalIndex = startIndex + idx + 1;
+        const canEdit = canEditReport(currentUser, report);
+        const canDelete = canDeleteReport(currentUser, report);
+        let actionsHtml = `<a href="#" onclick="viewReport('${report.report_type}', '${report.id}')" class="action-link view" title="معاينة"><i class="fas fa-eye"></i></a>`;
+        if (canEdit) actionsHtml += `<a href="#" onclick="editReport('${report.report_type}', '${report.id}')" class="action-link edit" title="تعديل"><i class="fas fa-edit"></i></a>`;
+        if (canDelete) actionsHtml += `<a href="#" onclick="openDeleteModal('${report.report_type}', '${report.id}')" class="action-link delete" title="حذف"><i class="fas fa-trash"></i></a>`;
+        const typeBadge = report.report_type === 'in_person' ? '<span class="badge badge-success">وجاهي</span>' : '<span class="badge badge-primary">عن بعد</span>';
+        
+        return `<tr>
+            <td style="padding:12px">${globalIndex}</td>
+            <td style="padding:12px">${new Date(report.visit_date).toLocaleDateString('ar-SA')}</td>
+            <td style="padding:12px">${typeBadge}</td>
+            <td style="padding:12px">${report.district_name || '-'}</td>
+            <td style="padding:12px">${report.schools?.name || '-'}</td>
+            <td style="padding:12px">${report.teacher_name || '-'}</td>
+            <td style="padding:12px">${report.principal_name || '-'}</td>
+            <td style="padding:12px">${getClassNameText(report.class_name)}</td>
+            <td style="padding:12px">${report.section || '-'}</td>
+            <td style="padding:12px">${report.subject || '-'}</td>
+            <td style="padding:12px">${report.users?.name || '-'}</td>
+            <td style="padding:12px"><div style="display:flex;gap:0.5rem;">${actionsHtml}</div></td>
+        </tr>`;
+    }).join('');
+    
+    const fromNum = ((currentPage-1)*pageSize)+1;
+    const toNum = Math.min(currentPage*pageSize, totalFilteredCount);
+    document.getElementById('resultsCount').innerHTML = `عرض ${fromNum.toLocaleString()} - ${toNum.toLocaleString()} من ${totalFilteredCount.toLocaleString()} تقرير`;
+    
+    buildPaginationButtons();
+}
+
+function buildPaginationButtons() {
+    const container = document.getElementById('paginationContainer');
+    if (!container) return;
+    
+    const totalPages = Math.ceil(totalFilteredCount / pageSize);
+    
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    let buttonsHtml = '';
+    
+    buttonsHtml += `<button class="pagination-btn" onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-angle-double-right"></i></button>`;
+    buttonsHtml += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-angle-right"></i></button>`;
+    
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+        buttonsHtml += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) buttonsHtml += `<span class="page-info">...</span>`;
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        buttonsHtml += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i.toLocaleString()}</button>`;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) buttonsHtml += `<span class="page-info">...</span>`;
+        buttonsHtml += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages.toLocaleString()}</button>`;
+    }
+    
+    buttonsHtml += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-angle-left"></i></button>`;
+    buttonsHtml += `<button class="pagination-btn" onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-angle-double-left"></i></button>`;
+    
+    container.innerHTML = buttonsHtml;
+}
+
+function goToPage(page) {
+    const totalPages = Math.ceil(totalFilteredCount / pageSize);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    displayCurrentPage();
+    document.querySelector('.table-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function filterReports() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    let fromDate = getDateFromPicker(dateFromPicker);
+    let toDate = getDateFromPicker(dateToPicker);
+    const type = document.getElementById('reportTypeFilter').value;
+    const district = document.getElementById('districtFilter').value;
+    const classFilter = document.getElementById('classFilter').value;
+    
+    if (!allReportsCache || allReportsCache.length === 0) {
+        showMessage('لا توجد تقارير للتصفية، يرجى الانتظار حتى اكتمال التحميل', 'info');
+        return;
+    }
+    
+    let filtered = allReportsCache.filter(r => {
+        if (type && r.report_type !== type) return false;
+        if (district && district !== '' && r.district_name !== district) return false;
+        if (classFilter && r.class_name !== classFilter) return false;
+        if (fromDate && r.visit_date < fromDate) return false;
+        if (toDate && r.visit_date > toDate) return false;
+        if (search) {
+            const fields = [r.schools?.name, r.teacher_name, r.subject, r.users?.name].filter(Boolean).join(' ').toLowerCase();
+            if (!fields.includes(search)) return false;
+        }
+        return true;
+    });
+    
+    filteredReportsCache = filtered;
+    totalFilteredCount = filtered.length;
+    currentPage = 1;
+    displayCurrentPage();
+    
+    if (filtered.length > 0) {
+        showMessage(`تم العثور على ${filtered.length.toLocaleString()} تقرير مطابق`, 'success');
+    } else {
+        showMessage('لا توجد تقارير مطابقة', 'info');
+    }
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    if (dateFromPicker) dateFromPicker.clear();
+    if (dateToPicker) dateToPicker.clear();
+    document.getElementById('reportTypeFilter').value = '';
+    document.getElementById('districtFilter').value = '';
+    document.getElementById('classFilter').value = '';
+    
+    if (allReportsCache && allReportsCache.length > 0) {
+        filteredReportsCache = [...allReportsCache];
+        totalFilteredCount = filteredReportsCache.length;
+        currentPage = 1;
+        displayCurrentPage();
+        showMessage('تم مسح جميع الفلاتر', 'success');
+    } else {
+        showMessage('لا توجد تقارير لعرضها', 'info');
+    }
+}
+
+async function refreshCache() {
+    await loadAllReportsToCache();
+    filteredReportsCache = [...allReportsCache];
+    totalFilteredCount = filteredReportsCache.length;
+    currentPage = 1;
+    displayCurrentPage();
+}
+
 async function fetchSingleReportDirectly(reportId, reportType) {
     try {
         const districtsMap = {};
@@ -672,8 +1343,7 @@ async function openReportFromNotification(reportId, reportType) {
     }
     
     if (currentOpenReportId === reportId) {
-        const modal = document.getElementById('viewModal');
-        modal.classList.add('active');
+        openModalWithScroll('viewModal');
         return;
     }
     
@@ -681,7 +1351,7 @@ async function openReportFromNotification(reportId, reportType) {
     const modal = document.getElementById('viewModal');
     
     detailsDiv.innerHTML = '<div class="view-loading"><div class="loader-small"></div><span>جاري تحميل التقرير مباشرة...</span></div>';
-    modal.classList.add('active');
+    openModalWithScroll('viewModal');
     
     isLoadingReport = true;
     
@@ -710,13 +1380,6 @@ async function openReportFromNotification(reportId, reportType) {
         }
         
         currentViewReport = report;
-        
-        const existingIndex = currentReports.findIndex(r => r.id == reportId && r.report_type === reportType);
-        if (existingIndex === -1) {
-            currentReports.unshift(report);
-        } else {
-            currentReports[existingIndex] = report;
-        }
         
         const html = buildPrintHTMLFast(report, reportType);
         
@@ -751,22 +1414,27 @@ async function viewReport(type, id) {
     }
     
     if (currentOpenReportId === id) {
-        const modal = document.getElementById('viewModal');
-        modal.classList.add('active');
+        openModalWithScroll('viewModal');
         return;
     }
     
-    const report = currentReports.find(r => r.report_type === type && r.id == id);
+    let report = allReportsCache.find(r => r.report_type === type && r.id == id);
     
     if (!report) {
-        showMessage('التقرير غير موجود، جاري البحث مرة أخرى...', 'info');
-        await loadReports();
-        const foundReport = currentReports.find(r => r.report_type === type && r.id == id);
-        if (foundReport) {
-            await viewReport(type, id);
-        } else {
-            showMessage('التقرير غير موجود', 'error');
+        showMessage('التقرير غير موجود في الكاش، جاري البحث في قاعدة البيانات...', 'info');
+        try {
+            const fetchedReport = await fetchSingleReportDirectly(id, type);
+            if (fetchedReport) {
+                report = fetchedReport;
+                allReportsCache.push(report);
+            }
+        } catch (err) {
+            console.error('Error fetching single report:', err);
         }
+    }
+    
+    if (!report) {
+        showMessage('عذراً، التقرير غير موجود أو لا تملك صلاحية عرضه', 'error');
         return;
     }
     
@@ -774,13 +1442,12 @@ async function viewReport(type, id) {
     currentOpenReportId = id;
     
     const detailsDiv = document.getElementById('reportDetails');
-    const modal = document.getElementById('viewModal');
     
     let cachedHtml = reportsCache.get(id);
     
     if (cachedHtml) {
         detailsDiv.innerHTML = cachedHtml;
-        modal.classList.add('active');
+        openModalWithScroll('viewModal');
         const emailBtn = document.getElementById('emailReportBtn');
         if (emailBtn && canEmailReport(currentUser)) {
             emailBtn.style.display = 'inline-flex';
@@ -789,7 +1456,7 @@ async function viewReport(type, id) {
     }
     
     detailsDiv.innerHTML = '<div class="view-loading"><div class="loader-small"></div><span>جاري تحميل التقرير...</span></div>';
-    modal.classList.add('active');
+    openModalWithScroll('viewModal');
     
     isLoadingReport = true;
     
@@ -819,45 +1486,9 @@ async function viewReport(type, id) {
     });
 }
 
-function exportReportToPDF(reportId = null) {
-    const report = reportId
-        ? reports.find(r => r.id === reportId)
-        : currentViewReport;
-
-    if (!report) {
-        showMessage('لم يتم العثور على التقرير', 'error');
-        return;
-    }
-
-    const html =
-        reportsCache.get(report.id) ||
-        buildPrintHTMLFast(report, report.report_type);
-
-    const fileName = generateReportFileName(report);
-
-    const printWindow = window.open('', '_blank');
-
-    printWindow.document.open();
-    printWindow.document.write(html);
-    printWindow.document.title = fileName.replace('.pdf', '');
-    printWindow.document.close();
-
-    printWindow.focus();
-
-    // فتح نافذة الحفظ/الطباعة
-    setTimeout(() => {
-        printWindow.print();
-    }, 500);
-}
-
 function generateReportFileName(report) {
-    // تحديد البادئة حسب نوع التقرير
-    const prefix =
-        (report.report_type === 'remote' || report.report_type === 'remote_learning')
-            ? 'SP_RL'
-            : 'SP_TLS';
-
-    // تنظيف الاسم
+    const prefix = (report.report_type === 'remote' || report.report_type === 'remote_learning') ? 'SP_RL' : 'SP_TLS';
+    
     const clean = (text = '') => {
         return String(text)
             .trim()
@@ -866,16 +1497,45 @@ function generateReportFileName(report) {
             .replace(/_+/g, '_')
             .replace(/^_+|_+$/g, '');
     };
-
-    // الأسماء الصحيحة من بيانات التقرير
+    
     const specialist = clean(report.users?.name || 'مختص');
     const school = clean(report.schools?.name || 'مدرسة');
-
+    
     return `${prefix}_${specialist}_${school}.pdf`;
 }
+
+function exportReportToPDF(reportId = null) {
+    const report = reportId ? allReportsCache.find(r => r.id == reportId) : currentViewReport;
+
+    if (!report) {
+        showMessage('لم يتم العثور على التقرير', 'error');
+        return;
+    }
+
+    const html = reportsCache.get(report.id) || buildPrintHTMLFast(report, report.report_type);
+    const fileName = generateReportFileName(report);
+
+    const printWindow = window.open('', '_blank');
+
+    if (!printWindow) {
+        showMessage('الرجاء السماح للنوافذ المنبثقة', 'error');
+        return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.title = fileName.replace('.pdf', '');
+    printWindow.document.close();
+
+    printWindow.focus();
+
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
+}
+
 function closeViewModal() { 
-    const modal = document.getElementById('viewModal');
-    modal.classList.remove('active');
+    closeModalWithScroll('viewModal');
     currentOpenReportId = null;
     const emailBtn = document.getElementById('emailReportBtn');
     if (emailBtn) emailBtn.style.display = 'none';
@@ -899,17 +1559,15 @@ function updateUIBasedOnRole(user) {
     }
 }
 
-async function loadUserData() {
+async function getCurrentUserFromLocal() {
+    const localUser = localStorage.getItem('currentUser');
+    if (localUser && JSON.parse(localUser).id) {
+        const parsed = JSON.parse(localUser);
+        console.log('✅ تم تحميل المستخدم من localStorage:', parsed.name);
+        return parsed;
+    }
+    
     try {
-        const localUser = localStorage.getItem('currentUser');
-        if (localUser) {
-            const parsed = JSON.parse(localUser);
-            if (parsed.district_name || parsed.school_name || parsed.id) {
-                console.log('تم تحميل المستخدم من localStorage:', parsed.name);
-                return parsed;
-            }
-        }
-        
         const { data: { user } } = await window.supabaseClient.auth.getUser();
         if (user) {
             const { data: userData } = await window.supabaseClient.from('users').select('*').eq('email', user.email).single();
@@ -919,21 +1577,17 @@ async function loadUserData() {
                     if (district) userData.district_name = district.name;
                 }
                 if (userData.school_id) {
-                    const { data: school } = await window.supabaseClient.from('schools').select('name, schoolPrincipalEmail').eq('id', userData.school_id).single();
-                    if (school) {
-                        userData.school_name = school.name;
-                        userData.schoolPrincipalEmail = school.schoolPrincipalEmail;
-                    }
+                    const { data: school } = await window.supabaseClient.from('schools').select('name').eq('id', userData.school_id).single();
+                    if (school) userData.school_name = school.name;
                 }
                 localStorage.setItem('currentUser', JSON.stringify(userData));
-                console.log('تم تحميل المستخدم من Supabase:', userData.name);
+                console.log('✅ تم تحميل المستخدم من Supabase:', userData.name);
                 return userData;
             }
         }
-        
         return null;
     } catch (error) {
-        console.error('Error loading user data:', error);
+        console.error('❌ خطأ في جلب المستخدم:', error);
         return null;
     }
 }
@@ -1003,141 +1657,23 @@ async function loadSchoolPrincipal(type) {
     else document.getElementById('remotePrincipalName').value = school?.schoolPrincipal || '';
 }
 
-async function loadReports() {
-    if (isLoading) return;
-    isLoading = true;
-    try {
-        const districtsMap = {};
-        districtsList.forEach(d => { districtsMap[d.id] = d.name; });
-        
-        let allInPersonReports = [];
-        let page = 0;
-        const pageSize = 1000;
-        let hasMore = true;
-        
-        while (hasMore) {
-            const { data, error } = await window.supabaseClient
-                .from('in_person_reports')
-                .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
-                .order('visit_date', { ascending: false })
-                .range(page * pageSize, (page + 1) * pageSize - 1);
-            if (error) throw error;
-            if (data && data.length > 0) {
-                allInPersonReports = [...allInPersonReports, ...data];
-                page++;
-                if (data.length < pageSize) hasMore = false;
-            } else { hasMore = false; }
-        }
-        
-        let allRemoteReports = [];
-        page = 0;
-        hasMore = true;
-        
-        while (hasMore) {
-            const { data, error } = await window.supabaseClient
-                .from('remote_reports')
-                .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
-                .order('visit_date', { ascending: false })
-                .range(page * pageSize, (page + 1) * pageSize - 1);
-            if (error) throw error;
-            if (data && data.length > 0) {
-                allRemoteReports = [...allRemoteReports, ...data];
-                page++;
-                if (data.length < pageSize) hasMore = false;
-            } else { hasMore = false; }
-        }
-        
-        const inPersonReports = allInPersonReports.map(r => ({ 
-            ...r, report_type: 'in_person', schools: r.schools, users: r.users, 
-            district_name: districtsMap[r.schools?.district_id] || '-', 
-            principal_name: r.principal_name || r.schools?.schoolPrincipal || '' 
-        }));
-        
-        const remoteReports = allRemoteReports.map(r => ({ 
-            ...r, report_type: 'remote', schools: r.schools, users: r.users, 
-            district_name: districtsMap[r.schools?.district_id] || '-', 
-            principal_name: r.principal_name || r.schools?.schoolPrincipal || '' 
-        }));
-        
-        currentReports = [...inPersonReports, ...remoteReports].sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date));
-        displayReports(currentReports);
-        console.log(`تم تحميل ${currentReports.length} تقرير بنجاح`);
-        
-    } catch (error) { 
-        console.error('Error loading reports:', error);
-        document.getElementById('reportsTableBody').innerHTML = '<tr><td colspan="12" style="text-align:center;padding:3rem;"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل التقارير</p></td></tr>';
-    } finally { isLoading = false; }
-}
-
-function displayReports(reports) {
-    const visibleReports = getVisibleReportsForUser(currentUser, reports);
-    const tbody = document.getElementById('reportsTableBody');
-    if (!visibleReports || visibleReports.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير</p></td></tr>';
-        document.getElementById('resultsCount').textContent = 'عدد النتائج: 0';
-        return;
-    }
-    tbody.innerHTML = visibleReports.map((report, index) => {
-        const canEdit = canEditReport(currentUser, report);
-        const canDelete = canDeleteReport(currentUser, report);
-        let actionsHtml = `<a href="#" onclick="viewReport('${report.report_type}', '${report.id}')" class="action-link view" title="معاينة"><i class="fas fa-eye"></i></a>`;
-        if (canEdit) actionsHtml += `<a href="#" onclick="editReport('${report.report_type}', '${report.id}')" class="action-link edit" title="تعديل"><i class="fas fa-edit"></i></a>`;
-        if (canDelete) actionsHtml += `<a href="#" onclick="openDeleteModal('${report.report_type}', '${report.id}')" class="action-link delete" title="حذف"><i class="fas fa-trash"></i></a>`;
-        const typeBadge = report.report_type === 'in_person' ? '<span class="badge badge-success">وجاهي</span>' : '<span class="badge badge-primary">عن بعد</span>';
-        return `<tr><td style="padding:12px">${index + 1}</td><td style="padding:12px">${new Date(report.visit_date).toLocaleDateString('ar-SA')}</td><td style="padding:12px">${typeBadge}</td><td style="padding:12px">${report.district_name || '-'}</td><td style="padding:12px">${report.schools?.name || '-'}</td><td style="padding:12px">${report.teacher_name || '-'}</td><td style="padding:12px">${report.principal_name || '-'}</td><td style="padding:12px">${getClassNameText(report.class_name)}</td><td style="padding:12px">${report.section || '-'}</td><td style="padding:12px">${report.subject || '-'}</td><td style="padding:12px">${report.users?.name || '-'}</td><td style="padding:12px"><div style="display:flex;gap:0.5rem;">${actionsHtml}</div></td></tr>`;
-    }).join('');
-    document.getElementById('resultsCount').textContent = `عدد النتائج: ${visibleReports.length}`;
-}
-
-function filterReports() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    let fromDate = getDateFromPicker(dateFromPicker);
-    let toDate = getDateFromPicker(dateToPicker);
-    const type = document.getElementById('reportTypeFilter').value;
-    const district = document.getElementById('districtFilter').value;
-    const classFilter = document.getElementById('classFilter').value;
-    let visibleReports = getVisibleReportsForUser(currentUser, currentReports);
-    const filtered = visibleReports.filter(r => {
-        if (type && r.report_type !== type) return false;
-        if (district && district !== '' && r.district_name !== district) return false;
-        if (classFilter && r.class_name !== classFilter) return false;
-        if (fromDate && r.visit_date < fromDate) return false;
-        if (toDate && r.visit_date > toDate) return false;
-        if (search) { const fields = [r.schools?.name, r.teacher_name, r.subject, r.users?.name].filter(Boolean).join(' ').toLowerCase(); if (!fields.includes(search)) return false; }
-        return true;
-    });
-    displayFilteredReports(filtered);
-}
-
-function displayFilteredReports(reports) {
-    const tbody = document.getElementById('reportsTableBody');
-    if (!reports || reports.length === 0) { tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>'; document.getElementById('resultsCount').textContent = 'عدد النتائج: 0'; return; }
-    tbody.innerHTML = reports.map((report, index) => {
-        const canEdit = canEditReport(currentUser, report);
-        const canDelete = canDeleteReport(currentUser, report);
-        let actionsHtml = `<a href="#" onclick="viewReport('${report.report_type}', '${report.id}')" class="action-link view" title="معاينة"><i class="fas fa-eye"></i></a>`;
-        if (canEdit) actionsHtml += `<a href="#" onclick="editReport('${report.report_type}', '${report.id}')" class="action-link edit" title="تعديل"><i class="fas fa-edit"></i></a>`;
-        if (canDelete) actionsHtml += `<a href="#" onclick="openDeleteModal('${report.report_type}', '${report.id}')" class="action-link delete" title="حذف"><i class="fas fa-trash"></i></a>`;
-        const typeBadge = report.report_type === 'in_person' ? '<span class="badge badge-success">وجاهي</span>' : '<span class="badge badge-primary">عن بعد</span>';
-        return `<tr><td style="padding:12px">${index + 1}</td><td style="padding:12px">${new Date(report.visit_date).toLocaleDateString('ar-SA')}</td><td style="padding:12px">${typeBadge}</td><td style="padding:12px">${report.district_name || '-'}</td><td style="padding:12px">${report.schools?.name || '-'}</td><td style="padding:12px">${report.teacher_name || '-'}</td><td style="padding:12px">${report.principal_name || '-'}</td><td style="padding:12px">${getClassNameText(report.class_name)}</td><td style="padding:12px">${report.section || '-'}</td><td style="padding:12px">${report.subject || '-'}</td><td style="padding:12px">${report.users?.name || '-'}</td><td style="padding:12px"><div style="display:flex;gap:0.5rem;">${actionsHtml}</div></tr>`;
-    }).join('');
-    document.getElementById('resultsCount').textContent = `عدد النتائج: ${reports.length}`;
-}
-
-function clearFilters() {
-    document.getElementById('searchInput').value = '';
-    if (dateFromPicker) dateFromPicker.clear();
-    if (dateToPicker) dateToPicker.clear();
-    document.getElementById('reportTypeFilter').value = '';
-    document.getElementById('districtFilter').value = '';
-    document.getElementById('classFilter').value = '';
-    displayReports(currentReports);
-}
-
 function exportToExcel() {
-    const visibleReports = getVisibleReportsForUser(currentUser, currentReports);
+    const sourceReports = filteredReportsCache.length > 0 ? filteredReportsCache : allReportsCache;
     const rows = [['التاريخ', 'النوع', 'المنطقة', 'المدرسة', 'المعلم', 'مدير المدرسة', 'الصف', 'الشعبة', 'المبحث', 'المختص']];
-    visibleReports.forEach(report => { rows.push([new Date(report.visit_date).toLocaleDateString('ar-SA'), report.report_type === 'in_person' ? 'وجاهي' : 'عن بعد', report.district_name || '-', report.schools?.name || '-', report.teacher_name || '-', report.principal_name || '-', getClassNameText(report.class_name), report.section || '-', report.subject || '-', report.users?.name || '-']); });
+    sourceReports.forEach(report => { 
+        rows.push([
+            new Date(report.visit_date).toLocaleDateString('ar-SA'), 
+            report.report_type === 'in_person' ? 'وجاهي' : 'عن بعد', 
+            report.district_name || '-', 
+            report.schools?.name || '-', 
+            report.teacher_name || '-', 
+            report.principal_name || '-', 
+            getClassNameText(report.class_name), 
+            report.section || '-', 
+            report.subject || '-', 
+            report.users?.name || '-'
+        ]); 
+    });
     const ws = XLSX.utils.aoa_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'التقارير');
@@ -1157,7 +1693,7 @@ function openAddReportModal(type) {
         document.getElementById('inPersonDistrict').value = '';
         buildEvaluationItems('inPersonTeachingActivities', inPersonTeachingList, 'in_person_teaching');
         buildEvaluationItems('inPersonWellbeing', inPersonWellbeingList, 'in_person_wellbeing');
-        document.getElementById('inPersonModal').classList.add('active');
+        openModalWithScroll('inPersonModal');
     } else {
         document.getElementById('remoteForm').reset();
         document.getElementById('remoteReportId').value = '';
@@ -1166,12 +1702,12 @@ function openAddReportModal(type) {
         document.getElementById('remoteDistrict').value = '';
         buildEvaluationItems('remoteAdminTasks', remoteAdminList, 'remote_admin');
         buildEvaluationItems('remoteTechnicalTasks', remoteTechnicalList, 'remote_technical');
-        document.getElementById('remoteModal').classList.add('active');
+        openModalWithScroll('remoteModal');
     }
 }
 
 async function editReport(type, id) {
-    const report = currentReports.find(r => r.report_type === type && r.id == id);
+    const report = allReportsCache.find(r => r.report_type === type && r.id == id);
     if (!report) return;
     if (!canEditReport(currentUser, report)) { showMessage('لا تملك صلاحية تعديل هذا التقرير', 'error'); return; }
     currentEditingId = id;
@@ -1198,7 +1734,7 @@ async function editReport(type, id) {
         document.getElementById('inPersonRecommendations').value = report.recommendations || '';
         buildEvaluationItems('inPersonTeachingActivities', inPersonTeachingList, 'in_person_teaching', report.teaching_evaluation || {});
         buildEvaluationItems('inPersonWellbeing', inPersonWellbeingList, 'in_person_wellbeing', report.wellbeing_evaluation || {});
-        document.getElementById('inPersonModal').classList.add('active');
+        openModalWithScroll('inPersonModal');
     } else {
         document.getElementById('remoteReportId').value = id;
         setPickerDate(remoteDatePicker, report.visit_date);
@@ -1220,7 +1756,7 @@ async function editReport(type, id) {
         document.getElementById('remoteRecommendations').value = report.recommendations || '';
         buildEvaluationItems('remoteAdminTasks', remoteAdminList, 'remote_admin', report.admin_evaluation || {});
         buildEvaluationItems('remoteTechnicalTasks', remoteTechnicalList, 'remote_technical', report.technical_evaluation || {});
-        document.getElementById('remoteModal').classList.add('active');
+        openModalWithScroll('remoteModal');
     }
 }
 
@@ -1258,8 +1794,8 @@ document.getElementById('inPersonForm')?.addEventListener('submit', async (e) =>
         }
         if (result.error) throw result.error;
         if (newReportId && currentUser) await window.sendVisitReportNotifications({ ...data, school_id: parseInt(schoolId) }, newReportId, 'in_person', currentUser.name || currentUser.username || 'مختص', isEdit ? 'update' : 'create');
-        closeModal('inPersonModal');
-        await loadReports();
+        closeModalWithScroll('inPersonModal');
+        await refreshCache();
         showMessage(isEdit ? 'تم تحديث التقرير بنجاح' : 'تم حفظ التقرير بنجاح', 'success');
         currentEditingId = null;
         currentEditingType = null;
@@ -1301,8 +1837,8 @@ document.getElementById('remoteForm')?.addEventListener('submit', async (e) => {
         }
         if (result.error) throw result.error;
         if (newReportId && currentUser) await window.sendVisitReportNotifications({ ...data, school_id: parseInt(schoolId) }, newReportId, 'remote', currentUser.name || currentUser.username || 'مختص', isEdit ? 'update' : 'create');
-        closeModal('remoteModal');
-        await loadReports();
+        closeModalWithScroll('remoteModal');
+        await refreshCache();
         showMessage(isEdit ? 'تم تحديث التقرير بنجاح' : 'تم حفظ التقرير بنجاح', 'success');
         currentEditingId = null;
         currentEditingType = null;
@@ -1311,10 +1847,10 @@ document.getElementById('remoteForm')?.addEventListener('submit', async (e) => {
 });
 
 function openDeleteModal(type, id) {
-    const report = currentReports.find(r => r.report_type === type && r.id == id);
+    const report = allReportsCache.find(r => r.report_type === type && r.id == id);
     if (!canDeleteReport(currentUser, report)) { showMessage('لا تملك صلاحية حذف هذا التقرير', 'error'); return; }
     deleteReportData = { type, id };
-    document.getElementById('deleteModal').classList.add('active');
+    openModalWithScroll('deleteModal');
 }
 
 async function confirmDelete() {
@@ -1322,13 +1858,13 @@ async function confirmDelete() {
     const table = deleteReportData.type === 'in_person' ? 'in_person_reports' : 'remote_reports';
     const { error } = await window.supabaseClient.from(table).delete().eq('id', deleteReportData.id);
     if (error) { showMessage('خطأ في الحذف', 'error'); return; }
-    closeDeleteModal();
-    await loadReports();
+    closeModalWithScroll('deleteModal');
+    await refreshCache();
     showMessage('تم الحذف بنجاح', 'success');
 }
 
-function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('active'); deleteReportData = null; }
+function closeModal(id) { closeModalWithScroll(id); }
+function closeDeleteModal() { closeModalWithScroll('deleteModal'); deleteReportData = null; }
 
 // ===================== دوال الإشعارات =====================
 async function updateUnreadBadge() {
@@ -1445,8 +1981,8 @@ function startNotificationPolling() {
 function stopNotificationPolling() { if (notificationInterval) { clearInterval(notificationInterval); notificationInterval = null; } }
 
 function initDatePickers() {
-    dateFromPicker = flatpickr("#dateFrom", { locale: "ar", dateFormat: "d/m/Y", onChange: () => filterReports() });
-    dateToPicker = flatpickr("#dateTo", { locale: "ar", dateFormat: "d/m/Y", onChange: () => filterReports() });
+    dateFromPicker = flatpickr("#dateFrom", { locale: "ar", dateFormat: "d/m/Y" });
+    dateToPicker = flatpickr("#dateTo", { locale: "ar", dateFormat: "d/m/Y" });
     inPersonDatePicker = flatpickr("#inPersonVisitDate", { locale: "ar", dateFormat: "d/m/Y" });
     remoteDatePicker = flatpickr("#remoteVisitDate", { locale: "ar", dateFormat: "d/m/Y" });
 }
@@ -1460,7 +1996,7 @@ async function logout() {
 
 // ===================== تهيئة الصفحة =====================
 window.addEventListener('load', async () => {
-    currentUser = await loadUserData();
+    currentUser = await getCurrentUserFromLocal();
     
     if (!currentUser) {
         console.log('لم يتم العثور على مستخدم، التوجيه إلى صفحة التسجيل');
@@ -1468,9 +2004,7 @@ window.addEventListener('load', async () => {
         return;
     }
     
-    console.log('تم تسجيل الدخول بنجاح:', currentUser.name, 'الدور:', currentUser.role);
-    
-    await loadUsersData();
+    console.log('✅ تم تسجيل الدخول بنجاح:', currentUser.name, 'الدور:', currentUser.role);
     
     document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username || 'مستخدم';
     document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
@@ -1478,10 +2012,30 @@ window.addEventListener('load', async () => {
     
     updateUIBasedOnRole(currentUser);
     
+    await loadUsersData();
     await loadDistricts();
     await loadSchools();
-    await loadReports();
+    
     initDatePickers();
+    
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    if (pageSizeSelect) {
+        pageSizeSelect.addEventListener('change', (e) => {
+            pageSize = parseInt(e.target.value);
+            currentPage = 1;
+            displayCurrentPage();
+        });
+    }
+    
+    await loadAllReportsToCache();
+    
+    if (allReportsCache && allReportsCache.length > 0) {
+        filteredReportsCache = [...allReportsCache];
+        totalFilteredCount = filteredReportsCache.length;
+        currentPage = 1;
+        displayCurrentPage();
+    }
+    
     await updateUnreadBadge();
     startNotificationPolling();
     
@@ -1497,5 +2051,6 @@ window.addEventListener('load', async () => {
     }
 });
 </script>
+
 </body>
 </html>
