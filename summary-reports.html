@@ -1029,7 +1029,7 @@ async function openOutlookForSummaryReport() {
     if(!currentViewReport) { showMessage('لا يوجد تقرير للإرسال','error'); return; }
     const district = districtsList.find(d=>d.id==currentViewReport.district_id);
     const specialistName = currentViewReport.users?.name || 'مختص';
-    const subjectPrefix = currentViewReport.report_type === 'in_person' ? 'TLS-BiWeekly' : 'RL-BiWeekly';
+    const subjectPrefix = currentViewReport.report_type === 'in_person' ? 'TLS_BiWeekly' : 'RL_BiWeekly';
     const subject = `${subjectPrefix} - التقرير الدوري للمختص ${specialistName}`;
     const periodFrom = new Date(currentViewReport.period_from).toLocaleDateString('ar-SA');
     const periodTo = new Date(currentViewReport.period_to).toLocaleDateString('ar-SA');
@@ -1090,7 +1090,7 @@ function executeOpenOutlook() {
 // ==================== تصدير PDF ====================
 function exportReportToPDF() {
     if(!currentViewReport) { showMessage('لا يوجد تقرير للتصدير','error'); return; }
-    const prefix = currentViewReport.report_type === 'in_person' ? 'TLS-BiWeekly' : 'RL-BiWeekly';
+    const prefix = currentViewReport.report_type === 'in_person' ? 'TLS_BiWeekly' : 'RL_BiWeekly';
     const specialistName = currentViewReport.users?.name || 'مختص';
     const clean = (t='')=>t.trim().replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_+|_+$/g,'');
     const fileName = `${prefix} - ${clean(specialistName)}.pdf`;
