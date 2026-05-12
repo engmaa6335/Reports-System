@@ -21,7 +21,6 @@
     <script src="js/supabase.js"></script>
     
     <style>
-        /* ===== جميع الأنماط ===== */
         .notifications-container { position: fixed; top: 20px; left: 20px; z-index: 9999; max-width: 350px; }
         .notification-item { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-right: 4px solid #1e3c72; animation: slideIn 0.3s ease; cursor: pointer; }
         .notification-item.success { border-right-color: #2e9b54; }
@@ -29,7 +28,6 @@
         .notification-item.info { border-right-color: #1e3c72; }
         @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
-        /* ===== تحسين المودال ===== */
         .modal {
             position: fixed;
             top: 0;
@@ -58,13 +56,12 @@
             max-height: 90vh;
             overflow-y: auto;
         }
+        .modal-large { max-width: 1300px; width: 95%; }
         
-        /* أزرار الإجراءات - الألوان الأصلية */
         .action-link.edit { color: #f59e0b !important; }
         .action-link.delete { color: #e34f76 !important; }
         .action-link.view { color: #1e3c72 !important; }
         
-        /* الأنشطة */
         .activities-header {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr 1fr 50px;
@@ -107,7 +104,6 @@
             margin-top: 1rem;
         }
         
-        /* شريط التحكم */
         .reports-control-bar {
             display: flex;
             justify-content: space-between;
@@ -136,7 +132,6 @@
             border-radius: 30px;
         }
         
-        /* الترقيم */
         .pagination-container {
             display: flex;
             justify-content: center;
@@ -160,7 +155,6 @@
         .pagination-btn.active { background: #1e3c72; color: white; border-color: #1e3c72; }
         .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         
-        /* شريط التحميل */
         .loading-progress {
             background: white;
             border-radius: 16px;
@@ -183,12 +177,46 @@
             transition: width 0.3s ease;
         }
         
-        /* معاينة التقرير */
         .preview-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         .preview-table th, .preview-table td { border: 1px solid #dee2e6; padding: 10px 8px; text-align: center; vertical-align: top; }
         .preview-table th { background: linear-gradient(135deg, #1e3c72, #153155); color: white; font-weight: 600; }
         
-        /* الإشعارات */
+        .visits-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eef2f7;
+            border-radius: 12px;
+        }
+        .visits-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .visits-table th,
+        .visits-table td {
+            padding: 10px 12px;
+            text-align: center;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .visits-table th {
+            background: #f8fafd;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .report-title-section {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+            padding: 0.8rem;
+            background: #eef2ff;
+            border-radius: 12px;
+        }
+        .report-title-section h3 {
+            color: #1e3c72;
+            margin: 0;
+        }
+        
         .notifications-trigger button {
             background: none; border: none; width: 100%; text-align: right; padding: 0.75rem 1rem;
             border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;
@@ -221,14 +249,12 @@
         .panel-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: none; }
         .panel-overlay.open { display: block; }
         
-        /* البريد الإلكتروني */
         .email-modal-content { max-width: 600px; width: 90%; }
         .email-group { margin-bottom: 1.2rem; }
         .email-group label { display: block; font-weight: 600; color: #1e3c72; margin-bottom: 0.4rem; font-size: 0.85rem; }
         .email-group input, .email-group textarea { width: 100%; padding: 0.7rem 1rem; border: 1px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 0.9rem; background: #f8fafd; }
         .btn-outlook { background: linear-gradient(135deg, #0078D4, #005a9e); color: white; border-radius: 15px; border: none; padding: 10px 20px; cursor: pointer; font-weight: 500; }
         
-        /* رسالة التأكيد */
         .confirm-modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
@@ -259,11 +285,36 @@
         }
         .btn-confirm-yes { background: linear-gradient(135deg, #2e9b54, #257a44); color: white; }
         .btn-confirm-no { background: #f1f5f9; color: #4e6580; border: 1px solid #e2e8f0; }
-        .btn-confirm-no:hover { background: #eef2ff; color: #1e3c72; }
         
         .loader { border: 3px solid #eef2f7; border-top: 3px solid #1e3c72; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
         .loader-small { border: 2px solid #eef2f7; border-top: 2px solid #1e3c72; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; margin-left: 0.5rem; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .flatpickr-calendar {
+            font-family: 'Inter', sans-serif;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border: none;
+            z-index: 9999999 !important;
+        }
+        .flatpickr-day.selected, 
+        .flatpickr-day.startRange, 
+        .flatpickr-day.endRange,
+        .flatpickr-day.selected.inRange,
+        .flatpickr-day.startRange.inRange,
+        .flatpickr-day.endRange.inRange,
+        .flatpickr-day.selected:focus,
+        .flatpickr-day.selected:hover {
+            background: #1e3c72;
+            border-color: #1e3c72;
+        }
+        .flatpickr-day.today { border-color: #1e3c72; }
+        .flatpickr-day.today:hover { background: #1e3c72; color: white; }
+        .flatpickr-months .flatpickr-prev-month:hover svg,
+        .flatpickr-months .flatpickr-next-month:hover svg { fill: #1e3c72; }
+        .flatpickr-input[readonly] { background-color: white; cursor: pointer; }
+        
+        .form-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
         
         @media (max-width: 768px) {
             .activity-row, .activities-header { grid-template-columns: 1fr; gap: 0.5rem; }
@@ -325,7 +376,6 @@
             </div>
         </div>
 
-        <!-- شريط الفلاتر -->
         <div class="filters-bar">
             <div class="filter-group"><label><i class="fas fa-search"></i> بحث</label><input type="text" id="searchInput" class="form-input" placeholder="مختص / منطقة"></div>
             <div class="filter-group"><label><i class="fas fa-filter"></i> نوع التقرير</label><select id="reportTypeFilter" class="form-input"><option value="">الكل</option><option value="in_person">وجاهي</option><option value="remote">عن بعد</option></select></div>
@@ -338,7 +388,6 @@
             </div>
         </div>
 
-        <!-- شريط التحكم -->
         <div class="reports-control-bar">
             <div class="reports-info">
                 <i class="fas fa-chart-line"></i> إجمالي التقارير: <strong id="totalCountDisplay">0</strong>
@@ -355,13 +404,11 @@
             </div>
         </div>
 
-        <!-- شريط التحميل -->
         <div id="loadingProgress" class="loading-progress" style="display: none;">
             <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
             <div class="loading-stats" id="loadingStats"></div>
         </div>
 
-        <!-- جدول التقارير -->
         <div class="table-container">
             <div style="overflow-x: auto;">
                 <table class="modern-table">
@@ -379,37 +426,87 @@
     </main>
 </div>
 
-<!-- المودالات -->
 <div id="summaryReportModal" class="modal">
     <div class="modal-content modal-large">
-        <div class="modal-header"><h2 id="modalTitle">إضافة تقرير تجميعي جديد</h2><button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button></div>
+        <div class="modal-header">
+            <h2 id="modalTitle">إضافة تقرير تجميعي جديد</h2>
+            <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
         <form id="summaryReportForm">
             <input type="hidden" id="reportId">
-            <div class="form-row"><div><label>نوع التقرير *</label><select id="reportTypeSelect" class="form-input" required onchange="onReportTypeChange()"><option value="">اختر نوع التقرير</option><option value="in_person">تعليم وجاهي</option><option value="remote">تعليم عن بعد</option></select></div></div>
-            <div id="reportTitleSection" class="report-title-section" style="display:none;"><h3 id="dynamicReportTitle">التقرير النصف شهري للمختص التربوي</h3></div>
+            
             <div class="form-row">
-                <div><label>المختص التربوي *</label><select id="specialistId" class="form-input" required onchange="onSpecialistChange()"><option value="">اختر المختص</option></select></div>
-                <div><label>التخصص</label><input type="text" id="specialization" class="form-input" readonly placeholder="سيتم جلب التخصص تلقائياً"></div>
-            </div>
-            <div class="form-row">
-                <div><label>المنطقة التعليمية *</label><select id="districtId" class="form-input" required onchange="loadVisitsData()"><option value="">اختر المنطقة</option></select></div>
-                <div><label>عدد الزيارات الكلية</label><input type="number" id="totalVisits" class="form-input" readonly placeholder="سيتم حسابه تلقائياً"></div>
-            </div>
-            <div class="form-row">
-                <div><label>الفترة من *</label><input type="text" id="periodFrom" class="form-input date-picker" required readonly></div>
-                <div><label>الفترة إلى *</label><input type="text" id="periodTo" class="form-input date-picker" required readonly></div>
+                <div>
+                    <label><i class="fas fa-tag"></i> نوع التقرير *</label>
+                    <select id="reportTypeSelect" class="form-input" required onchange="onReportTypeChange()">
+                        <option value="">اختر نوع التقرير</option>
+                        <option value="in_person">تعليم وجاهي</option>
+                        <option value="remote">تعليم عن بعد</option>
+                    </select>
+                </div>
             </div>
             
-            <h3 style="margin: 1.5rem 0 1rem 0;">أولاً: الزيارات</h3>
+            <div id="reportTitleSection" class="report-title-section" style="display:none;">
+                <h3 id="dynamicReportTitle">التقرير النصف شهري للمختص التربوي</h3>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label><i class="fas fa-user-graduate"></i> المختص التربوي *</label>
+                    <select id="specialistId" class="form-input" required onchange="onSpecialistChange()">
+                        <option value="">اختر المختص</option>
+                    </select>
+                </div>
+                <div>
+                    <label><i class="fas fa-graduation-cap"></i> التخصص</label>
+                    <input type="text" id="specialization" class="form-input" readonly placeholder="سيتم جلب التخصص تلقائياً">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label><i class="fas fa-map-marker-alt"></i> المنطقة التعليمية *</label>
+                    <select id="districtId" class="form-input" required onchange="loadVisitsData()">
+                        <option value="">اختر المنطقة</option>
+                    </select>
+                </div>
+                <div>
+                    <label><i class="fas fa-chart-simple"></i> عدد الزيارات الكلية</label>
+                    <input type="number" id="totalVisits" class="form-input" readonly placeholder="سيتم حسابه تلقائياً">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label><i class="fas fa-calendar-alt"></i> الفترة من *</label>
+                    <input type="text" id="periodFrom" class="form-input" placeholder="dd/mm/yyyy" required readonly>
+                </div>
+                <div>
+                    <label><i class="fas fa-calendar-alt"></i> الفترة إلى *</label>
+                    <input type="text" id="periodTo" class="form-input" placeholder="dd/mm/yyyy" required readonly>
+                </div>
+            </div>
+            
+            <h3 style="margin: 1.5rem 0 1rem 0;"><i class="fas fa-calendar-check" style="margin-left: 0.5rem; color: #1e3c72;"></i> أولاً: الزيارات</h3>
             <div class="visits-table-container">
-                <table class="visits-table" style="width:100%; border-collapse:collapse;">
-                    <thead><tr><th>#</th><th>التاريخ</th><th>المدرسة</th><th>الصف</th><th>الشعبة</th><th>المبحث</th><th>اسم المعلم</th><th>أفكار إبداعية / جوانب إيجابية</th><th>التوصيات</th></tr></thead>
-                    <tbody id="visitsTableBody"><tr><td colspan="9" style="text-align:center; padding:2rem;">الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية</td></tr></tbody>
+                <table class="visits-table">
+                    <thead>
+                        <tr><th>#</th><th>التاريخ</th><th>المدرسة</th><th>الصف</th><th>الشعبة</th><th>المبحث</th><th>اسم المعلم</th><th>أفكار إبداعية / جوانب إيجابية</th><th>التوصيات</th></tr>
+                    </thead>
+                    <tbody id="visitsTableBody">
+                        <tr><td colspan="9" style="text-align: center; padding: 2rem; color: #4e6580;"><i class="fas fa-info-circle"></i> الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية<\/td><\/tr>
+                    </tbody>
                 </table>
             </div>
             
-            <h3 style="margin: 1.5rem 0 1rem 0;">ثانياً: أنشطة إشرافية أخرى</h3>
-            <div class="activities-header"><span>التاريخ</span><span>النشاط</span><span>الموضوع</span><span>الفئة المستهدفة</span><span></span></div>
+            <h3 style="margin: 1.5rem 0 1rem 0;"><i class="fas fa-tasks" style="margin-left: 0.5rem; color: #1e3c72;"></i> ثانياً: أنشطة إشرافية أخرى</h3>
+            <div class="activities-header">
+                <span><i class="fas fa-calendar-day"></i> التاريخ</span>
+                <span><i class="fas fa-lightbulb"></i> النشاط</span>
+                <span><i class="fas fa-book-open"></i> الموضوع</span>
+                <span><i class="fas fa-users"></i> الفئة المستهدفة</span>
+                <span></span>
+            </div>
             <div id="activitiesContainer">
                 <div class="activity-row" data-activity-id="0">
                     <input type="text" class="form-input activity-date" placeholder="dd/mm/yyyy">
@@ -422,7 +519,7 @@
             <button type="button" class="add-activity-btn" onclick="addActivityRow()"><i class="fas fa-plus"></i> إضافة نشاط إشرافي</button>
             
             <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                <button type="submit" id="saveReportBtn" class="btn-primary" style="flex: 2;"><i class="fas fa-save"></i> حفظ</button>
+                <button type="submit" id="saveReportBtn" class="btn-primary" style="flex: 2;"><i class="fas fa-save"></i> حفظ التقرير</button>
                 <button type="button" onclick="closeModal()" class="btn-secondary" style="flex: 1;"><i class="fas fa-times"></i> إلغاء</button>
             </div>
         </form>
@@ -455,9 +552,17 @@
     </div>
 </div>
 
-<div id="deleteModal" class="modal"><div class="modal-content" style="max-width: 400px;"><div style="text-align:center;"><div style="width:70px;height:70px;background:#fff2f5;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;"><i class="fas fa-exclamation-triangle" style="font-size:2rem;color:#e34f76;"></i></div><h3>تأكيد الحذف</h3><p>هل أنت متأكد من حذف هذا التقرير؟</p></div><div style="display:flex;gap:1rem;margin-top:1.5rem;"><button onclick="confirmDelete()" class="btn-danger" style="flex:1;">حذف</button><button onclick="closeDeleteModal()" class="btn-secondary" style="flex:1;">إلغاء</button></div></div></div>
+<div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div style="text-align:center;">
+            <div style="width:70px;height:70px;background:#fff2f5;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;"><i class="fas fa-exclamation-triangle" style="font-size:2rem;color:#e34f76;"></i></div>
+            <h3>تأكيد الحذف</h3>
+            <p>هل أنت متأكد من حذف هذا التقرير؟</p>
+        </div>
+        <div style="display:flex;gap:1rem;margin-top:1.5rem;"><button onclick="confirmDelete()" class="btn-danger" style="flex:1;">حذف</button><button onclick="closeDeleteModal()" class="btn-secondary" style="flex:1;">إلغاء</button></div>
+    </div>
+</div>
 
-<!-- رسالة تأكيد البريد الإلكتروني -->
 <div id="emailConfirmModal" class="confirm-modal-overlay">
     <div class="confirm-modal">
         <div class="confirm-modal-header">
@@ -500,40 +605,116 @@ let periodFromPicker = null, periodToPicker = null, filterDateFromPicker = null,
 let activityDatePickers = [];
 
 // ==================== دوال المساعدة ====================
-function getRoleName(role) { const roles = { 'admin':'مدير النظام', 'support':'دعم فني', 'manger':'مدير منطقة', 'spuser':'مدير مدرسة', 'user':'مختص تربوي' }; return roles[role] || role; }
-function getUserSubtitle(user) { if(!user) return ''; if(user.role==='admin'||user.role==='support') return 'مدير نظام'; if(user.role==='manger') return user.district_name || user.district || 'مدير منطقة'; if(user.role==='spuser') return user.school_name || user.school || 'مدير مدرسة'; if(user.role==='user') return 'مشرف تربوي'; return ''; }
+function getRoleName(role) { 
+    const roles = { 'admin':'مدير النظام', 'support':'دعم فني', 'manger':'مدير منطقة', 'spuser':'مدير مدرسة', 'user':'مختص تربوي' }; 
+    return roles[role] || role; 
+}
+
+function getUserSubtitle(user) { 
+    if(!user) return ''; 
+    if(user.role==='admin'||user.role==='support') return 'مدير نظام'; 
+    if(user.role==='manger') return user.district_name || user.district || 'مدير منطقة'; 
+    if(user.role==='spuser') return user.school_name || user.school || 'مدير مدرسة'; 
+    if(user.role==='user') return 'مشرف تربوي'; 
+    return ''; 
+}
+
 function canViewSummaryReports(user) { return user && ['admin','support','manger','user'].includes(user.role); }
 function canCreateSummaryReport(user) { return user && ['admin','support','user'].includes(user.role); }
-function canEditSummaryReport(user, report) { if(!user||!report) return false; if(['admin','support'].includes(user.role)) return true; return user.role==='user' && report.specialist_id == user.id; }
+function canEditSummaryReport(user, report) { 
+    if(!user||!report) return false; 
+    if(['admin','support'].includes(user.role)) return true; 
+    return user.role==='user' && report.specialist_id == user.id; 
+}
 function canDeleteSummaryReport(user, report) { return user && report && ['admin','support'].includes(user.role); }
 
-function getDateFromPicker(picker) { if(picker && picker.selectedDates && picker.selectedDates[0]) { const d=picker.selectedDates[0]; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; } return null; }
-function setPickerDate(picker, dateValue) { if(picker && dateValue) picker.setDate(new Date(dateValue)); }
-
-function initDatePickers() {
-    filterDateFromPicker = flatpickr("#dateFrom", { locale:"ar", dateFormat:"d/m/Y", onChange:()=>applyFilters() });
-    filterDateToPicker = flatpickr("#dateTo", { locale:"ar", dateFormat:"d/m/Y", onChange:()=>applyFilters() });
-    periodFromPicker = flatpickr("#periodFrom", { locale:"ar", dateFormat:"d/m/Y", onChange:()=>loadVisitsData() });
-    periodToPicker = flatpickr("#periodTo", { locale:"ar", dateFormat:"d/m/Y", onChange:()=>loadVisitsData() });
+function formatDateToYMD(date) {
+    if (!date) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
-function initActivityDatePicker(el) { return flatpickr(el, { locale:"ar", dateFormat:"d/m/Y", allowInput:false }); }
-function reinitializeActivityDatePickers() { activityDatePickers.forEach(p=>p?.destroy?.()); activityDatePickers=[]; document.querySelectorAll('#activitiesContainer .activity-date').forEach(input=>{ if(input && !input._flatpickr) activityDatePickers.push(initActivityDatePicker(input)); }); }
 
-function escapeHtml(text) { if(!text) return ''; const div=document.createElement('div'); div.textContent=text; return div.innerHTML; }
-function escapeHtmlAttribute(text) { if(!text) return ''; return text.replace(/[&<>]/g, m=> m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
-function showMessage(msg, type) { const container=document.getElementById('notificationsContainer'); if(!container) return; const el=document.createElement('div'); el.className=`notification-item ${type}`; el.innerHTML=`<i class="fas fa-${type==='success'?'check-circle':type==='info'?'info-circle':'exclamation-circle'}"></i> <span>${msg}</span>`; container.appendChild(el); setTimeout(()=>el.remove(),3000); }
+function getDateFromPicker(picker) { 
+    if(picker && picker.selectedDates && picker.selectedDates[0]) { 
+        return formatDateToYMD(picker.selectedDates[0]);
+    } 
+    return null; 
+}
+
+function setPickerDate(picker, dateValue) { 
+    if(picker && dateValue) picker.setDate(new Date(dateValue)); 
+}
+
+function initFilterDatePickers() {
+    if(filterDateFromPicker) filterDateFromPicker.destroy();
+    if(filterDateToPicker) filterDateToPicker.destroy();
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    filterDateFromPicker = flatpickr("#dateFrom", { locale: "ar", dateFormat: "d/m/Y", altInput: true, altFormat: "d/m/Y", placeholder: "dd/mm/yyyy", maxDate: today, onChange: function() { applyFilters(); } });
+    filterDateToPicker = flatpickr("#dateTo", { locale: "ar", dateFormat: "d/m/Y", altInput: true, altFormat: "d/m/Y", placeholder: "dd/mm/yyyy", maxDate: today, onChange: function() { applyFilters(); } });
+}
+
+function initModalDatePickers() {
+    if(periodFromPicker) periodFromPicker.destroy();
+    if(periodToPicker) periodToPicker.destroy();
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    periodFromPicker = flatpickr("#periodFrom", { locale: "ar", dateFormat: "d/m/Y", altInput: true, altFormat: "d/m/Y", placeholder: "dd/mm/yyyy", maxDate: today, onChange: function() { loadVisitsData(); } });
+    periodToPicker = flatpickr("#periodTo", { locale: "ar", dateFormat: "d/m/Y", altInput: true, altFormat: "d/m/Y", placeholder: "dd/mm/yyyy", maxDate: today, onChange: function() { loadVisitsData(); } });
+}
+
+function initActivityDatePicker(el) { 
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    return flatpickr(el, { locale: "ar", dateFormat: "d/m/Y", altInput: true, altFormat: "d/m/Y", placeholder: "dd/mm/yyyy", maxDate: today, allowInput: false }); 
+}
+
+function reinitializeActivityDatePickers() { 
+    activityDatePickers.forEach(p=>p?.destroy?.()); 
+    activityDatePickers=[]; 
+    document.querySelectorAll('#activitiesContainer .activity-date').forEach(input=>{ 
+        if(input && !input._flatpickr) activityDatePickers.push(initActivityDatePicker(input)); 
+    }); 
+}
+
+function escapeHtml(text) { 
+    if(!text) return ''; 
+    const div=document.createElement('div'); 
+    div.textContent=text; 
+    return div.innerHTML; 
+}
+
+function escapeHtmlAttribute(text) { 
+    if(!text) return ''; 
+    return text.replace(/[&<>]/g, m=> m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); 
+}
+
+function showMessage(msg, type) { 
+    const container=document.getElementById('notificationsContainer'); 
+    if(!container) return; 
+    const el=document.createElement('div'); 
+    el.className=`notification-item ${type}`; 
+    el.innerHTML=`<i class="fas fa-${type==='success'?'check-circle':type==='info'?'info-circle':'exclamation-circle'}"></i> <span>${msg}</span>`; 
+    container.appendChild(el); 
+    setTimeout(()=>el.remove(),3000); 
+}
 
 function openModalWithScroll(modalId) {
     const modal = document.getElementById(modalId);
-    if(modal) { toggleBodyScroll(true); modal.classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    if(modal) { 
+        document.body.style.overflow = 'hidden'; 
+        modal.classList.add('active'); 
+    } 
 }
+
 function closeModalWithScroll(modalId) {
     const modal = document.getElementById(modalId);
-    if(modal) { modal.classList.remove('active'); toggleBodyScroll(false); }
-}
-function toggleBodyScroll(disable) {
-    if(disable) { document.body.style.overflow = 'hidden'; document.body.style.position = 'fixed'; document.body.style.width = '100%'; document.body.style.top = `-${window.scrollY}px`; }
-    else { const scrollY = document.body.style.top; document.body.style.overflow = ''; document.body.style.position = ''; document.body.style.width = ''; document.body.style.top = ''; if(scrollY) window.scrollTo(0, parseInt(scrollY||'0')*-1); }
+    if(modal) { 
+        modal.classList.remove('active'); 
+        document.body.style.overflow = ''; 
+    } 
 }
 
 // ==================== تحميل جميع التقارير إلى الكاش ====================
@@ -543,25 +724,18 @@ async function loadAllSummaryReportsToCache() {
     const loadingStats = document.getElementById('loadingStats');
     progressDiv.style.display = 'block';
     progressFill.style.width = '5%';
-    loadingStats.innerHTML = 'جاري تحميل جميع التقارير التجميعية إلى الكاش...';
-    
+    loadingStats.innerHTML = 'جاري تحميل جميع التقارير التجميعية...';
     try {
         let allReports = [];
         let page = 0;
         const pageSizeFetch = 500;
         let hasMore = true;
-        
-        let query = window.supabaseClient
-            .from('summary_reports')
-            .select('*, users:specialist_id(id, name), districts:district_id(id, name)')
-            .order('created_at', { ascending: false });
-        
+        let query = window.supabaseClient.from('summary_reports').select('*, users:specialist_id(id, name), districts:district_id(id, name)').order('created_at', { ascending: false });
         if (currentUser.role === 'manger' && currentUser.district_id) {
             query = query.eq('district_id', currentUser.district_id);
         } else if (currentUser.role === 'user') {
             query = query.eq('specialist_id', currentUser.id);
         }
-        
         while (hasMore) {
             const start = page * pageSizeFetch;
             const end = start + pageSizeFetch - 1;
@@ -572,29 +746,23 @@ async function loadAllSummaryReportsToCache() {
                 page++;
                 const percent = Math.min(5 + (allReports.length / 3000) * 85, 90);
                 progressFill.style.width = `${percent}%`;
-                loadingStats.innerHTML = `📊 جاري تحميل التقارير التجميعية: ${allReports.length.toLocaleString()} تقرير...`;
+                loadingStats.innerHTML = `جاري تحميل التقارير: ${allReports.length.toLocaleString()} تقرير...`;
                 if (data.length < pageSizeFetch) hasMore = false;
             } else { hasMore = false; }
         }
-        
         progressFill.style.width = '100%';
-        loadingStats.innerHTML = `✅ تم تحميل ${allReports.length.toLocaleString()} تقرير تجميعي بنجاح!`;
+        loadingStats.innerHTML = `✅ تم تحميل ${allReports.length.toLocaleString()} تقرير بنجاح!`;
         setTimeout(() => { progressDiv.style.display = 'none'; }, 800);
-        
         allReportsCache = allReports;
         filteredReportsCache = [...allReports];
         totalFilteredCount = filteredReportsCache.length;
-        
         const totalSpan = document.getElementById('totalCountDisplay');
         if (totalSpan) totalSpan.textContent = allReports.length.toLocaleString();
         const totalHint = document.getElementById('totalReportsHint');
         if (totalHint) totalHint.textContent = allReports.length.toLocaleString();
-        
-        console.log(`✅ تم تحميل ${allReports.length} تقرير تجميعي`);
         return allReports;
-        
     } catch (error) {
-        console.error('Error loading summary reports to cache:', error);
+        console.error('Error loading summary reports:', error);
         loadingStats.innerHTML = '❌ حدث خطأ في تحميل التقارير';
         setTimeout(() => { progressDiv.style.display = 'none'; }, 2000);
         throw error;
@@ -607,14 +775,12 @@ function displayCurrentPage() {
     const endIndex = startIndex + pageSize;
     const pageReports = filteredReportsCache.slice(startIndex, endIndex);
     const tbody = document.getElementById('reportsTableBody');
-    
     if (!pageReports || pageReports.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>';
         document.getElementById('resultsCount').innerHTML = 'عدد النتائج: 0';
         document.getElementById('paginationContainer').innerHTML = '';
         return;
     }
-    
     tbody.innerHTML = pageReports.map((report, idx) => {
         const globalIndex = startIndex + idx + 1;
         const canEdit = canEditSummaryReport(currentUser, report);
@@ -624,14 +790,11 @@ function displayCurrentPage() {
         const periodFrom = new Date(report.period_from).toLocaleDateString('ar-SA');
         const periodTo = new Date(report.period_to).toLocaleDateString('ar-SA');
         const createdAt = new Date(report.created_at).toLocaleDateString('ar-SA');
-        
         let actionsHtml = `<a href="#" onclick="viewReport('${report.id}')" class="action-link view" title="معاينة"><i class="fas fa-eye"></i></a>`;
         if (canEdit) actionsHtml += `<a href="#" onclick="editReport('${report.id}')" class="action-link edit" title="تعديل"><i class="fas fa-edit"></i></a>`;
         if (canDelete) actionsHtml += `<a href="#" onclick="openDeleteModal('${report.id}')" class="action-link delete" title="حذف"><i class="fas fa-trash"></i></a>`;
-        
         return `<tr><td style="padding:12px">${globalIndex}</td><td style="padding:12px">${createdAt}</td><td style="padding:12px">${typeBadge}</td><td style="padding:12px">${periodFrom} - ${periodTo}</td><td style="padding:12px">${report.districts?.name || '-'}</td><td style="padding:12px">${report.users?.name || '-'}</td><td style="padding:12px">${visitsCount}</td><td style="padding:12px"><div style="display:flex;gap:0.5rem;">${actionsHtml}</div></td></tr>`;
     }).join('');
-    
     const fromNum = ((currentPage-1)*pageSize)+1;
     const toNum = Math.min(currentPage*pageSize, totalFilteredCount);
     document.getElementById('resultsCount').innerHTML = `عرض ${fromNum.toLocaleString()} - ${toNum.toLocaleString()} من ${totalFilteredCount.toLocaleString()} تقرير`;
@@ -643,17 +806,14 @@ function buildPaginationButtons() {
     if (!container) return;
     const totalPages = Math.ceil(totalFilteredCount / pageSize);
     if (totalPages <= 1) { container.innerHTML = ''; return; }
-    
     let html = '';
     html += `<button class="pagination-btn" onclick="goToPage(1)" ${currentPage===1?'disabled':''}><i class="fas fa-angle-double-right"></i></button>`;
     html += `<button class="pagination-btn" onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled':''}><i class="fas fa-angle-right"></i></button>`;
-    
     let startPage = Math.max(1, currentPage-2);
     let endPage = Math.min(totalPages, currentPage+2);
     if (startPage > 1) { html += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`; if(startPage>2) html+=`<span class="page-info">...</span>`; }
     for(let i=startPage; i<=endPage; i++) html += `<button class="pagination-btn ${i===currentPage?'active':''}" onclick="goToPage(${i})">${i.toLocaleString()}</button>`;
     if(endPage < totalPages) { if(endPage < totalPages-1) html+=`<span class="page-info">...</span>`; html += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages.toLocaleString()}</button>`; }
-    
     html += `<button class="pagination-btn" onclick="goToPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}><i class="fas fa-angle-left"></i></button>`;
     html += `<button class="pagination-btn" onclick="goToPage(${totalPages})" ${currentPage===totalPages?'disabled':''}><i class="fas fa-angle-double-left"></i></button>`;
     container.innerHTML = html;
@@ -673,19 +833,13 @@ function applyFilters() {
     const type = document.getElementById('reportTypeFilter').value;
     let fromDate = getDateFromPicker(filterDateFromPicker);
     let toDate = getDateFromPicker(filterDateToPicker);
-    
     let filtered = allReportsCache.filter(r => {
         if (type && r.report_type !== type) return false;
-        if (fromDate && r.created_at < fromDate) return false;
-        if (toDate && r.created_at > toDate) return false;
-        if (search) {
-            const districtName = (r.districts?.name || '').toLowerCase();
-            const specialistName = (r.users?.name || '').toLowerCase();
-            if (!districtName.includes(search) && !specialistName.includes(search)) return false;
-        }
+        if (fromDate) { const reportDate = r.created_at ? r.created_at.split('T')[0] : null; if (reportDate && reportDate < fromDate) return false; }
+        if (toDate) { const reportDate = r.created_at ? r.created_at.split('T')[0] : null; if (reportDate && reportDate > toDate) return false; }
+        if (search) { const districtName = (r.districts?.name || '').toLowerCase(); const specialistName = (r.users?.name || '').toLowerCase(); if (!districtName.includes(search) && !specialistName.includes(search)) return false; }
         return true;
     });
-    
     filteredReportsCache = filtered;
     totalFilteredCount = filtered.length;
     currentPage = 1;
@@ -733,48 +887,66 @@ async function loadSpecialists() {
     if(currentUser.role === 'user') { document.getElementById('specialistId').value = currentUser.id; onSpecialistChange(); }
 }
 
+// ==================== جلب الزيارات بناءً على الفترة المحددة ====================
 async function loadVisitsData() {
     const reportType = document.getElementById('reportTypeSelect').value;
     const specialistId = document.getElementById('specialistId').value;
     const districtId = document.getElementById('districtId').value;
-    const periodFrom = getDateFromPicker(periodFromPicker);
-    const periodTo = getDateFromPicker(periodToPicker);
-    
-    if(!reportType || !specialistId || !districtId || !periodFrom || !periodTo) {
-        document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;">الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية</td></tr>';
-        document.getElementById('totalVisits').value = ''; currentVisitsData = []; return;
+    let periodFrom = null;
+    let periodTo = null;
+    if (periodFromPicker && periodFromPicker.selectedDates && periodFromPicker.selectedDates[0]) { periodFrom = formatDateToYMD(periodFromPicker.selectedDates[0]); }
+    if (periodToPicker && periodToPicker.selectedDates && periodToPicker.selectedDates[0]) { periodTo = formatDateToYMD(periodToPicker.selectedDates[0]); }
+    if (!reportType || !specialistId || !districtId || !periodFrom || !periodTo) {
+        document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #4e6580;"><i class="fas fa-info-circle"></i> الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية</td></tr>';
+        document.getElementById('totalVisits').value = '';
+        currentVisitsData = [];
+        return;
     }
-    if(isLoadingVisits) return;
+    if (isLoadingVisits) return;
     isLoadingVisits = true;
-    document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;"><div class="loader-small"></div> جاري تحميل الزيارات...</td></tr>';
-    
+    document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><div class="loader-small"></div> جاري تحميل الزيارات...</td></tr>';
     try {
-        const { data: schoolsInDistrict } = await window.supabaseClient.from('schools').select('id, name').eq('district_id', districtId);
-        const schoolIds = schoolsInDistrict?.map(s=>s.id) || [];
-        const schoolsMapTemp = {}; schoolsInDistrict?.forEach(s=>{ schoolsMapTemp[s.id]=s.name; });
-        
-        if(schoolIds.length===0) { document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;">لا توجد مدارس في هذه المنطقة</td></tr>'; document.getElementById('totalVisits').value=0; currentVisitsData=[]; isLoadingVisits=false; return; }
-        
+        const { data: schoolsInDistrict, error: schoolsError } = await window.supabaseClient.from('schools').select('id, name').eq('district_id', districtId);
+        if (schoolsError) throw schoolsError;
+        const schoolIds = schoolsInDistrict?.map(s => s.id) || [];
+        const schoolsMapTemp = {};
+        schoolsInDistrict?.forEach(s => { schoolsMapTemp[s.id] = s.name; });
+        if (schoolIds.length === 0) {
+            document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-school"></i> لا توجد مدارس في هذه المنطقة</td></tr>';
+            document.getElementById('totalVisits').value = 0;
+            currentVisitsData = [];
+            isLoadingVisits = false;
+            return;
+        }
         const tableName = reportType === 'in_person' ? 'in_person_reports' : 'remote_reports';
-        const toDateObj = new Date(periodTo); toDateObj.setDate(toDateObj.getDate()+1);
-        const nextDay = `${toDateObj.getFullYear()}-${String(toDateObj.getMonth()+1).padStart(2,'0')}-${String(toDateObj.getDate()).padStart(2,'0')}`;
-        
-        const { data } = await window.supabaseClient.from(tableName).select('*').eq('specialist_id', specialistId).in('school_id', schoolIds).gte('visit_date', periodFrom).lt('visit_date', nextDay).order('visit_date', { ascending: true });
-        const visits = (data||[]).map(v=>({ ...v, school_name: schoolsMapTemp[v.school_id]||'مدرسة غير محددة' }));
+        const toDateObj = new Date(periodTo);
+        const nextDayDate = new Date(toDateObj);
+        nextDayDate.setDate(toDateObj.getDate() + 1);
+        const nextDay = formatDateToYMD(nextDayDate);
+        const { data, error } = await window.supabaseClient.from(tableName).select('*').eq('specialist_id', specialistId).in('school_id', schoolIds).gte('visit_date', periodFrom).lt('visit_date', nextDay).order('visit_date', { ascending: true });
+        if (error) throw error;
+        const visits = (data || []).map(visit => ({ ...visit, school_name: schoolsMapTemp[visit.school_id] || 'مدرسة غير محددة' }));
         currentVisitsData = visits;
         document.getElementById('totalVisits').value = visits.length;
-        
-        if(visits.length===0) { document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;">لا توجد زيارات في هذه الفترة</td></tr>'; }
-        else {
+        if (visits.length === 0) {
+            document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-calendar-times"></i> لا توجد زيارات في هذه الفترة</td></tr>';
+        } else {
             let html = '';
-            visits.forEach((v,i)=>{
-                const creativeField = reportType==='in_person' ? (v.positive_aspects||'') : (v.creative_ideas||'');
-                html += `<tr><td style="padding:8px">${i+1}</td><td style="padding:8px">${v.visit_date||''}</td><td style="padding:8px">${v.school_name||''}</td><td style="padding:8px">${v.class_name||''}</td><td style="padding:8px">${v.section||''}</td><td style="padding:8px">${v.subject||''}</td><td style="padding:8px">${v.teacher_name||''}</td><td style="padding:8px">${creativeField}</td><td style="padding:8px">${v.recommendations||''}</td></tr>`;
+            visits.forEach((visit, index) => {
+                const creativeField = reportType === 'in_person' ? (visit.positive_aspects || '') : (visit.creative_ideas || '');
+                const recommendations = visit.recommendations || '';
+                const schoolName = visit.school_name || 'غير محدد';
+                html += `<tr><td style="padding: 8px;">${index + 1}</td><td style="padding: 8px;">${visit.visit_date || ''}</td><td style="padding: 8px;">${schoolName}</td><td style="padding: 8px;">${visit.class_name || ''}</td><td style="padding: 8px;">${visit.section || ''}</td><td style="padding: 8px;">${visit.subject || ''}</td><td style="padding: 8px;">${visit.teacher_name || ''}</td><td style="padding: 8px;">${creativeField}</td><td style="padding: 8px;">${recommendations}</td></tr>`;
             });
             document.getElementById('visitsTableBody').innerHTML = html;
         }
-    } catch(e) { console.error(e); document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:#e34f76;">حدث خطأ في تحميل الزيارات</td></tr>'; }
-    finally { isLoadingVisits = false; }
+    } catch (error) {
+        console.error('Error loading visits:', error);
+        document.getElementById('visitsTableBody').innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #e34f76;"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل الزيارات: ${error.message}</td></tr>`;
+        currentVisitsData = [];
+    } finally {
+        isLoadingVisits = false;
+    }
 }
 
 function onReportTypeChange() {
@@ -784,9 +956,17 @@ function onReportTypeChange() {
     const modalTitle = document.getElementById('modalTitle');
     if(type) {
         titleSection.style.display = 'block';
-        if(type==='in_person') { dynamicTitle.textContent='التقرير النصف شهري – التعليم الوجاهي'; modalTitle.textContent='إضافة تقرير تجميعي - وجاهي'; }
-        else { dynamicTitle.textContent='التقرير النصف شهري – التعليم عن بعد'; modalTitle.textContent='إضافة تقرير تجميعي - عن بعد'; }
-    } else { titleSection.style.display='none'; modalTitle.textContent='إضافة تقرير تجميعي جديد'; }
+        if(type==='in_person') { 
+            dynamicTitle.textContent='التقرير النصف شهري للمختص التربوي – برنامج التعليم الوجاهي'; 
+            modalTitle.textContent='إضافة تقرير تجميعي جديد - تعليم وجاهي'; 
+        } else { 
+            dynamicTitle.textContent='التقرير النصف شهري للمختص التربوي – برنامج التعليم عن بعد'; 
+            modalTitle.textContent='إضافة تقرير تجميعي جديد - تعليم عن بعد'; 
+        }
+    } else { 
+        titleSection.style.display='none'; 
+        modalTitle.textContent='إضافة تقرير تجميعي جديد'; 
+    }
     loadVisitsData();
 }
 
@@ -794,16 +974,13 @@ async function onSpecialistChange() {
     const id = document.getElementById('specialistId').value;
     if(id) {
         const spec = specialistsList.find(s=>s.id==id);
-        document.getElementById('specialization').value = spec?.specialization||'';
-        if(!spec) {
-            const { data } = await window.supabaseClient.from('users').select(`specialist_id, specialists:specialist_id(specialization)`).eq('id',id).single();
-            if(data) document.getElementById('specialization').value = data.specialists?.specialization||'';
-        }
-    } else { document.getElementById('specialization').value=''; }
+        if(spec) { document.getElementById('specialization').value = spec.specialization || ''; }
+        else { const { data } = await window.supabaseClient.from('users').select(`specialist_id, specialists:specialist_id(specialization)`).eq('id',id).single(); if(data) document.getElementById('specialization').value = data.specialists?.specialization || ''; }
+    } else { document.getElementById('specialization').value = ''; }
     loadVisitsData();
 }
 
-// ==================== عرض التقرير في المودال ====================
+// ==================== عرض التقرير في المودال (نسخة مصححة بالكامل) ====================
 async function viewReport(id) {
     let report = allReportsCache.find(r => r.id == id);
     if(!report) {
@@ -817,39 +994,102 @@ async function viewReport(id) {
     let specialistName = report.users?.name || '-';
     if(report.specialist_id) {
         const spec = specialistsList.find(s=>s.id==report.specialist_id);
-        if(spec) { specialistName = spec.name; specialistSpecialization = spec.specialization||''; }
-        else {
-            const { data } = await window.supabaseClient.from('users').select(`name, specialists:specialist_id(specialization)`).eq('id',report.specialist_id).single();
-            if(data) { specialistName = data.name; specialistSpecialization = data.specialists?.specialization||''; }
-        }
+        if(spec) { specialistName = spec.name; specialistSpecialization = spec.specialization || ''; }
+        else { const { data } = await window.supabaseClient.from('users').select(`name, specialists:specialist_id(specialization)`).eq('id',report.specialist_id).single(); if(data) { specialistName = data.name; specialistSpecialization = data.specialists?.specialization || ''; } }
     }
     
     let visits = [], activities = [];
-    try { visits = JSON.parse(report.visits_data||'[]'); activities = JSON.parse(report.supervisory_activities||'[]'); } catch(e){}
+    try { visits = JSON.parse(report.visits_data||'[]'); } catch(e) { visits = []; }
+    try { activities = JSON.parse(report.supervisory_activities||'[]'); } catch(e) { activities = []; }
     const reportType = report.report_type === 'in_person' ? 'وجاهي' : 'عن بعد';
     const periodFrom = new Date(report.period_from).toLocaleDateString('ar-SA');
     const periodTo = new Date(report.period_to).toLocaleDateString('ar-SA');
     
-    let visitsHtml = visits.length ? visits.map((v,i)=>`<tr><td style="padding:10px">${i+1}</td><td style="padding:10px">${v.date||''}</td><td style="padding:10px">${v.school||''}</td><td style="padding:10px">${v.class||''}</td><td style="padding:10px">${v.section||''}</td><td style="padding:10px">${v.subject||''}</td><td style="padding:10px">${v.teacher||''}</td><td style="padding:10px">${v.creative_ideas||''}</td><td style="padding:10px">${v.recommendations||''}</td></tr>`).join('') : '<tr><td colspan="9" style="padding:30px;text-align:center;">لا توجد زيارات</td></tr>';
-    let activitiesHtml = activities.length ? activities.map((a,i)=>`<tr><td style="padding:10px">${i+1}</td><td style="padding:10px">${a.date||''}</td><td style="padding:10px">${a.name||''}</td><td style="padding:10px">${a.topic||''}</td><td style="padding:10px">${a.target||''}</td></tr>`).join('') : '<tr><td colspan="5" style="padding:30px;text-align:center;">لا توجد أنشطة إشرافية</td></tr>';
+    // بناء جدول الزيارات بشكل صحيح
+    let visitsHtml = '';
+    if (visits.length > 0) {
+        visits.forEach((v, i) => {
+            const visitDate = v.visit_date || v.date || '';
+            const schoolName = v.school_name || v.school || '';
+            const className = v.class_name || v.class || '';
+            const creativeField = v.positive_aspects || v.creative_ideas || '';
+            const teacherName = v.teacher_name || v.teacher || '';
+            
+            visitsHtml += `<tr>
+                <td style="padding:10px; border:1px solid #dee2e6;">${i+1}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${visitDate}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${schoolName}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${className}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${v.section || ''}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${v.subject || ''}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${teacherName}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${creativeField}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${v.recommendations || ''}</td>
+            </tr>`;
+        });
+    } else {
+        visitsHtml = '<tr><td colspan="9" style="padding:30px;text-align:center;">لا توجد زيارات</td></tr>';
+    }
+    
+    // بناء جدول الأنشطة بشكل صحيح
+    let activitiesHtml = '';
+    if (activities.length > 0) {
+        activities.forEach((a, i) => {
+            activitiesHtml += `<tr>
+                <td style="padding:10px; border:1px solid #dee2e6;">${i+1}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${a.date || ''}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${a.name || ''}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${a.topic || ''}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${a.target || ''}</td>
+            </tr>`;
+        });
+    } else {
+        activitiesHtml = '<tr><td colspan="5" style="padding:30px;text-align:center;">لا توجد أنشطة إشرافية</td></tr>';
+    }
     
     const html = `
         <div style="direction:rtl;">
-            <div class="info-grid" style="display:flex;flex-wrap:wrap;gap:15px;background:#f8fafd;padding:18px;border-radius:16px;margin-bottom:25px;">
-                <div style="flex:1;"><strong>المختص التربوي:</strong> ${escapeHtml(specialistName)}</div>
-                <div style="flex:1;"><strong>التخصص:</strong> ${escapeHtml(specialistSpecialization)||'غير محدد'}</div>
-                <div style="flex:1;"><strong>المنطقة:</strong> ${escapeHtml(report.districts?.name||'-')}</div>
-                <div style="flex:1;"><strong>الفترة:</strong> ${periodFrom} - ${periodTo}</div>
-                <div style="flex:1;"><strong>عدد الزيارات:</strong> ${visits.length}</div>
-                <div style="flex:1;"><strong>النوع:</strong> ${reportType}</div>
+            <div class="info-grid" style="display:flex;flex-wrap:wrap;gap:15px;background:#f8fafd;padding:18px;border-radius:16px;margin-bottom:25px;border:1px solid #e2e8f0;">
+                <div style="flex:1; min-width:180px;"><strong>المختص التربوي:</strong> ${escapeHtml(specialistName)}</div>
+                <div style="flex:1; min-width:180px;"><strong>التخصص:</strong> ${escapeHtml(specialistSpecialization) || 'غير محدد'}</div>
+                <div style="flex:1; min-width:180px;"><strong>المنطقة:</strong> ${escapeHtml(report.districts?.name || '-')}</div>
+                <div style="flex:1; min-width:180px;"><strong>الفترة:</strong> ${periodFrom} - ${periodTo}</div>
+                <div style="flex:1; min-width:180px;"><strong>عدد الزيارات:</strong> ${visits.length}</div>
+                <div style="flex:1; min-width:180px;"><strong>النوع:</strong> ${reportType}</div>
             </div>
-            <h3 style="color:#1e3c72;margin:25px 0 15px 0;border-bottom:2px solid #1e3c72;padding-bottom:5px;">أولاً: الزيارات</h3>
+            <h3 style="color:#1e3c72;margin:25px 0 15px 0;border-bottom:2px solid #1e3c72;padding-bottom:8px;">أولاً: الزيارات</h3>
             <div style="overflow-x:auto;margin-bottom:25px;border-radius:12px;border:1px solid #e2e8f0;">
-                <table class="preview-table"><thead><tr><th>#</th><th>التاريخ</th><th>المدرسة</th><th>الصف</th><th>الشعبة</th><th>المبحث</th><th>المعلم</th><th>أفكار إبداعية</th><th>التوصيات</th></tr></thead><tbody>${visitsHtml}</tbody></table>
+                <table class="preview-table" style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">#</th>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">التاريخ</th>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">المدرسة</th>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">الصف</th>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">الشعبة</th>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">المبحث</th>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">اسم المعلم</th>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">أفكار إبداعية / جوانب إيجابية</th>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">التوصيات</th>
+                        </tr>
+                    </thead>
+                    <tbody>${visitsHtml}</tbody>
+                </table>
             </div>
-            <h3 style="color:#1e3c72;margin:25px 0 15px 0;border-bottom:2px solid #1e3c72;">ثانياً: أنشطة إشرافية أخرى</h3>
+            <h3 style="color:#1e3c72;margin:25px 0 15px 0;border-bottom:2px solid #1e3c72;padding-bottom:8px;">ثانياً: أنشطة إشرافية أخرى</h3>
             <div style="overflow-x:auto;margin-bottom:25px;border-radius:12px;border:1px solid #e2e8f0;">
-                <table class="preview-table"><thead><tr><th>#</th><th>التاريخ</th><th>النشاط</th><th>الموضوع</th><th>الفئة المستهدفة</th></tr></thead><tbody>${activitiesHtml}</tbody></table>
+                <table class="preview-table" style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">#</th>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">التاريخ</th>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">النشاط</th>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">الموضوع</th>
+                            <th style="padding:12px 10px; border:1px solid #dee2e6;">الفئة المستهدفة</th>
+                        </tr>
+                    </thead>
+                    <tbody>${activitiesHtml}</tbody>
+                </table>
             </div>
         </div>
     `;
@@ -869,21 +1109,20 @@ function openAddReportModal() {
     document.getElementById('reportTypeSelect').value = '';
     document.getElementById('reportTitleSection').style.display = 'none';
     document.getElementById('modalTitle').textContent = 'إضافة تقرير تجميعي جديد';
-    document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;">الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية</td></tr>';
-    if(periodFromPicker) periodFromPicker.clear();
-    if(periodToPicker) periodToPicker.clear();
+    document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;"><i class="fas fa-info-circle"></i> الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية<\/td><\/tr>';
+    initModalDatePickers();
     currentVisitsData = [];
     nextActivityId = 1;
     document.getElementById('activitiesContainer').innerHTML = `<div class="activity-row" data-activity-id="0"><input type="text" class="form-input activity-date" placeholder="dd/mm/yyyy"><input type="text" class="form-input activity-name" placeholder="النشاط"><input type="text" class="form-input activity-topic" placeholder="الموضوع"><input type="text" class="form-input activity-target" placeholder="الفئة المستهدفة"><button type="button" class="remove-activity-btn" onclick="removeActivityRow(this)" style="display: none;"><i class="fas fa-trash"></i></button></div>`;
-    setTimeout(()=>reinitializeActivityDatePickers(),100);
-    if(currentUser.role === 'user') { document.getElementById('specialistId').value = currentUser.id; document.getElementById('specialistId').disabled = true; onSpecialistChange(); }
-    else { document.getElementById('specialistId').disabled = false; }
+    setTimeout(() => reinitializeActivityDatePickers(), 100);
+    if(currentUser.role === 'user') { document.getElementById('specialistId').value = currentUser.id; document.getElementById('specialistId').disabled = true; onSpecialistChange(); } else { document.getElementById('specialistId').disabled = false; }
     openModalWithScroll('summaryReportModal');
 }
 
 async function editReport(id) {
-    const report = allReportsCache.find(r=>r.id==id);
-    if(!report || !canEditSummaryReport(currentUser,report)) { showMessage('لا تملك صلاحية تعديل هذا التقرير','error'); return; }
+    const report = allReportsCache.find(r => r.id == id);
+    if(!report || !canEditSummaryReport(currentUser, report)) { showMessage('لا تملك صلاحية تعديل هذا التقرير','error'); return; }
+    initModalDatePickers();
     document.getElementById('reportId').value = report.id;
     document.getElementById('reportTypeSelect').value = report.report_type;
     document.getElementById('specialistId').value = report.specialist_id;
@@ -891,32 +1130,45 @@ async function editReport(id) {
     if(periodFromPicker && report.period_from) setPickerDate(periodFromPicker, report.period_from);
     if(periodToPicker && report.period_to) setPickerDate(periodToPicker, report.period_to);
     onReportTypeChange();
-    const visits = JSON.parse(report.visits_data||'[]');
+    const visits = JSON.parse(report.visits_data || '[]');
     currentVisitsData = visits;
-    if(visits.length) {
+    if(visits.length > 0) {
         let visitsHtml = '';
-        visits.forEach((v,i)=>{ visitsHtml += `<tr><td style="padding:8px">${i+1}</td><td style="padding:8px">${v.date||''}</td><td style="padding:8px">${v.school||''}</td><td style="padding:8px">${v.class||''}</td><td style="padding:8px">${v.section||''}</td><td style="padding:8px">${v.subject||''}</td><td style="padding:8px">${v.teacher||''}</td><td style="padding:8px">${v.creative_ideas||''}</td><td style="padding:8px">${v.recommendations||''}</td></tr>`; });
+        visits.forEach((v, i) => {
+            const visitDate = v.visit_date || v.date || '';
+            const schoolName = v.school_name || v.school || '';
+            const className = v.class_name || v.class || '';
+            const creativeField = v.positive_aspects || v.creative_ideas || '';
+            const teacherName = v.teacher_name || v.teacher || '';
+            
+            visitsHtml += `<tr>
+                <td style="padding:8px">${i+1}</td>
+                <td style="padding:8px">${visitDate}</td>
+                <td style="padding:8px">${schoolName}</td>
+                <td style="padding:8px">${className}</td>
+                <td style="padding:8px">${v.section || ''}</td>
+                <td style="padding:8px">${v.subject || ''}</td>
+                <td style="padding:8px">${teacherName}</td>
+                <td style="padding:8px">${creativeField}</td>
+                <td style="padding:8px">${v.recommendations || ''}</td>
+            </tr>`;
+        });
         document.getElementById('visitsTableBody').innerHTML = visitsHtml;
         document.getElementById('totalVisits').value = visits.length;
     } else { await loadVisitsData(); }
-    
-    const spec = specialistsList.find(s=>s.id==report.specialist_id);
-    document.getElementById('specialization').value = spec?.specialization||'';
-    
-    const activities = JSON.parse(report.supervisory_activities||'[]');
+    const spec = specialistsList.find(s => s.id == report.specialist_id);
+    if(spec) { document.getElementById('specialization').value = spec.specialization || ''; }
+    const activities = JSON.parse(report.supervisory_activities || '[]');
     const container = document.getElementById('activitiesContainer');
-    if(activities.length) {
-        container.innerHTML = activities.map((a,idx)=>`<div class="activity-row" data-activity-id="${idx}"><input type="text" class="form-input activity-date" placeholder="dd/mm/yyyy"><input type="text" class="form-input activity-name" value="${escapeHtmlAttribute(a.name||'')}" placeholder="النشاط"><input type="text" class="form-input activity-topic" value="${escapeHtmlAttribute(a.topic||'')}" placeholder="الموضوع"><input type="text" class="form-input activity-target" value="${escapeHtmlAttribute(a.target||'')}" placeholder="الفئة المستهدفة"><button type="button" class="remove-activity-btn" onclick="removeActivityRow(this)"><i class="fas fa-trash"></i></button></div>`).join('');
+    if(activities.length > 0) {
+        container.innerHTML = activities.map((a, idx) => `<div class="activity-row" data-activity-id="${idx}"><input type="text" class="form-input activity-date" placeholder="dd/mm/yyyy"><input type="text" class="form-input activity-name" value="${escapeHtmlAttribute(a.name || '')}" placeholder="النشاط"><input type="text" class="form-input activity-topic" value="${escapeHtmlAttribute(a.topic || '')}" placeholder="الموضوع"><input type="text" class="form-input activity-target" value="${escapeHtmlAttribute(a.target || '')}" placeholder="الفئة المستهدفة"><button type="button" class="remove-activity-btn" onclick="removeActivityRow(this)"><i class="fas fa-trash"></i></button></div>`).join('');
         nextActivityId = activities.length;
-        setTimeout(()=>{
-            reinitializeActivityDatePickers();
-            activities.forEach((a,idx)=>{ const row=container.children[idx]; if(row && a.date){ const dateInput=row.querySelector('.activity-date'); if(dateInput && dateInput._flatpickr) dateInput._flatpickr.setDate(new Date(a.date)); } });
-        },100);
-        if(container.children.length>0){ const firstBtn=container.querySelector('.activity-row:first-child .remove-activity-btn'); if(firstBtn) firstBtn.style.display='inline-flex'; }
+        setTimeout(() => { reinitializeActivityDatePickers(); activities.forEach((a, idx) => { const row = container.children[idx]; if(row && a.date){ const dateInput = row.querySelector('.activity-date'); if(dateInput && dateInput._flatpickr) dateInput._flatpickr.setDate(new Date(a.date)); } }); }, 100);
+        if(container.children.length > 0){ const firstBtn = container.querySelector('.activity-row:first-child .remove-activity-btn'); if(firstBtn) firstBtn.style.display = 'inline-flex'; }
     } else {
         container.innerHTML = `<div class="activity-row" data-activity-id="0"><input type="text" class="form-input activity-date" placeholder="dd/mm/yyyy"><input type="text" class="form-input activity-name" placeholder="النشاط"><input type="text" class="form-input activity-topic" placeholder="الموضوع"><input type="text" class="form-input activity-target" placeholder="الفئة المستهدفة"><button type="button" class="remove-activity-btn" onclick="removeActivityRow(this)" style="display: none;"><i class="fas fa-trash"></i></button></div>`;
         nextActivityId = 1;
-        setTimeout(()=>reinitializeActivityDatePickers(),100);
+        setTimeout(() => reinitializeActivityDatePickers(), 100);
     }
     openModalWithScroll('summaryReportModal');
 }
@@ -932,29 +1184,27 @@ function addActivityRow() {
     const picker = initActivityDatePicker(newRow.querySelector('.activity-date'));
     activityDatePickers.push(picker);
     const firstRow = container.querySelector('.activity-row:first-child .remove-activity-btn');
-    if(firstRow && firstRow.style.display !== 'inline-flex') firstRow.style.display = 'inline-flex';
+    if(firstRow && firstRow.style.display !== 'inline-flex') { firstRow.style.display = 'inline-flex'; }
 }
 
 function removeActivityRow(btn) {
     const row = btn.closest('.activity-row');
     const container = document.getElementById('activitiesContainer');
     const dateInput = row.querySelector('.activity-date');
-    if(dateInput && dateInput._flatpickr) { dateInput._flatpickr.destroy(); activityDatePickers = activityDatePickers.filter(p=>p!==dateInput._flatpickr); }
-    if(container.children.length > 1) row.remove();
-    else showMessage('لا يمكن حذف النشاط الوحيد، يمكنك تركه فارغاً','info');
+    if(dateInput && dateInput._flatpickr) { dateInput._flatpickr.destroy(); activityDatePickers = activityDatePickers.filter(p => p !== dateInput._flatpickr); }
+    if(container.children.length > 1) { row.remove(); } else { showMessage('لا يمكن حذف النشاط الوحيد، يمكنك تركه فارغاً', 'info'); }
 }
 
 function collectActivitiesData() {
     const activities = [];
-    document.querySelectorAll('#activitiesContainer .activity-row').forEach(row=>{
+    document.querySelectorAll('#activitiesContainer .activity-row').forEach(row => {
         const dateInput = row.querySelector('.activity-date');
-        let date='';
-        if(dateInput && dateInput._flatpickr && dateInput._flatpickr.selectedDates[0]){ const d=dateInput._flatpickr.selectedDates[0]; date=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-        else if(dateInput && dateInput.value){ const parts=dateInput.value.split('/'); if(parts.length===3) date=`${parts[2]}-${parts[1]}-${parts[0]}`; }
-        const name=row.querySelector('.activity-name')?.value;
-        const topic=row.querySelector('.activity-topic')?.value;
-        const target=row.querySelector('.activity-target')?.value;
-        if(date && name && topic && target) activities.push({ date, name, topic, target });
+        let date = '';
+        if(dateInput && dateInput._flatpickr && dateInput._flatpickr.selectedDates[0]) { date = formatDateToYMD(dateInput._flatpickr.selectedDates[0]); }
+        const name = row.querySelector('.activity-name')?.value;
+        const topic = row.querySelector('.activity-topic')?.value;
+        const target = row.querySelector('.activity-target')?.value;
+        if(date && name && topic && target) { activities.push({ date, name, topic, target }); }
     });
     return activities;
 }
@@ -974,26 +1224,20 @@ document.getElementById('summaryReportForm').addEventListener('submit', async (e
     const periodFrom = getDateFromPicker(periodFromPicker);
     const periodTo = getDateFromPicker(periodToPicker);
     if(!specialistId || !districtId || !periodFrom || !periodTo){ showMessage('الرجاء ملء جميع الحقول المطلوبة','error'); return; }
-    
     const visitsData = collectVisitsDataFromTable();
     const activitiesData = collectActivitiesData();
-    const reportData = {
-        report_type: reportType, specialist_id: parseInt(specialistId), district_id: parseInt(districtId),
-        period_from: periodFrom, period_to: periodTo, visits_data: JSON.stringify(visitsData),
-        supervisory_activities: JSON.stringify(activitiesData), created_by: currentUser.id
-    };
-    
+    const reportData = { report_type: reportType, specialist_id: parseInt(specialistId), district_id: parseInt(districtId), period_from: periodFrom, period_to: periodTo, visits_data: JSON.stringify(visitsData), supervisory_activities: JSON.stringify(activitiesData), created_by: currentUser.id };
     isSaving = true;
     const saveBtn = document.getElementById('saveReportBtn');
     const originalHtml = saveBtn.innerHTML;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
     saveBtn.disabled = true;
     try {
-        let result, newReportId=reportId;
-        if(isEdit) result = await window.supabaseClient.from('summary_reports').update(reportData).eq('id', reportId);
-        else { result = await window.supabaseClient.from('summary_reports').insert([reportData]).select(); if(result.data && result.data[0]) newReportId=result.data[0].id; }
+        let result, newReportId = reportId;
+        if(isEdit) { result = await window.supabaseClient.from('summary_reports').update(reportData).eq('id', reportId); }
+        else { result = await window.supabaseClient.from('summary_reports').insert([reportData]).select(); if(result.data && result.data[0]) newReportId = result.data[0].id; }
         if(result.error) throw result.error;
-        if(newReportId && currentUser) await window.sendSummaryReportNotifications?.(reportData, newReportId, currentUser.name, isEdit?'update':'create');
+        if(newReportId && currentUser) { await window.sendSummaryReportNotifications?.(reportData, newReportId, currentUser.name, isEdit ? 'update' : 'create'); }
         closeModal();
         await loadAllSummaryReportsToCache();
         filteredReportsCache = [...allReportsCache];
@@ -1001,33 +1245,24 @@ document.getElementById('summaryReportForm').addEventListener('submit', async (e
         currentPage = 1;
         displayCurrentPage();
         showMessage(isEdit ? 'تم تحديث التقرير بنجاح' : 'تم حفظ التقرير بنجاح', 'success');
-    } catch(error) { console.error(error); showMessage('حدث خطأ في حفظ التقرير: '+error.message,'error'); }
-    finally { isSaving=false; saveBtn.innerHTML=originalHtml; saveBtn.disabled=false; }
+    } catch(error) { console.error(error); showMessage('حدث خطأ في حفظ التقرير: ' + error.message, 'error'); }
+    finally { isSaving = false; saveBtn.innerHTML = originalHtml; saveBtn.disabled = false; }
 });
 
 function closeModal() { closeModalWithScroll('summaryReportModal'); }
-function closeViewModal() { closeModalWithScroll('viewModal'); currentViewReport=null; }
-function closeDeleteModal() { closeModalWithScroll('deleteModal'); deleteReportData=null; }
-function openDeleteModal(id) { deleteReportData=id; openModalWithScroll('deleteModal'); }
+function closeViewModal() { closeModalWithScroll('viewModal'); currentViewReport = null; }
+function closeDeleteModal() { closeModalWithScroll('deleteModal'); deleteReportData = null; }
+function openDeleteModal(id) { deleteReportData = id; openModalWithScroll('deleteModal'); }
+
 async function confirmDelete() {
     if(!deleteReportData) return;
-    try {
-        const { error } = await window.supabaseClient.from('summary_reports').delete().eq('id', deleteReportData);
-        if(error) throw error;
-        showMessage('تم حذف التقرير بنجاح','success');
-        closeDeleteModal();
-        await loadAllSummaryReportsToCache();
-        filteredReportsCache = [...allReportsCache];
-        totalFilteredCount = filteredReportsCache.length;
-        currentPage = 1;
-        displayCurrentPage();
-    } catch(error) { showMessage('حدث خطأ في حذف التقرير','error'); }
+    try { const { error } = await window.supabaseClient.from('summary_reports').delete().eq('id', deleteReportData); if(error) throw error; showMessage('تم حذف التقرير بنجاح','success'); closeDeleteModal(); await loadAllSummaryReportsToCache(); filteredReportsCache = [...allReportsCache]; totalFilteredCount = filteredReportsCache.length; currentPage = 1; displayCurrentPage(); } catch(error) { showMessage('حدث خطأ في حذف التقرير','error'); }
 }
 
 // ==================== البريد الإلكتروني ====================
 async function openOutlookForSummaryReport() {
     if(!currentViewReport) { showMessage('لا يوجد تقرير للإرسال','error'); return; }
-    const district = districtsList.find(d=>d.id==currentViewReport.district_id);
+    const district = districtsList.find(d => d.id == currentViewReport.district_id);
     const specialistName = currentViewReport.users?.name || 'مختص';
     const subjectPrefix = currentViewReport.report_type === 'in_person' ? 'TLS_BiWeekly' : 'RL_BiWeekly';
     const subject = `${subjectPrefix} - التقرير الدوري للمختص ${specialistName}`;
@@ -1045,42 +1280,29 @@ async function openOutlookForSummaryReport() {
     document.getElementById('emailBody').value = body;
     openModalWithScroll('emailModal');
 }
+
 function closeEmailModal() { closeModalWithScroll('emailModal'); }
 
-// فتح Outlook مع رسالة تأكيد
 function openOutlookWithConfirmation() {
     const confirmModal = document.getElementById('emailConfirmModal');
     confirmModal.classList.add('active');
-    
     const yesBtn = document.getElementById('confirmYesBtn');
     const noBtn = document.getElementById('confirmNoBtn');
-    
     const newYesBtn = yesBtn.cloneNode(true);
     yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
-    newYesBtn.onclick = function() {
-        confirmModal.classList.remove('active');
-        executeOpenOutlook();
-    };
-    
+    newYesBtn.onclick = function() { confirmModal.classList.remove('active'); executeOpenOutlook(); };
     const newNoBtn = noBtn.cloneNode(true);
     noBtn.parentNode.replaceChild(newNoBtn, noBtn);
-    newNoBtn.onclick = function() {
-        confirmModal.classList.remove('active');
-        showMessage('الرجاء تحميل التقرير PDF قبل إرسال البريد', 'info');
-        exportReportToPDF();
-    };
-    
-    confirmModal.onclick = function(e) {
-        if (e.target === confirmModal) confirmModal.classList.remove('active');
-    };
+    newNoBtn.onclick = function() { confirmModal.classList.remove('active'); showMessage('الرجاء تحميل التقرير PDF قبل إرسال البريد', 'info'); exportReportToPDF(); };
+    confirmModal.onclick = function(e) { if (e.target === confirmModal) confirmModal.classList.remove('active'); };
 }
 
 function executeOpenOutlook() {
-    const toList = (document.getElementById('emailTo').value||'').split(/[;,]/).map(v=>v.trim()).filter(v=>v!=='(لم يتم العثور على بريد إلكتروني)');
-    const ccList = (document.getElementById('emailCc').value||'').split(/[;,]/).map(v=>v.trim()).filter(Boolean);
-    const recipients = [...new Set([...toList,...ccList])].join(',');
-    const subject = (document.getElementById('emailSubject').value||'').trim();
-    const body = (document.getElementById('emailBody').value||'').trim();
+    const toList = (document.getElementById('emailTo').value || '').split(/[;,]/).map(v => v.trim()).filter(v => v !== '(لم يتم العثور على بريد إلكتروني)');
+    const ccList = (document.getElementById('emailCc').value || '').split(/[;,]/).map(v => v.trim()).filter(Boolean);
+    const recipients = [...new Set([...toList, ...ccList])].join(',');
+    const subject = (document.getElementById('emailSubject').value || '').trim();
+    const body = (document.getElementById('emailBody').value || '').trim();
     const url = 'https://outlook.cloud.microsoft/mail/0/deeplink/compose?' + 'to=' + encodeURIComponent(recipients) + '&subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
     window.open(url, '_blank');
     closeEmailModal();
@@ -1092,7 +1314,7 @@ function exportReportToPDF() {
     if(!currentViewReport) { showMessage('لا يوجد تقرير للتصدير','error'); return; }
     const prefix = currentViewReport.report_type === 'in_person' ? 'TLS_BiWeekly' : 'RL_BiWeekly';
     const specialistName = currentViewReport.users?.name || 'مختص';
-    const clean = (t='')=>t.trim().replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_+|_+$/g,'');
+    const clean = (t = '') => t.trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '');
     const fileName = `${prefix} - ${clean(specialistName)}.pdf`;
     const userName = currentUser?.name || 'مستخدم';
     const currentDate = new Date().toLocaleDateString('ar-SA');
@@ -1100,19 +1322,17 @@ function exportReportToPDF() {
     const reportContent = document.getElementById('reportDetails').innerHTML;
     const html = `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>التقرير التجميعي</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI','Cairo',Arial,sans-serif;background:white;padding:12mm 15mm;direction:rtl}h2{text-align:center;color:#1e3c72;margin:0 0 20px 0}h3{color:#1e3c72;margin:20px 0 12px 0;border-bottom:2px solid #1e3c72;padding-bottom:5px}.info-grid{display:flex;flex-wrap:wrap;gap:12px;background:#f8fafd;padding:15px;border-radius:12px;margin-bottom:20px}.preview-table{width:100%;border-collapse:collapse;margin-bottom:20px}.preview-table th,.preview-table td{border:1px solid #000;padding:8px 6px;text-align:center}.preview-table th{background:#1e3c72;color:white}.footer{margin-top:25px;border-top:1px solid #ccc;padding-top:10px;text-align:center;font-size:11px;color:#666}@media print{body{padding:0}}</style></head><body><div><h2>التقرير النصف شهري للمختص التربوي</h2>${reportContent}<div class="footer">تم إنشاء هذا التقرير بواسطة: ${userName} | تاريخ الطباعة: ${currentDate} - ${currentTime}</div></div></body></html>`;
     const printWindow = window.open('', '_blank');
-    if(!printWindow){ showMessage('الرجاء السماح للنوافذ المنبثقة','error'); return; }
+    if(!printWindow) { showMessage('الرجاء السماح للنوافذ المنبثقة','error'); return; }
     printWindow.document.write(html);
-    printWindow.document.title = fileName.replace('.pdf','');
+    printWindow.document.title = fileName.replace('.pdf', '');
     printWindow.document.close();
-    printWindow.onload = ()=>{ printWindow.print(); printWindow.onafterprint=()=>printWindow.close(); };
-    showMessage('تم فتح نافذة الطباعة، يمكنك حفظ الملف','success');
+    printWindow.onload = () => { printWindow.print(); printWindow.onafterprint = () => printWindow.close(); };
+    showMessage('تم فتح نافذة الطباعة، يمكنك حفظ الملف', 'success');
 }
 
 function exportToExcel() {
     const rows = [['#', 'تاريخ الإنشاء', 'نوع التقرير', 'فترة التقرير من', 'فترة التقرير إلى', 'المنطقة', 'المختص', 'عدد الزيارات']];
-    filteredReportsCache.forEach((r,i)=>{
-        rows.push([i+1, new Date(r.created_at).toLocaleDateString('ar-SA'), r.report_type==='in_person'?'وجاهي':'عن بعد', new Date(r.period_from).toLocaleDateString('ar-SA'), new Date(r.period_to).toLocaleDateString('ar-SA'), r.districts?.name||'-', r.users?.name||'-', JSON.parse(r.visits_data||'[]').length]);
-    });
+    filteredReportsCache.forEach((r, i) => { rows.push([i + 1, new Date(r.created_at).toLocaleDateString('ar-SA'), r.report_type === 'in_person' ? 'وجاهي' : 'عن بعد', new Date(r.period_from).toLocaleDateString('ar-SA'), new Date(r.period_to).toLocaleDateString('ar-SA'), r.districts?.name || '-', r.users?.name || '-', JSON.parse(r.visits_data || '[]').length]); });
     const ws = XLSX.utils.aoa_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'التقارير التجميعية');
@@ -1122,76 +1342,43 @@ function exportToExcel() {
 
 // ==================== الإشعارات ====================
 async function updateUnreadBadge() {
-    try {
-        const result = await window.getUnreadNotificationsCount(currentUser?.id);
-        if(result.success) {
-            const badge = document.getElementById('unreadBadge');
-            if(badge) { if(result.count>0){ badge.textContent=result.count>99?'99+':result.count; badge.style.display='flex'; } else badge.style.display='none'; }
-        }
-    } catch(e){ console.error(e); }
-}
-async function toggleNotificationsPanel() {
-    const panel = document.getElementById('notificationsPanel');
-    const overlay = document.getElementById('panelOverlay');
-    if(panel.classList.contains('open')) closeNotificationsPanel();
-    else { await loadNotifications(); panel.classList.add('open'); overlay.classList.add('open'); }
-}
+    try { const result = await window.getUnreadNotificationsCount(currentUser?.id); if(result && result.success) { const badge = document.getElementById('unreadBadge'); if(badge) { if(result.count > 0) { badge.textContent = result.count > 99 ? '99+' : result.count; badge.style.display = 'flex'; } else { badge.style.display = 'none'; } } } } catch(e) { console.error(e); } }
+
+async function toggleNotificationsPanel() { const panel = document.getElementById('notificationsPanel'); const overlay = document.getElementById('panelOverlay'); if(panel.classList.contains('open')) { closeNotificationsPanel(); } else { await loadNotifications(); panel.classList.add('open'); overlay.classList.add('open'); } }
+
 function closeNotificationsPanel() { document.getElementById('notificationsPanel').classList.remove('open'); document.getElementById('panelOverlay').classList.remove('open'); }
+
 async function loadNotifications() {
     const list = document.getElementById('notificationsList');
     list.innerHTML = '<div class="empty-notifications"><div class="loader-small"></div><p>جاري تحميل الإشعارات...</p></div>';
     try {
         const result = await window.getRecentNotifications(currentUser?.id, 50);
-        if(result.success) {
+        if(result && result.success) {
             const notifications = result.data;
-            if(!notifications||notifications.length===0) list.innerHTML='<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
+            if(!notifications || notifications.length === 0) { list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>'; }
             else {
-                list.innerHTML = notifications.map(n=>`<div class="notification-list-item ${!n.is_read?'unread':''}" onclick="handleNotificationClick(${n.id}, '${n.related_report_type||''}', ${n.related_report_id||'null'})"><div class="title">${escapeHtml(n.title)}</div><div class="message">${escapeHtml(n.message)}</div><div class="time">${formatTime(n.created_at)}</div><button class="delete-notification" onclick="event.stopPropagation(); deleteNotification(${n.id})"><i class="fas fa-trash"></i></button></div>`).join('');
+                list.innerHTML = notifications.map(n => `<div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationClick(${n.id}, '${n.related_report_type || ''}', ${n.related_report_id || 'null'})"><div class="title">${escapeHtml(n.title)}</div><div class="message">${escapeHtml(n.message)}</div><div class="time">${formatTime(n.created_at)}</div><button class="delete-notification" onclick="event.stopPropagation(); deleteNotification(${n.id})"><i class="fas fa-trash"></i></button></div>`).join('');
                 const markAllBtn = document.getElementById('markAllReadBtn');
-                if(markAllBtn) markAllBtn.style.display = notifications.some(n=>!n.is_read) ? 'flex' : 'none';
+                if(markAllBtn) markAllBtn.style.display = notifications.some(n => !n.is_read) ? 'flex' : 'none';
             }
             await updateUnreadBadge();
-        } else list.innerHTML='<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>';
-    } catch(e){ console.error(e); list.innerHTML='<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ</p></div>'; }
+        } else { list.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>'; }
+    } catch(e) { console.error(e); list.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ</p></div>'; }
 }
+
 async function handleNotificationClick(notificationId, reportType, reportId) {
-    try {
-        await window.markNotificationAsRead(notificationId);
-        await updateUnreadBadge();
-        closeNotificationsPanel();
-        if(reportId && reportId !== 'null' && reportId !== null) {
-            await viewReport(reportId);
-        } else {
-            showMessage('تم تحديث الإشعار', 'success');
-        }
-    } catch(e){ console.error(e); showMessage('حدث خطأ في فتح الإشعار','error'); }
-}
-async function deleteNotification(notificationId) {
-    try { await window.deleteNotification(notificationId); await loadNotifications(); await updateUnreadBadge(); }
-    catch(e){ showMessage('حدث خطأ في حذف الإشعار','error'); }
-}
-async function markAllAsRead() {
-    try {
-        await window.markAllNotificationsAsRead(currentUser?.id);
-        await loadNotifications(); await updateUnreadBadge();
-        showMessage('تم تعيين جميع الإشعارات كمقروءة','success');
-    } catch(e){ showMessage('حدث خطأ','error'); }
-}
-function formatTime(dateString) {
-    const date = new Date(dateString);
-    const diffMins = Math.floor((new Date()-date)/60000);
-    if(diffMins<1) return 'الآن';
-    if(diffMins<60) return `منذ ${diffMins} دقيقة`;
-    if(diffMins<1440) return `منذ ${Math.floor(diffMins/60)} ساعة`;
-    return `منذ ${Math.floor(diffMins/1440)} يوم`;
-}
+    try { await window.markNotificationAsRead(notificationId); await updateUnreadBadge(); closeNotificationsPanel(); if(reportId && reportId !== 'null' && reportId !== null) { await viewReport(reportId); } else { showMessage('تم تحديث الإشعار', 'success'); } } catch(e) { console.error(e); showMessage('حدث خطأ في فتح الإشعار','error'); } }
+
+async function deleteNotification(notificationId) { try { await window.deleteNotification(notificationId); await loadNotifications(); await updateUnreadBadge(); } catch(e) { showMessage('حدث خطأ في حذف الإشعار','error'); } }
+
+async function markAllAsRead() { try { await window.markAllNotificationsAsRead(currentUser?.id); await loadNotifications(); await updateUnreadBadge(); showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success'); } catch(e) { showMessage('حدث خطأ', 'error'); } }
+
+function formatTime(dateString) { const date = new Date(dateString); const diffMins = Math.floor((new Date() - date) / 60000); if(diffMins < 1) return 'الآن'; if(diffMins < 60) return `منذ ${diffMins} دقيقة`; if(diffMins < 1440) return `منذ ${Math.floor(diffMins / 60)} ساعة`; return `منذ ${Math.floor(diffMins / 1440)} يوم`; }
+
 let notificationInterval = null;
-function startNotificationPolling() {
-    if(notificationInterval) clearInterval(notificationInterval);
-    notificationInterval = setInterval(async ()=>{ if(currentUser && document.hasFocus()){ const r=await window.getUnreadNotificationsCount(currentUser.id); if(r.success && r.count>0) updateUnreadBadge(); } },30000);
-}
-function stopNotificationPolling() { if(notificationInterval){ clearInterval(notificationInterval); notificationInterval=null; } }
-async function logout() { stopNotificationPolling(); localStorage.removeItem('currentUser'); try{ await window.supabaseClient.auth.signOut(); }catch(e){} window.location.href='login.html'; }
+function startNotificationPolling() { if(notificationInterval) clearInterval(notificationInterval); notificationInterval = setInterval(async () => { if(currentUser && document.hasFocus()) { const r = await window.getUnreadNotificationsCount(currentUser.id); if(r && r.success && r.count > 0) updateUnreadBadge(); } }, 30000); }
+function stopNotificationPolling() { if(notificationInterval) { clearInterval(notificationInterval); notificationInterval = null; } }
+async function logout() { stopNotificationPolling(); localStorage.removeItem('currentUser'); try { await window.supabaseClient.auth.signOut(); } catch(e) {} window.location.href = 'login.html'; }
 
 // ==================== التهيئة ====================
 window.addEventListener('load', async () => {
@@ -1199,51 +1386,44 @@ window.addEventListener('load', async () => {
         const local = localStorage.getItem('currentUser');
         if(local && JSON.parse(local).id) return JSON.parse(local);
         try {
-            const { data:{user} } = await window.supabaseClient.auth.getUser();
-            if(user){
-                const { data:userData } = await window.supabaseClient.from('users').select('*').eq('email',user.email).single();
-                if(userData){
-                    if(userData.district_id){ const {data:district}=await window.supabaseClient.from('districts').select('name').eq('id',userData.district_id).single(); if(district) userData.district_name=district.name; }
-                    if(userData.school_id){ const {data:school}=await window.supabaseClient.from('schools').select('name').eq('id',userData.school_id).single(); if(school) userData.school_name=school.name; }
+            const { data: { user } } = await window.supabaseClient.auth.getUser();
+            if(user) {
+                const { data: userData } = await window.supabaseClient.from('users').select('*').eq('email', user.email).single();
+                if(userData) {
+                    if(userData.district_id) { const { data: district } = await window.supabaseClient.from('districts').select('name').eq('id', userData.district_id).single(); if(district) userData.district_name = district.name; }
+                    if(userData.school_id) { const { data: school } = await window.supabaseClient.from('schools').select('name').eq('id', userData.school_id).single(); if(school) userData.school_name = school.name; }
                     localStorage.setItem('currentUser', JSON.stringify(userData));
                     return userData;
                 }
             }
-        } catch(e){}
+        } catch(e) { console.log(e); }
         return local ? JSON.parse(local) : null;
     })();
-    
-    if(!currentUser){ window.location.href='login.html'; return; }
-    if(!canViewSummaryReports(currentUser)){ showMessage('لا تملك صلاحية الوصول لهذه الصفحة','error'); setTimeout(()=>window.location.href='dashboard.html',2000); return; }
-    
+    if(!currentUser) { window.location.href = 'login.html'; return; }
+    if(!canViewSummaryReports(currentUser)) { showMessage('لا تملك صلاحية الوصول لهذه الصفحة', 'error'); setTimeout(() => window.location.href = 'dashboard.html', 2000); return; }
     document.getElementById('userNameDisplay').textContent = currentUser.name;
     document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
     document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(currentUser);
-    const showAdmin = ['admin','support'].includes(currentUser.role);
+    const showAdmin = ['admin', 'support'].includes(currentUser.role);
     document.getElementById('adminLinks').style.display = showAdmin ? 'block' : 'none';
-    document.getElementById('navAnalytics').style.display = ['admin','support','manger'].includes(currentUser.role) ? 'flex' : 'none';
+    document.getElementById('navAnalytics').style.display = ['admin', 'support', 'manger'].includes(currentUser.role) ? 'flex' : 'none';
     document.getElementById('addReportBtn').style.display = canCreateSummaryReport(currentUser) ? 'inline-flex' : 'none';
-    
     await loadDistricts();
     await loadSchools();
     await loadSpecialists();
-    initDatePickers();
-    
+    initFilterDatePickers();
     const pageSizeSelect = document.getElementById('pageSizeSelect');
-    if(pageSizeSelect) pageSizeSelect.addEventListener('change', (e)=>{ pageSize=parseInt(e.target.value); currentPage=1; displayCurrentPage(); });
-    
+    if(pageSizeSelect) { pageSizeSelect.addEventListener('change', (e) => { pageSize = parseInt(e.target.value); currentPage = 1; displayCurrentPage(); }); }
     await loadAllSummaryReportsToCache();
     filteredReportsCache = [...allReportsCache];
     totalFilteredCount = filteredReportsCache.length;
     currentPage = 1;
     displayCurrentPage();
-    
     await updateUnreadBadge();
     startNotificationPolling();
-    
     const urlParams = new URLSearchParams(window.location.search);
     const reportIdToView = urlParams.get('view');
-    if(reportIdToView){ setTimeout(()=>viewReport(reportIdToView),500); window.history.replaceState({},document.title,window.location.pathname); }
+    if(reportIdToView) { setTimeout(() => viewReport(reportIdToView), 500); window.history.replaceState({}, document.title, window.location.pathname); }
 });
 </script>
 </body>
