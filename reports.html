@@ -82,6 +82,11 @@
         .flatpickr-input[readonly] { background-color: white; cursor: pointer !important; }
         .filter-date-picker { cursor: pointer !important; background-color: white; }
         
+        /* ===== ضمان ظهور التقويم فوق المودال ===== */
+        .flatpickr-calendar { z-index: 9999999 !important; }
+        .flatpickr-calendar.open { z-index: 9999999 !important; }
+        .flatpickr-innerContainer { z-index: 9999999 !important; }
+        
         .filters-bar { display: flex; flex-wrap: wrap; gap: 1rem; background: #f8fafd; padding: 1.25rem; border-radius: 20px; margin-bottom: 1rem; align-items: flex-end; }
         .filter-group { flex: 1; min-width: 150px; }
         .filter-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #1e3c72; margin-bottom: 0.3rem; }
@@ -661,6 +666,37 @@ function openModalWithScroll(modalId) {
         toggleBodyScroll(true);
         modal.classList.add('active');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // إعادة تهيئة DatePicker عند فتح النماذج
+        setTimeout(() => {
+            if (modalId === 'inPersonModal') {
+                if (inPersonDatePicker) {
+                    inPersonDatePicker.redraw();
+                } else {
+                    const today = new Date();
+                    today.setHours(23, 59, 59, 999);
+                    inPersonDatePicker = flatpickr("#inPersonVisitDate", {
+                        locale: "ar",
+                        dateFormat: "d/m/Y",
+                        maxDate: today,
+                        clickOpens: true
+                    });
+                }
+            } else if (modalId === 'remoteModal') {
+                if (remoteDatePicker) {
+                    remoteDatePicker.redraw();
+                } else {
+                    const today = new Date();
+                    today.setHours(23, 59, 59, 999);
+                    remoteDatePicker = flatpickr("#remoteVisitDate", {
+                        locale: "ar",
+                        dateFormat: "d/m/Y",
+                        maxDate: today,
+                        clickOpens: true
+                    });
+                }
+            }
+        }, 100);
     }
 }
 
@@ -1983,10 +2019,54 @@ function startNotificationPolling() {
 function stopNotificationPolling() { if (notificationInterval) { clearInterval(notificationInterval); notificationInterval = null; } }
 
 function initDatePickers() {
-    dateFromPicker = flatpickr("#dateFrom", { locale: "ar", dateFormat: "d/m/Y" });
-    dateToPicker = flatpickr("#dateTo", { locale: "ar", dateFormat: "d/m/Y" });
-    inPersonDatePicker = flatpickr("#inPersonVisitDate", { locale: "ar", dateFormat: "d/m/Y" });
-    remoteDatePicker = flatpickr("#remoteVisitDate", { locale: "ar", dateFormat: "d/m/Y" });
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    
+    // فلتر التاريخ - من تاريخ
+    dateFromPicker = flatpickr("#dateFrom", {
+        locale: "ar",
+        dateFormat: "d/m/Y",
+        maxDate: today,
+        onChange: function(selectedDates) {
+            if (selectedDates.length > 0) {
+                // تحديث الحد الأدنى لتاريخ النهاية ليكون مساوياً أو أكبر من تاريخ البداية
+                dateToPicker.set('minDate', selectedDates[0]);
+            }
+        }
+    });
+    
+    // فلتر التاريخ - إلى تاريخ
+    dateToPicker = flatpickr("#dateTo", {
+        locale: "ar",
+        dateFormat: "d/m/Y",
+        maxDate: today,
+        onChange: function(selectedDates) {
+            if (selectedDates.length > 0) {
+                // تحديث الحد الأقصى لتاريخ البداية ليكون مساوياً أو أقل من تاريخ النهاية
+                dateFromPicker.set('maxDate', selectedDates[0]);
+            }
+        }
+    });
+    
+    // تاريخ الزيارة - التقرير الوجاهي
+    if (!inPersonDatePicker) {
+        inPersonDatePicker = flatpickr("#inPersonVisitDate", {
+            locale: "ar",
+            dateFormat: "d/m/Y",
+            maxDate: today,
+            clickOpens: true
+        });
+    }
+    
+    // تاريخ الزيارة - التقرير عن بعد
+    if (!remoteDatePicker) {
+        remoteDatePicker = flatpickr("#remoteVisitDate", {
+            locale: "ar",
+            dateFormat: "d/m/Y",
+            maxDate: today,
+            clickOpens: true
+        });
+    }
 }
 
 async function logout() {
