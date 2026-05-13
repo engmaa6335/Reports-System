@@ -217,6 +217,7 @@
             margin: 0;
         }
         
+        #pageSizeSelect{ padding: 10px;border-radius: 10px;border: 1px solid #e2e8f0;;color: #3c4c5f;}
         .notifications-trigger button {
             background: none; border: none; width: 100%; text-align: right; padding: 0.75rem 1rem;
             border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;
@@ -253,7 +254,7 @@
         .email-group { margin-bottom: 1.2rem; }
         .email-group label { display: block; font-weight: 600; color: #1e3c72; margin-bottom: 0.4rem; font-size: 0.85rem; }
         .email-group input, .email-group textarea { width: 100%; padding: 0.7rem 1rem; border: 1px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 0.9rem; background: #f8fafd; }
-        .btn-outlook { background: linear-gradient(135deg, #0078D4, #005a9e); color: white; border-radius: 15px; border: none; padding: 10px 20px; cursor: pointer; font-weight: 500; }
+        .btn-outlook { background: linear-gradient(135deg, #0078D4, #005a9e); color: white; border-radius: 15px; border: none;margin: 15px; padding: 15px 20px; cursor: pointer; font-weight: 500; }
         
         .confirm-modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -393,14 +394,14 @@
                 <i class="fas fa-chart-line"></i> إجمالي التقارير: <strong id="totalCountDisplay">0</strong>
             </div>
             <div class="page-size-selector">
-                <span>عرض:</span>
+                <span style="color:#1e3c72;">عرض:</span>
                 <select id="pageSizeSelect">
                     <option value="10">10</option>
                     <option value="25" selected>25</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
                 </select>
-                <span>تقرير لكل صفحة</span>
+                <span style="color:#1e3c72;">تقرير لكل صفحة</span>
             </div>
         </div>
 
@@ -647,28 +648,117 @@ function setPickerDate(picker, dateValue) {
     if(picker && dateValue) picker.setDate(new Date(dateValue)); 
 }
 
+// الحصول على تاريخ اليوم بصيغة YYYY-MM-DD
+function getTodayYMD() {
+    const today = new Date();
+    return formatDateToYMD(today);
+}
+
+// دالة لربط DatePickers مع منع التواريخ المستقبلية وضبط العلاقة بين "من" و "إلى"
 function initFilterDatePickers() {
     if(filterDateFromPicker) filterDateFromPicker.destroy();
     if(filterDateToPicker) filterDateToPicker.destroy();
+    
     const today = new Date();
     today.setHours(23, 59, 59, 999);
-    filterDateFromPicker = flatpickr("#dateFrom", { locale: "ar", dateFormat: "d/m/Y", altInput: true, altFormat: "d/m/Y", placeholder: "dd/mm/yyyy", maxDate: today, onChange: function() { applyFilters(); } });
-    filterDateToPicker = flatpickr("#dateTo", { locale: "ar", dateFormat: "d/m/Y", altInput: true, altFormat: "d/m/Y", placeholder: "dd/mm/yyyy", maxDate: today, onChange: function() { applyFilters(); } });
+    
+    // DatePicker لـ "من تاريخ"
+    filterDateFromPicker = flatpickr("#dateFrom", { 
+        locale: "ar", 
+        dateFormat: "d/m/Y", 
+        altInput: true, 
+        altFormat: "d/m/Y", 
+        placeholder: "dd/mm/yyyy", 
+        maxDate: today, // منع اختيار تاريخ مستقبلي
+        onChange: function(selectedDates, dateStr, instance) {
+            // تحديث الحد الأدنى لتاريخ "إلى" ليكون أكبر من أو يساوي تاريخ "من"
+            if(filterDateToPicker && selectedDates[0]) {
+                const fromDate = selectedDates[0];
+                const minDateForTo = new Date(fromDate);
+                minDateForTo.setDate(fromDate.getDate());
+                filterDateToPicker.set('minDate', minDateForTo);
+            }
+            applyFilters(); // تطبيق الفلترة بعد التغيير
+        }
+    });
+    
+    // DatePicker لـ "إلى تاريخ"
+    filterDateToPicker = flatpickr("#dateTo", { 
+        locale: "ar", 
+        dateFormat: "d/m/Y", 
+        altInput: true, 
+        altFormat: "d/m/Y", 
+        placeholder: "dd/mm/yyyy", 
+        maxDate: today, // منع اختيار تاريخ مستقبلي
+        onChange: function(selectedDates, dateStr, instance) {
+            // تحديث الحد الأقصى لتاريخ "من" ليكون أقل من أو يساوي تاريخ "إلى"
+            if(filterDateFromPicker && selectedDates[0]) {
+                const toDate = selectedDates[0];
+                const maxDateForFrom = new Date(toDate);
+                maxDateForFrom.setDate(toDate.getDate());
+                filterDateFromPicker.set('maxDate', maxDateForFrom);
+            }
+            applyFilters(); // تطبيق الفلترة بعد التغيير
+        }
+    });
 }
 
 function initModalDatePickers() {
     if(periodFromPicker) periodFromPicker.destroy();
     if(periodToPicker) periodToPicker.destroy();
+    
     const today = new Date();
     today.setHours(23, 59, 59, 999);
-    periodFromPicker = flatpickr("#periodFrom", { locale: "ar", dateFormat: "d/m/Y", altInput: true, altFormat: "d/m/Y", placeholder: "dd/mm/yyyy", maxDate: today, onChange: function() { loadVisitsData(); } });
-    periodToPicker = flatpickr("#periodTo", { locale: "ar", dateFormat: "d/m/Y", altInput: true, altFormat: "d/m/Y", placeholder: "dd/mm/yyyy", maxDate: today, onChange: function() { loadVisitsData(); } });
+    
+    periodFromPicker = flatpickr("#periodFrom", { 
+        locale: "ar", 
+        dateFormat: "d/m/Y", 
+        altInput: true, 
+        altFormat: "d/m/Y", 
+        placeholder: "dd/mm/yyyy", 
+        maxDate: today, // منع اختيار تاريخ مستقبلي
+        onChange: function(selectedDates, dateStr, instance) {
+            if(periodToPicker && selectedDates[0]) {
+                const fromDate = selectedDates[0];
+                const minDateForTo = new Date(fromDate);
+                minDateForTo.setDate(fromDate.getDate());
+                periodToPicker.set('minDate', minDateForTo);
+            }
+            loadVisitsData();
+        }
+    });
+    
+    periodToPicker = flatpickr("#periodTo", { 
+        locale: "ar", 
+        dateFormat: "d/m/Y", 
+        altInput: true, 
+        altFormat: "d/m/Y", 
+        placeholder: "dd/mm/yyyy", 
+        maxDate: today, // منع اختيار تاريخ مستقبلي
+        onChange: function(selectedDates, dateStr, instance) {
+            if(periodFromPicker && selectedDates[0]) {
+                const toDate = selectedDates[0];
+                const maxDateForFrom = new Date(toDate);
+                maxDateForFrom.setDate(toDate.getDate());
+                periodFromPicker.set('maxDate', maxDateForFrom);
+            }
+            loadVisitsData();
+        }
+    });
 }
 
 function initActivityDatePicker(el) { 
     const today = new Date();
     today.setHours(23, 59, 59, 999);
-    return flatpickr(el, { locale: "ar", dateFormat: "d/m/Y", altInput: true, altFormat: "d/m/Y", placeholder: "dd/mm/yyyy", maxDate: today, allowInput: false }); 
+    return flatpickr(el, { 
+        locale: "ar", 
+        dateFormat: "d/m/Y", 
+        altInput: true, 
+        altFormat: "d/m/Y", 
+        placeholder: "dd/mm/yyyy", 
+        maxDate: today, // منع اختيار تاريخ مستقبلي
+        allowInput: false 
+    }); 
 }
 
 function reinitializeActivityDatePickers() { 
@@ -776,7 +866,7 @@ function displayCurrentPage() {
     const pageReports = filteredReportsCache.slice(startIndex, endIndex);
     const tbody = document.getElementById('reportsTableBody');
     if (!pageReports || pageReports.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>';
+        tbody.innerHTML = '<td><td colspan="8" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>';
         document.getElementById('resultsCount').innerHTML = 'عدد النتائج: 0';
         document.getElementById('paginationContainer').innerHTML = '';
         return;
@@ -850,8 +940,15 @@ function applyFilters() {
 function clearFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('reportTypeFilter').value = '';
-    if(filterDateFromPicker) filterDateFromPicker.clear();
-    if(filterDateToPicker) filterDateToPicker.clear();
+    if(filterDateFromPicker) {
+        filterDateFromPicker.clear();
+        filterDateFromPicker.set('maxDate', new Date()); // إعادة تعيين الحد الأقصى لليوم الحالي
+    }
+    if(filterDateToPicker) {
+        filterDateToPicker.clear();
+        filterDateToPicker.set('maxDate', new Date()); // إعادة تعيين الحد الأقصى لليوم الحالي
+        filterDateToPicker.set('minDate', null); // إزالة الحد الأدنى
+    }
     filteredReportsCache = [...allReportsCache];
     totalFilteredCount = filteredReportsCache.length;
     currentPage = 1;
@@ -980,7 +1077,7 @@ async function onSpecialistChange() {
     loadVisitsData();
 }
 
-// ==================== عرض التقرير في المودال (نسخة مصححة بالكامل) ====================
+// ==================== عرض التقرير في المودال ====================
 async function viewReport(id) {
     let report = allReportsCache.find(r => r.id == id);
     if(!report) {
@@ -1005,7 +1102,7 @@ async function viewReport(id) {
     const periodFrom = new Date(report.period_from).toLocaleDateString('ar-SA');
     const periodTo = new Date(report.period_to).toLocaleDateString('ar-SA');
     
-    // بناء جدول الزيارات بشكل صحيح
+    // بناء جدول الزيارات
     let visitsHtml = '';
     if (visits.length > 0) {
         visits.forEach((v, i) => {
@@ -1025,13 +1122,13 @@ async function viewReport(id) {
                 <td style="padding:10px; border:1px solid #dee2e6;">${teacherName}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${creativeField}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${v.recommendations || ''}</td>
-            </tr>`;
+             </tr>`;
         });
     } else {
         visitsHtml = '<tr><td colspan="9" style="padding:30px;text-align:center;">لا توجد زيارات</td></tr>';
     }
     
-    // بناء جدول الأنشطة بشكل صحيح
+    // بناء جدول الأنشطة
     let activitiesHtml = '';
     if (activities.length > 0) {
         activities.forEach((a, i) => {
@@ -1041,7 +1138,7 @@ async function viewReport(id) {
                 <td style="padding:10px; border:1px solid #dee2e6;">${a.name || ''}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${a.topic || ''}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${a.target || ''}</td>
-            </tr>`;
+             </tr>`;
         });
     } else {
         activitiesHtml = '<tr><td colspan="5" style="padding:30px;text-align:center;">لا توجد أنشطة إشرافية</td></tr>';
@@ -1303,7 +1400,7 @@ function executeOpenOutlook() {
     const recipients = [...new Set([...toList, ...ccList])].join(',');
     const subject = (document.getElementById('emailSubject').value || '').trim();
     const body = (document.getElementById('emailBody').value || '').trim();
-    const url = 'https://outlook.cloud.microsoft/mail/0/deeplink/compose?' + 'to=' + encodeURIComponent(recipients) + '&subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    const url = 'https://outlook.cloud.microsoft.com/mail/0/deeplink/compose?' + 'to=' + encodeURIComponent(recipients) + '&subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
     window.open(url, '_blank');
     closeEmailModal();
     showMessage('تم فتح Outlook، يرجى إرفاق ملف PDF للتقرير يدوياً', 'success');

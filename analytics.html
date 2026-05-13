@@ -767,7 +767,7 @@
                     <h3 class="section-title"><i class="fas fa-building"></i> تفاصيل المدارس</h3>
                     <div style="overflow-x: auto;">
                         <table class="modern-table">
-                            <thead><tr><th>#</th><th>المدرسة</th><th>المنطقة</th><th>عدد الزيارات</th><th>زيارات وجاهي</th><th>زيارات عن بعد</th><th>الحالة</th></tr></thead>
+                           <thead> <tr><th>#</th><th>المدرسة</th><th>المنطقة</th><th>عدد الزيارات</th><th>زيارات وجاهي</th><th>زيارات عن بعد</th><th>حالة الوجاهي</th><th>حالة عن بعد</th></tr></thead>
                             <tbody id="allSchoolsTable"><tr><td colspan="7" style="text-align: center; padding: 2rem;"><div class="loader"></div>تحميل الإحصائيات...</tbody>
                         </table>
                     </div>
@@ -1182,13 +1182,14 @@
             }).join('');
         }
 
-        function displayAllSchoolsDetails(reports, visitedSchoolIds) {
+                function displayAllSchoolsDetails(reports, visitedSchoolIds) {
             const tbody = document.getElementById('allSchoolsTable');
             if (!allSchoolsList.length) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد بيانات</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد بيانات</td></tr>';
                 return;
             }
             
+            // تجميع إحصائيات الزيارات لكل مدرسة
             const schoolStats = {};
             reports.forEach(report => {
                 const schoolId = report.school_id;
@@ -1196,13 +1197,29 @@
                     schoolStats[schoolId] = { total: 0, in_person: 0, remote: 0 };
                 }
                 schoolStats[schoolId].total++;
-                if (report.report_type === 'in_person') schoolStats[schoolId].in_person++;
-                else schoolStats[schoolId].remote++;
+                if (report.report_type === 'in_person') {
+                    schoolStats[schoolId].in_person++;
+                } else {
+                    schoolStats[schoolId].remote++;
+                }
             });
             
+            // تحديد المدارس التي تمت زيارتها وجاهياً وعن بعد بشكل منفصل
+            const visitedInPersonSchools = new Set();
+            const visitedRemoteSchools = new Set();
+            reports.forEach(report => {
+                if (report.report_type === 'in_person') {
+                    visitedInPersonSchools.add(report.school_id);
+                } else if (report.report_type === 'remote') {
+                    visitedRemoteSchools.add(report.school_id);
+                }
+            });
+            
+            // تجهيز بيانات جميع المدارس مع حالتين منفصلتين
             const allSchools = allSchoolsList.map(school => {
                 const stats = schoolStats[school.id] || { total: 0, in_person: 0, remote: 0 };
-                const isVisited = visitedSchoolIds.has(school.id);
+                const isVisitedInPerson = visitedInPersonSchools.has(school.id);
+                const isVisitedRemote = visitedRemoteSchools.has(school.id);
                 return {
                     id: school.id,
                     name: school.name,
@@ -1211,16 +1228,26 @@
                     total: stats.total,
                     in_person: stats.in_person,
                     remote: stats.remote,
-                    isVisited: isVisited
+                    isVisitedInPerson: isVisitedInPerson,
+                    isVisitedRemote: isVisitedRemote
                 };
             });
             
+            // ترتيب حسب إجمالي الزيارات تنازلياً
             allSchools.sort((a, b) => b.total - a.total);
             
+            // إنشاء صفوف الجدول مع حالتين منفصلتين
             tbody.innerHTML = allSchools.map((school, index) => {
-                const statusBadge = school.isVisited 
-                    ? '<span class="status-badge status-visited"><i class="fas fa-check-circle"></i> تمت زيارتها</span>'
-                    : '<span class="status-badge status-not-visited"><i class="fas fa-times-circle"></i> لم تزر بعد</span>';
+                // حالة الزيارات الوجاهية
+                const inPersonStatusBadge = school.isVisitedInPerson 
+                    ? '<span class="status-badge status-visited" style="background: #e8f0fe; color: #1e3c72;"><i class="fas fa-check-circle"></i> تمت زيارتها</span>'
+                    : '<span class="status-badge status-not-visited" style="background: #fff2f5; color: #e34f76;"><i class="fas fa-times-circle"></i> لم تزر بعد</span>';
+                
+                // حالة الزيارات عن بعد
+                const remoteStatusBadge = school.isVisitedRemote 
+                    ? '<span class="status-badge status-visited" style="background: #eef9f0; color: #2e9b54;"><i class="fas fa-check-circle"></i> تمت زيارتها</span>'
+                    : '<span class="status-badge status-not-visited" style="background: #fff2f5; color: #e34f76;"><i class="fas fa-times-circle"></i> لم تزر بعد</span>';
+                
                 return `
                     <tr>
                         <td>${index + 1}</td>
@@ -1229,12 +1256,12 @@
                         <td><strong>${school.total}</strong></td>
                         <td style="color: #1e3c72;">${school.in_person}</td>
                         <td style="color: #2e9b54;">${school.remote}</td>
-                        <td>${statusBadge}</td>
+                        <td>${inPersonStatusBadge}</td>
+                        <td>${remoteStatusBadge}</td>
                     </tr>
                 `;
             }).join('');
         }
-
         // ==================== دالة عرض تحليلات المناطق ====================
         function displayDistrictsAnalytics(reports) {
             // التحقق من صلاحية المستخدم - فقط admin و support
