@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ملخص التقارير - نظام التقارير التربوية</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="lib/favicon-32.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/modern-style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; overflow-x: hidden; }
+
+        /* القائمة الجانبية */
+        .sidebar {
+            position: fixed; right: 0; top: 0; width: 280px; height: 100%;
+            background: white; border-left: 1px solid #eef2f7; transition: all 0.3s ease;
+            z-index: 1000; display: flex; flex-direction: column;
+        }
+        .sidebar.collapsed { right: -280px; }
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #eef2f7; text-align: center; }
+        .sidebar-logo { width: 50px; height: 50px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem; }
+        .sidebar-header h2 { font-size: 1.1rem; color: #1e3c72; margin-bottom: 0.25rem; }
+        .user-role { font-size: 0.75rem; color: #8ba0bc; }
+        .sidebar-nav { flex: 1; padding: 1rem; }
+        .sidebar-nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: #4e6580; text-decoration: none; border-radius: 12px; margin-bottom: 0.25rem; transition: all 0.2s; }
+        .sidebar-nav a:hover { background: #e8f0fe; color: #1e3c72; }
+        .sidebar-nav a.active { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid #eef2f7; }
+        .user-info { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+        .user-avatar { width: 45px; height: 45px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+        .user-name { font-size: 0.9rem; font-weight: 600; color: #1e3c72; }
+        .user-district { font-size: 0.7rem; color: #8ba0bc; }
+        .logout-btn { width: 100%; padding: 0.75rem; background: none; border: 1px solid #e34f76; color: #e34f76; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .logout-btn:hover { background: #fff2f5; }
+
+        /* المحتوى الرئيسي */
+        .main-content { margin-right: 280px; min-height: 100vh; padding: 1.5rem; }
+        .toggle-sidebar { display: none; position: fixed; right: 20px; top: 20px; background: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; z-index: 1001; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        @media (max-width: 768px) {
+            .sidebar { right: -280px; }
+            .sidebar.open { right: 0; }
+            .main-content { margin-right: 0; }
+            .toggle-sidebar { display: flex; align-items: center; justify-content: center; }
+        }
+
+        /* البطاقات */
+        .config-card, .saved-card { background: white; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .config-header, .saved-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #eef2f7; }
+        .config-header i, .saved-header i { font-size: 1.5rem; color: #1e3c72; }
+        .config-header h2, .saved-header h2 { font-size: 1.25rem; font-weight: 600; color: #1e3c72; margin: 0; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .form-group label { font-size: 0.85rem; font-weight: 600; color: #1e3c72; }
+        .form-group select, .form-group input { padding: 0.75rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 0.9rem; background: white; }
+        .period-options { background: #f8fafd; border-radius: 16px; padding: 1.25rem; margin-top: 1rem; display: none; }
+        .period-options.visible { display: block; }
+        .period-title { font-size: 0.85rem; font-weight: 600; color: #1e3c72; margin-bottom: 0.75rem; display: block; }
+        .radio-group { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+        .radio-group label { display: flex; align-items: center; gap: 0.5rem; font-weight: normal; cursor: pointer; }
+        .radio-group input[type="radio"] { width: 18px; height: 18px; cursor: pointer; }
+        .date-range { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .info-text { font-size: 0.7rem; color: #8ba0bc; margin-top: 0.75rem; }
+        .generate-btn { width: 100%; background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; border: none; padding: 1rem; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-top: 1rem; }
+        .generate-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(30,60,114,0.3); }
+        .generate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .refresh-btn { background: none; border: none; padding: 0.5rem 1rem; border-radius: 10px; cursor: pointer; color: #1e3c72; transition: all 0.2s; position: absolute; left: 50px;}
+        .refresh-btn:hover { background: #e8f0fe; }
+        .report-item { background: #f8fafd; border-radius: 16px; padding: 1rem; margin-bottom: 0.75rem; transition: all 0.2s; border: 1px solid #eef2f7; }
+        .report-item:hover { transform: translateX(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); background: white; }
+        .report-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+        .report-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 30px; font-size: 0.7rem; font-weight: 600; }
+        .badge-inperson { background: #e8f0fe; color: #1e3c72; }
+        .badge-remote { background: #eef9f0; color: #2e9b54; }
+        .report-period { font-size: 0.7rem; color: #8ba0bc; }
+        .report-preview { font-size: 0.85rem; color: #4e6580; margin-bottom: 0.75rem; line-height: 1.5; }
+        .report-actions { display: flex; gap: 0.5rem; }
+        .action-btn { background: none; border: none; padding: 0.4rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .action-btn.view { color: #1e3c72; }
+        .action-btn.view:hover { background: #e8f0fe; }
+        .action-btn.delete { color: #e34f76; }
+        .action-btn.delete:hover { background: #fff2f5; }
+        .empty-state { text-align: center; padding: 3rem; color: #8ba0bc; }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+
+        /* المودالات */
+        .modal { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); 
+            z-index: 200000 !important; 
+            display: none; align-items: center; justify-content: center; padding: 1rem; 
+        }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 28px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; z-index: 200001; }
+        .modal-header { position: sticky; top: 0; background: white; border-bottom: 1px solid #eef2f7; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 1.2rem; font-weight: 600; color: #1e3c72; }
+        .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #8ba0bc; }
+        .modal-body { padding: 1.5rem; }
+        .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #eef2f7; display: flex; gap: 1rem; }
+
+        /* شاشة التحميل */
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 300000 !important; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        .loading-overlay.active { display: flex; }
+        .loading-card { background: white; border-radius: 24px; padding: 2rem; text-align: center; min-width: 300px; }
+        .spinner { width: 50px; height: 50px; border: 4px solid #eef2f7; border-top: 4px solid #1e3c72; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* تنسيق التقرير الملخص */
+        .summary-section { background: #f8fafd; border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; border-right: 4px solid; }
+        .summary-positive { border-right-color: #2e9b54; }
+        .summary-challenges { border-right-color: #f59e0b; }
+        .summary-recommendations { border-right-color: #1e3c72; }
+        .summary-section h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+        .summary-section p { color: #4e6580; line-height: 1.6; white-space: pre-wrap; }
+        .btn-primary { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; cursor: pointer; }
+        .btn-secondary { background: #eef2f7; color: #4e6580; border: none; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; cursor: pointer; }
+        .btn-danger { background: #f7d5da; color: white; border: solid 1px;background-color: #e34f76; padding: 0.75rem 1.5rem; border-radius: 12px; cursor: pointer; }
+        .method-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.65rem; margin-right: 0.5rem; }
+        .method-ai { background: #e8f0fe; color: #1e3c72; }
+        .method-local { background: #eef9f0; color: #2e9b54; }
+
+        /* نظام الإشعارات */
+        .notifications-container { position: fixed; top: 20px; left: 20px; z-index: 9999999 !important; max-width: 350px; }
+        .notification-item { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-right: 4px solid #1e3c72; animation: slideIn 0.3s ease; cursor: pointer; }
+        .notification-item.success { border-right-color: #2e9b54; }
+        .notification-item.error { border-right-color: #e34f76; }
+        .notification-item.warning { border-right-color: #f59e0b; }
+        .notification-item.info { border-right-color: #1e3c72; }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* لوحة الإشعارات الجانبية */
+        .notifications-panel {
+            position: fixed; top: 0; left: -380px; width: 380px; height: 100vh; background: white;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.1); z-index: 9999998 !important; transition: left 0.3s ease;
+            display: flex; flex-direction: column;
+        }
+        .notifications-panel.open { left: 0; }
+        .notifications-list { flex: 1; overflow-y: auto; padding: 1rem; }
+        .notification-list-item { background: #f8fafd; border-radius: 12px; padding: 0.75rem; margin-bottom: 0.5rem; cursor: pointer; position: relative; border-right: 3px solid transparent; }
+        .notification-list-item.unread { background: white; border-right-color: #1e3c72; }
+        .delete-notification { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #e34f76; cursor: pointer; opacity: 0; }
+        .notification-list-item:hover .delete-notification { opacity: 1; }
+        .panel-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999997 !important; display: none; }
+        .panel-overlay.open { display: block; }
+        .badge-count { position: absolute; top: -8px; right: -8px; background: #e34f76; color: white; font-size: 0.65rem; font-weight: 600; min-width: 18px; height: 18px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+        .notifications-trigger button { background: none; border: none; width: 100%; text-align: right; padding: 0.75rem 1rem; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; color: #4e6580; position: relative; }
+        .notifications-trigger button:hover { background: #f0f4fa; color: #1e3c72; }
+
+        /* مودال الحذف والتأكيد */
+        #deleteSummaryModal .modal-content { max-width: 400px; text-align: center; }
+        
+        /* مودال إرشادات التلخيص بالذكاء الاصطناعي */
+        #aiGuidanceModal .modal-content { max-width: 500px; }
+        .guidance-icon { width: 70px; height: 70px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+        .guidance-icon i { font-size: 2rem; color: white; }
+        .guidance-title { color: #1e3c72; margin: 1rem 0 0.5rem 0; font-size: 1.3rem; font-weight: 700; text-align: center; }
+        .guidance-subtitle { color: #6c8aad; font-size: 0.85rem; text-align: center; margin-bottom: 1rem; }
+        .steps-container { background: #f8fafd; border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem; }
+        .steps-title { color: #1e3c72; margin-bottom: 0.8rem; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+        .step-item { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .step-number { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; }
+        .step-text { color: #4e6580; font-size: 0.85rem; }
+        .step-text strong { color: #1e3c72; }
+        kbd { background: #eef2f7; padding: 0.15rem 0.4rem; border-radius: 4px; font-family: monospace; font-size: 0.7rem; border: 1px solid #d7e0ea; }
+        .note-container { background: #fff8e7; border-radius: 16px; padding: 0.75rem; margin-bottom: 1rem; border-right: 3px solid #f59e0b; display: flex; align-items: flex-start; gap: 0.5rem; }
+        .note-container i { color: #f59e0b; font-size: 0.9rem; }
+        .note-container span { color: #8a6e2d; font-size: 0.75rem; }
+        .guidance-actions { display: flex; gap: 1rem; padding-top: 0.5rem; }
+        .guidance-btn-primary, .guidance-btn-secondary {
+            flex: 1; padding: 0.75rem; border-radius: 12px; font-weight: 600; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            transition: all 0.2s;
+        }
+        .guidance-btn-primary { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; border: none; }
+        .guidance-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30,60,114,0.3); }
+        .guidance-btn-secondary { background: #eef2f7; color: #4e6580; border: 1px solid #e2e8f0; }
+        .guidance-btn-secondary:hover { background: #e2e8f0; transform: translateY(-1px); }
+
+        /* مودال إدخال نتيجة التلخيص */
+        .result-input-modal .modal-content { max-width: 550px; }
+        .result-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            resize: vertical;
+        }
+        .result-textarea:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30,60,114,0.1);
+        }
+        
+        @media (max-width: 480px) {
+            .step-text { font-size: 0.75rem; }
+            .guidance-actions { flex-direction: column; }
+        }
+
+        /* إضافة بعد التنسيقات الموجودة */
+.summary-section p {
+    color: #4e6580;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    direction: rtl; /* إضافة: عكس الاتجاه إلى اليمين */
+    text-align: right; /* إضافة: محاذاة النص لليمين */
+}
+
+/* تنسيق النقاط التعدادية */
+.summary-section p br {
+    display: none;
+}
+
+.summary-section ul, 
+.summary-section ol {
+    direction: rtl;
+    padding-right: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+.summary-section li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+.summary-section h4 {
+    justify-content: flex-start !important;
+}
+
+/* تنسيق النص الذي يحتوي على أرقام ونقاط */
+.point-list {
+    list-style-type: none;
+    padding-right: 0;
+    direction: rtl !important;
+    text-align: right !important;
+}
+
+.point-list li {
+    position: relative;
+    padding-right: 1.5rem;
+    margin-bottom: 0.75rem;
+    direction: rtl !important;
+    text-align: right !important;
+}
+
+.point-list li:before {
+    content: "•";
+    color: #1e3c72;
+    font-weight: bold;
+    position: absolute;
+    right: 0;
+    font-size: 1.2rem;
+}
+
+.numbered-list {
+    list-style-type: none;
+    padding-right: 0;
+}
+
+.numbered-list li {
+    position: relative;
+    padding-right: 2rem;
+    margin-bottom: 0.75rem;
+    counter-increment: step-counter;
+}
+
+.numbered-list li:before {
+    content: counter(step-counter) ".";
+    color: #1e3c72;
+    font-weight: bold;
+    position: absolute;
+    right: 0;
+}
+
+.numbered-list {
+    counter-reset: step-counter;
+}
+
+    </style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
+        <h2>نظام التقارير التربوية</h2>
+        <p class="user-role" id="userRoleDisplay">...</p>
+    </div>
+    
+    <div class="notifications-trigger" style="margin: 0.5rem 1rem;">
+        <button onclick="toggleNotificationsPanel()">
+            <i class="fas fa-bell" style="font-size: 1.1rem;"></i>
+            <span>الإشعارات</span>
+            <span id="unreadBadge" class="badge-count" style="display: none;">0</span>
+        </button>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
+        <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
+        <a href="summary-reports.html"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
+        <a href="analytics.html" id="navAnalytics"><i class="fas fa-chart-bar"></i> التحليلات</a>
+        <a href="overview.html" class="active"><i class="fas fa-robot"></i> ملخص التقارير</a>
+        <div id="adminLinks" style="display: none;">
+            <a href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+            <a href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
+        </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <div class="user-info">
+            <div class="user-avatar"><i class="fas fa-user"></i></div>
+            <div><h4 class="user-name" id="userNameDisplay">...</h4><p class="user-district" id="userDistrictDisplay">...</p></div>
+        </div>
+        <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+    </div>
+</aside>
+
+<button class="toggle-sidebar" id="toggleSidebarBtn"><i class="fas fa-bars"></i></button>
+
+<main class="main-content">
+    <div class="config-card">
+        <div class="config-header"><i class="fas fa-sliders-h"></i><h2>إعدادات التقرير</h2></div>
+        <div class="form-row">
+            <div class="form-group"><label>نوع التقرير</label><select id="reportTypeSelect"><option value="">اختر نوع التقرير</option><option value="in_person">📋 تقارير وجاهية</option><option value="remote">💻 تقارير عن بعد</option></select></div>
+            <div class="form-group"><label>نوع الفترة</label><select id="periodTypeSelect"><option value="">اختر فترة التقرير</option><option value="half_month">📆 نصف شهري</option><option value="custom_range">📅 فترة زمنية مخصصة</option></select></div>
+        </div>
+        <div id="halfMonthOptions" class="period-options"><span class="period-title">اختر النصف:</span><div class="radio-group"><label><input type="radio" name="halfOption" value="first" checked> النصف الأول (1-15) من الشهر الحالي</label><label><input type="radio" name="halfOption" value="second"> النصف الثاني (16-نهاية) من الشهر السابق</label></div><p class="info-text">النصف الثاني يعرض تقارير الشهر السابق (من 16 حتى نهاية الشهر)</p></div>
+        <div id="customRangeOptions" class="period-options"><span class="period-title">الفترة الزمنية:</span><div class="date-range"><div class="form-group"><label>من تاريخ</label><input type="date" id="startDate"></div><div class="form-group"><label>إلى تاريخ</label><input type="date" id="endDate"></div></div></div>
+        <button id="generateDataBtn" class="generate-btn"><i class="fas fa-chart-simple"></i> توليد التقرير</button>
+    </div>
+    <div class="saved-card"><div class="saved-header"><h2><i class="fas fa-archive"></i> الملخصات المحفوظة</h2><button onclick="loadSavedReports()" class="refresh-btn"><i class="fas fa-sync-alt"></i> تحديث</button></div><div id="savedReportsList"><div class="empty-state"><i class="fas fa-inbox"></i><p>جاري تحميل الملخصات المحفوظة...</p></div></div></div>
+</main>
+
+<div id="rawDataModal" class="modal"><div class="modal-content"><div class="modal-header"><h3><i class="fas fa-database"></i> بيانات التقارير الأولية</h3><button class="modal-close" onclick="closeRawDataModal()"><i class="fas fa-times"></i></button></div><div class="modal-body" id="rawDataContent"></div><div class="modal-footer"><button id="summarizeBtn" class="btn-primary"><i class="fas fa-robot"></i> تلخيص التقرير</button><button onclick="closeRawDataModal()" class="btn-secondary">إغلاق</button></div></div></div>
+
+<div id="summaryModal" class="modal"><div class="modal-content"><div class="modal-header"><h3><i class="fas fa-file-alt"></i> الملخص الذكي</h3><button class="modal-close" onclick="closeSummaryModal()"><i class="fas fa-times"></i></button></div><div class="modal-body" id="summaryContent"></div><div class="modal-footer"><button id="saveSummaryBtn" class="btn-primary">حفظ الملخص</button><button id="closeModalBtn" class="btn-secondary">إغلاق</button></div></div></div>
+
+<div id="summarizeLoading" class="loading-overlay"><div class="loading-card"><div class="spinner"></div><h3 style="color:#1e3c72;">جاري التلخيص...</h3><p style="color:#8ba0bc;">يتم تحليل البيانات وإنشاء الملخص الذكي</p></div></div>
+
+<!-- مودال إرشادات التلخيص بالذكاء الاصطناعي -->
+<div id="aiGuidanceModal" class="modal">
+    <div class="modal-content">
+        <div class="guidance-icon"><i class="fas fa-robot"></i></div>
+        <h3 class="guidance-title">🤖 التلخيص بالذكاء الاصطناعي</h3>
+        <p class="guidance-subtitle">سنساعدك في تلخيص التقارير باستخدام Gemini AI</p>
+        
+        <div class="steps-container">
+            <h4 class="steps-title"><i class="fas fa-list-ol"></i> الخطوات المطلوبة:</h4>
+            <div class="step-item"><span class="step-number">1</span><span class="step-text">سيتم <strong>نسخ التقرير تلقائياً</strong> إلى الحافظة</span></div>
+            <div class="step-item"><span class="step-number">2</span><span class="step-text">سيتم <strong>فتح موقع Google Gemini</strong> في نافذة جديدة</span></div>
+            <div class="step-item"><span class="step-number">3</span><span class="step-text">قم بلصق النص في <strong>موقع Gemini </strong> بالإختصار<kbd>Ctrl + V</kbd></span></div>
+            <div class="step-item"><span class="step-number">4</span><span class="step-text">اضغط على <kbd>زر الإرسال</kbd>  وانتظر التلخيص</span></div>
+            <div class="step-item"><span class="step-number">5</span><span class="step-text">انسخ النتيجة <strong>وارجع وألصقها في النافذة</strong> واضغط زر  <kbd style="padding:3px;">استلام الملخص</kbd></span></div>
+        </div>
+        
+        <div class="note-container"><i class="fas fa-lightbulb"></i><span><strong>ملاحظة:</strong > <span style="font-size:0.7rem;">بعد لصق النتيجة في النافذة، سيتم عرض الملخص تلقائياً ويمكنك حفظه</span>.</span></div>
+        
+        <div class="guidance-actions">
+            <button id="proceedToGeminiBtn" class="guidance-btn-primary"><i class="fas fa-external-link-alt"></i> المتابعة إلى Gemini</button>
+            <button id="cancelAIGuidanceBtn" class="guidance-btn-secondary"><i class="fas fa-times"></i> إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال إدخال نتيجة التلخيص -->
+<div id="resultInputModal" class="modal result-input-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-paste"></i> إدخال نتيجة التلخيص</h3>
+            <button class="modal-close" onclick="closeResultInputModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p style="color: #4e6580; margin-bottom: 1rem; font-size: 0.85rem;">
+                <i class="fas fa-info-circle"></i> بعد حصولك على التلخيص من Gemini، الصق النتيجة في الحقل أدناه:
+            </p>
+            <textarea id="summaryResultText" class="result-textarea" placeholder="الصق نتيجة التلخيص هنا..."></textarea>
+        </div>
+        <div class="modal-footer">
+            <button id="submitSummaryResultBtn" class="btn-primary" style="flex: 1;"><i class="fas fa-check"></i> استلام الملخص</button>
+            <button onclick="closeResultInputModal()" class="btn-secondary" style="flex: 1;"><i class="fas fa-times"></i> إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تأكيد الحذف -->
+<div id="deleteSummaryModal" class="modal">
+    <div class="modal-content">
+        <div style="text-align: center; padding: 1.5rem;">
+            <div style="width: 70px; height: 70px; background: #fff2f5; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #e34f76;"></i></div>
+            <h3 style="color: #1e3c72;">تأكيد الحذف</h3>
+            <p style="color: #4e6580;">هل أنت متأكد من حذف هذا الملخص؟</p>
+        </div>
+        <div style="display: flex; gap: 1rem; padding: 0 1.5rem 1.5rem 1.5rem;">
+            <button id="confirmDeleteSummaryBtn" class="btn-danger" style="flex: 1;">حذف</button>
+            <button onclick="closeDeleteSummaryModal()" class="btn-secondary" style="flex: 1;">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<div class="notifications-container" id="notificationsContainer"></div>
+<div id="panelOverlay" class="panel-overlay" onclick="closeNotificationsPanel()"></div>
+<div id="notificationsPanel" class="notifications-panel">
+    <div class="notifications-panel-header"><h3>الإشعارات</h3><button onclick="markAllAsRead()" class="mark-all-read" id="markAllReadBtn" style="display: none;">تعيين الكل كمقروء</button><button onclick="closeNotificationsPanel()" class="close-panel"><i class="fas fa-times"></i></button></div>
+    <div class="notifications-list" id="notificationsList"><div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div></div>
+</div>
+
+<script>
+// ===================== المتغيرات العامة =====================
+let currentUser = null;
+let currentUserIdNumber = null;
+let currentRawReports = null;
+let currentReportType = null;
+let currentPeriodInfo = null;
+let currentSummaryData = null;
+let notificationInterval = null;
+let deleteSummaryId = null;
+
+// متغير لتخزين الفترة المؤقتة أثناء عملية التلخيص
+let tempPeriodInfo = null;
+
+// ===================== دوال المساعدة =====================
+function getRoleName(role) { const roles = { 'admin':'مدير النظام', 'support':'دعم فني', 'manger':'مدير منطقة', 'spuser':'مدير مدرسة', 'user':'مختص تربوي' }; return roles[role] || role; }
+function getUserSubtitle(user) { if(!user) return ''; if(user.role==='admin'||user.role==='support') return 'مدير نظام'; if(user.role==='manger') return user.district_name || 'مدير منطقة'; if(user.role==='spuser') return user.school_name || 'مدير مدرسة'; if(user.role==='user') return 'مشرف تربوي'; return ''; }
+
+function showMessage(message, type) {
+    const container = document.getElementById('notificationsContainer');
+    if (!container) return;
+    const notification = document.createElement('div');
+    notification.className = `notification-item ${type}`;
+    notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${escapeHtml(message)}`;
+    notification.onclick = () => notification.remove();
+    container.appendChild(notification);
+    setTimeout(() => notification.remove(), 4000);
+}
+
+function escapeHtml(text) { if(!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+function getTodayFormatted() { return new Date().toISOString().split('T')[0]; }
+function toggleBodyScroll(disable) {
+    if (disable) { document.body.style.overflow = 'hidden'; document.body.style.position = 'fixed'; document.body.style.width = '100%'; document.body.style.top = `-${window.scrollY}px`;
+    } else { const scrollY = document.body.style.top; document.body.style.overflow = ''; document.body.style.position = ''; document.body.style.width = ''; document.body.style.top = ''; if (scrollY) window.scrollTo(0, parseInt(scrollY || '0') * -1); }
+}
+function getHalfMonthRange(half) {
+    const now = new Date(); let start, end;
+    if(half==='first') { start = new Date(now.getFullYear(), now.getMonth(), 1); end = new Date(now.getFullYear(), now.getMonth(), 15); }
+    else { const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0); start = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 16); end = new Date(prevMonth.getFullYear(), prevMonth.getMonth()+1, 0); }
+    const format = d => d.toISOString().split('T')[0];
+    return { start: format(start), end: format(end) };
+}
+function togglePeriodOptions() {
+    const periodType = document.getElementById('periodTypeSelect').value;
+    const halfDiv = document.getElementById('halfMonthOptions');
+    const customDiv = document.getElementById('customRangeOptions');
+    halfDiv.classList.remove('visible'); customDiv.classList.remove('visible');
+    if(periodType==='half_month') halfDiv.classList.add('visible');
+    else if(periodType==='custom_range') {
+        customDiv.classList.add('visible');
+        const today = getTodayFormatted();
+        const lastMonth = new Date(); lastMonth.setMonth(lastMonth.getMonth()-1);
+        document.getElementById('startDate').value = lastMonth.toISOString().split('T')[0];
+        document.getElementById('endDate').value = today;
+    }
+}
+async function fetchReportsData(reportType, startDate, endDate) {
+    const tableName = (reportType==='in_person') ? 'in_person_reports' : 'remote_reports';
+    let selectFields = '';
+    if(reportType==='in_person') selectFields = 'id, visit_date, school_id, teacher_name, class_name, section, subject, positive_aspects, challenges, recommendations';
+    else selectFields = 'id, visit_date, school_id, teacher_name, class_name, section, subject, creative_ideas, challenges, recommendations';
+    let query = window.supabaseClient.from(tableName).select(selectFields).gte('visit_date', startDate).lte('visit_date', endDate);
+    if(currentUser.role==='user') query = query.eq('specialist_id', currentUser.id);
+    else if(currentUser.role==='manger' && currentUser.district_id) {
+        const { data: schools } = await window.supabaseClient.from('schools').select('id').eq('district_id', currentUser.district_id);
+        const schoolIds = schools?.map(s=>s.id) || [];
+        if(schoolIds.length>0) query = query.in('school_id', schoolIds);
+        else return [];
+    } else if(currentUser.role==='spuser' && currentUser.school_id) query = query.eq('school_id', currentUser.school_id);
+    const { data, error } = await query;
+    if(error) throw new Error('فشل في جلب التقارير');
+    return data || [];
+}
+async function generateReport() {
+    const reportType = document.getElementById('reportTypeSelect').value;
+    const periodType = document.getElementById('periodTypeSelect').value;
+    if(!reportType) { showMessage('❌ الرجاء اختيار نوع التقرير', 'error'); return; }
+    if(!periodType) { showMessage('❌ الرجاء اختيار فترة التقرير', 'error'); return; }
+    let startDate, endDate, periodLabel;
+    if(periodType==='half_month') {
+        const half = document.querySelector('input[name="halfOption"]:checked').value;
+        const { start, end } = getHalfMonthRange(half);
+        startDate = start; endDate = end;
+        periodLabel = `${half==='first' ? 'النصف الأول' : 'النصف الثاني'} (${startDate} إلى ${endDate})`;
+    } else {
+        startDate = document.getElementById('startDate').value;
+        endDate = document.getElementById('endDate').value;
+        if(!startDate || !endDate) { showMessage('❌ الرجاء تحديد تاريخ البداية والنهاية', 'error'); return; }
+        if(new Date(startDate) > new Date(endDate)) { showMessage('❌ تاريخ البداية لا يمكن أن يكون بعد تاريخ النهاية', 'error'); return; }
+        if(new Date(endDate) > new Date()) { showMessage('❌ لا يمكن اختيار تاريخ مستقبلي', 'error'); return; }
+        periodLabel = `فترة مخصصة من ${startDate} إلى ${endDate}`;
+    }
+    currentPeriodInfo = { type: periodType, label: periodLabel, startDate, endDate };
+    currentReportType = reportType;
+    const generateBtn = document.getElementById('generateDataBtn');
+    const originalText = generateBtn.innerHTML;
+    generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحميل...';
+    generateBtn.disabled = true;
+    try {
+        const reports = await fetchReportsData(reportType, startDate, endDate);
+        if(!reports.length) { showMessage('⚠️ لا توجد تقارير في الفترة المحددة', 'warning'); return; }
+        currentRawReports = reports;
+        displayRawData(reports, reportType, periodLabel);
+        document.getElementById('rawDataModal').classList.add('active');
+    } catch(err) { showMessage('❌ ' + (err.message || 'حدث خطأ أثناء جلب البيانات'), 'error'); }
+    finally { generateBtn.innerHTML = originalText; generateBtn.disabled = false; }
+}
+function displayRawData(reports, reportType, periodLabel) {
+    const container = document.getElementById('rawDataContent');
+    const labels = reportType==='in_person' ? { first: 'الجوانب الإيجابية', second: 'التحديات', third: 'التوصيات' } : { first: 'الأفكار الإبداعية', second: 'التحديات', third: 'التوصيات' };
+    let html = `<div style="margin-bottom:1.5rem;padding:1rem;background:#e8f0fe;border-radius:12px;"><div><strong>نوع التقرير:</strong> ${reportType==='in_person' ? 'وجاهي' : 'عن بعد'} | <strong>الفترة:</strong> ${periodLabel} | <strong>عدد التقارير:</strong> ${reports.length}</div></div><div style="max-height:400px;overflow-y:auto;">`;
+    reports.forEach((report,idx)=>{
+        html+=`<div style="background:#f8fafd;border-radius:12px;padding:1rem;margin-bottom:1rem;"><div style="display:flex;justify-content:space-between;"><span style="font-weight:600;">تقرير #${idx+1}</span><span style="font-size:0.75rem;">${report.visit_date}</span></div><div><strong>المعلم:</strong> ${escapeHtml(report.teacher_name||'-')}</div><div><strong>الصف/الشعبة:</strong> ${report.class_name||'-'} / ${report.section||'-'}</div><hr><div><strong style="color:#2e9b54;">${labels.first}:</strong><br>${escapeHtml(report.positive_aspects||report.creative_ideas||'-')}</div><div><strong style="color:#f59e0b;">${labels.second}:</strong><br>${escapeHtml(report.challenges||'-')}</div><div><strong style="color:#1e3c72;">${labels.third}:</strong><br>${escapeHtml(report.recommendations||'-')}</div></div>`;
+    });
+    html+=`</div>`;
+    container.innerHTML=html;
+}
+
+// ===================== التلخيص المحلي =====================
+function localSummarize() {
+    if(!currentRawReports?.length) return null;
+    let positiveTexts = [], creativeTexts = [], challengesTexts = [], recommendationsTexts = [];
+    if(currentReportType === 'in_person') {
+        currentRawReports.forEach(r => {
+            if(r.positive_aspects?.trim()) positiveTexts.push(r.positive_aspects.trim());
+            if(r.challenges?.trim()) challengesTexts.push(r.challenges.trim());
+            if(r.recommendations?.trim()) recommendationsTexts.push(r.recommendations.trim());
+        });
+    } else {
+        currentRawReports.forEach(r => {
+            if(r.creative_ideas?.trim()) creativeTexts.push(r.creative_ideas.trim());
+            if(r.challenges?.trim()) challengesTexts.push(r.challenges.trim());
+            if(r.recommendations?.trim()) recommendationsTexts.push(r.recommendations.trim());
+        });
+    }
+    
+    const cleanText = (text) => text.replace(/^\d+[-\\.)]\s*/g, '').replace(/•\s*/g, '').replace(/\s+/g, ' ').trim();
+    
+    const extractPoints = (text) => {
+        let points = [];
+        const numberedMatch = text.match(/\d+[-\\.)][^\d]*?(?=\d+[-\\.)]|$)/gs);
+        if (numberedMatch && numberedMatch.length > 1) {
+            numberedMatch.forEach(p => { let cleaned = cleanText(p); if (cleaned && cleaned.length > 5) points.push(cleaned); });
+        } else if (text.includes('-') || text.includes('•')) {
+            const bulletMatch = text.split(/[•\-]\s*/);
+            bulletMatch.forEach(p => { let cleaned = cleanText(p); if (cleaned && cleaned.length > 5) points.push(cleaned); });
+        } else {
+            let cleaned = cleanText(text);
+            if (cleaned && cleaned.length > 5) points.push(cleaned);
+        }
+        return points;
+    };
+    
+    const calculateSimilarity = (str1, str2) => {
+        if (str1 === str2) return 1;
+        const s1 = str1.toLowerCase(), s2 = str2.toLowerCase();
+        if (s1.includes(s2) || s2.includes(s1)) return 0.9;
+        const getKeywords = (s) => s.split(/\s+/).filter(w => w.length > 3);
+        const keywords1 = getKeywords(s1), keywords2 = getKeywords(s2);
+        if (keywords1.length === 0 || keywords2.length === 0) return 0;
+        const intersection = keywords1.filter(k => keywords2.includes(k));
+        const union = [...new Set([...keywords1, ...keywords2])];
+        return intersection.length / union.length;
+    };
+    
+    const groupSimilarByTopic = (points) => {
+        const groups = [], used = new Set();
+        for (let i = 0; i < points.length; i++) {
+            if (used.has(i)) continue;
+            const group = [points[i]]; used.add(i);
+            for (let j = i + 1; j < points.length; j++) {
+                if (used.has(j)) continue;
+                if (calculateSimilarity(points[i], points[j]) > 0.5) { group.push(points[j]); used.add(j); }
+            }
+            groups.push(group.length > 1 ? group : [points[i]]);
+        }
+        return groups;
+    };
+    
+    // 🔥 التعديل هنا: تغيير formatOutput لإرجاع نص منسق كـ HTML مع نقاط تعدادية
+    const formatOutput = (groups) => {
+        if (groups.length === 0) return 'لا توجد بيانات';
+        let result = [];
+        for (let i = 0; i < groups.length; i++) {
+            const group = groups[i];
+            if (group.length === 1) {
+                result.push(group[0]);  // فقط النص بدون رقم
+            } else {
+                // دمج النقاط المتشابهة
+                result.push([...new Set(group)].join(' / '));
+            }
+        }
+        // إرجاع النقاط كسطور مفصولة بفواصل (سيتم تحويلها إلى HTML في displaySummary)
+        return result.join('\n');
+    };
+    
+    const processTexts = (texts) => {
+        if (texts.length === 0) return '';
+        let allPoints = [];
+        texts.forEach(text => { allPoints.push(...extractPoints(text)); });
+        const uniquePoints = [...new Set(allPoints)];
+        const groups = groupSimilarByTopic(uniquePoints);
+        return formatOutput(groups);
+    };
+    
+    let positiveResult = '', creativeResult = '';
+    if (currentReportType === 'in_person') positiveResult = processTexts(positiveTexts);
+    else creativeResult = processTexts(creativeTexts);
+    const challengesResult = processTexts(challengesTexts) || 'لا توجد تحديات';
+    const recommendationsResult = processTexts(recommendationsTexts) || 'لا توجد توصيات';
+    
+    return { 
+        positive_aspects: positiveResult || 'لا توجد بيانات', 
+        creative_ideas: creativeResult || 'لا توجد بيانات', 
+        challenges: challengesResult, 
+        recommendations: recommendationsResult, 
+        total_count: currentRawReports.length 
+    };
+}
+
+// ===================== دوال التلخيص بالذكاء الاصطناعي =====================
+function extractPointsFromText(text) {
+    let points = [];
+    const numberedMatch = text.match(/\d+[-\\.)][^\\d]*(?=\\d+[-\\.)]|$)/gs);
+    if (numberedMatch && numberedMatch.length > 1) {
+        numberedMatch.forEach(p => {
+            let cleaned = p.replace(/^\d+[-\\.)]\s*/, '').trim();
+            if (cleaned && cleaned.length > 5) points.push(cleaned.substring(0, 200));
+        });
+    } else if (text.includes('-') || text.includes('•')) {
+        const bulletMatch = text.split(/[•\-]\s*/);
+        bulletMatch.forEach(p => {
+            let cleaned = p.trim();
+            if (cleaned && cleaned.length > 5) points.push(cleaned.substring(0, 200));
+        });
+    } else {
+        let cleaned = text.trim();
+        if (cleaned && cleaned.length > 5) points.push(cleaned.substring(0, 200));
+    }
+    return points;
+}
+
+function closeResultInputModal() {
+    const modal = document.getElementById('resultInputModal');
+    modal.classList.remove('active');
+    toggleBodyScroll(false);
+    document.getElementById('summaryResultText').value = '';
+}
+
+function showResultInputModal() {
+    const modal = document.getElementById('resultInputModal');
+    modal.classList.add('active');
+    toggleBodyScroll(true);
+    document.getElementById('summaryResultText').focus();
+}
+
+// دالة التنفيذ الفعلية للتلخيص مع لصق تلقائي
+async function executeGeminiSummary() {
+    // حفظ نسخة من الفترة الحالية
+    tempPeriodInfo = {
+        type: currentPeriodInfo.type,
+        label: currentPeriodInfo.label,
+        startDate: currentPeriodInfo.startDate,
+        endDate: currentPeriodInfo.endDate
+    };
+    
+    console.log('📅 بدء التلخيص بالفترة:', tempPeriodInfo.label);
+    console.log('📊 عدد التقارير:', currentRawReports.length);
+    console.log('📋 نوع التقرير:', currentReportType);
+    
+    // تجميع النقاط
+    let positivePoints = [], creativePoints = [], challengesPoints = [], recommendationsPoints = [];
+    
+    if (currentReportType === 'in_person') {
+        currentRawReports.forEach(report => {
+            if (report.positive_aspects?.trim()) positivePoints.push(...extractPointsFromText(report.positive_aspects));
+            if (report.challenges?.trim()) challengesPoints.push(...extractPointsFromText(report.challenges));
+            if (report.recommendations?.trim()) recommendationsPoints.push(...extractPointsFromText(report.recommendations));
+        });
+    } else {
+        currentRawReports.forEach(report => {
+            if (report.creative_ideas?.trim()) creativePoints.push(...extractPointsFromText(report.creative_ideas));
+            if (report.challenges?.trim()) challengesPoints.push(...extractPointsFromText(report.challenges));
+            if (report.recommendations?.trim()) recommendationsPoints.push(...extractPointsFromText(report.recommendations));
+        });
+    }
+    
+    positivePoints = [...new Set(positivePoints)];
+    creativePoints = [...new Set(creativePoints)];
+    challengesPoints = [...new Set(challengesPoints)];
+    recommendationsPoints = [...new Set(recommendationsPoints)];
+    
+    // بناء التقرير النصي
+    let reportText = `📊 تقرير تحليلي للتلخيص والدمج\n\n`;
+    reportText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    reportText += `📋 نوع التقرير: ${currentReportType === 'in_person' ? 'زيارات وجاهية' : 'متابعة عن بعد'}\n`;
+    reportText += `📅 الفترة الزمنية: ${tempPeriodInfo.label}\n`;
+    reportText += `📄 إجمالي عدد التقارير: ${currentRawReports.length}\n`;
+    reportText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    
+    reportText += `🟢 أولاً: الجوانب الإيجابية / الأفكار الإبداعية (${positivePoints.length + creativePoints.length} نقطة)\n${'─'.repeat(40)}\n`;
+    if (positivePoints.length > 0) positivePoints.forEach((p, i) => reportText += `${i+1}- ${p}\n`);
+    if (creativePoints.length > 0) creativePoints.forEach((p, i) => reportText += `${positivePoints.length + i + 1}- ${p}\n`);
+    if (positivePoints.length === 0 && creativePoints.length === 0) reportText += `لا توجد نقاط إيجابية أو أفكار إبداعية مسجلة\n`;
+    
+    reportText += `\n🟠 ثانياً: التحديات (${challengesPoints.length} نقطة)\n${'─'.repeat(40)}\n`;
+    if (challengesPoints.length > 0) challengesPoints.forEach((p, i) => reportText += `${i+1}- ${p}\n`);
+    else reportText += `لا توجد تحديات مسجلة\n`;
+    
+    reportText += `\n🔵 ثالثاً: التوصيات (${recommendationsPoints.length} نقطة)\n${'─'.repeat(40)}\n`;
+    if (recommendationsPoints.length > 0) recommendationsPoints.forEach((p, i) => reportText += `${i+1}- ${p}\n`);
+    else reportText += `لا توجد توصيات مسجلة\n`;
+    
+    reportText += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    reportText += `🤖 المطلوب من الذكاء الاصطناعي:\n\n`;
+    reportText += `1️⃣ دمج النقاط المتشابهة في كل تصنيف مع الحفاظ على الصياغة الأصلية.\n\n`;
+    reportText += `2️⃣ في قسم التوصيات، إذا وجدت توصيات متداخلة، اختر التوصية الأكثر شمولاً.\n`;
+    reportText += `   مثال: "توفير مقاعد" و "توفير مقاعد وقرطاسية وسبورات" ← اختر "توفير مقاعد وقرطاسية وسبورات".\n\n`;
+    reportText += `3️⃣ رتب التوصيات حسب الأهمية.\n\n`;
+    reportText += `4️⃣ أخرج النتيجة بهذا التنسيق:\n`;
+    reportText += `   **الجوانب الإيجابية / الأفكار الإبداعية:**\n   - النقطة المدمجة\n\n`;
+    reportText += `   **التحديات:**\n   - النقطة المدمجة\n\n`;
+    reportText += `   **التوصيات (مرتبة حسب الأولوية):**\n   - التوصية الأكثر أهمية\n   - التوصية الثانية\n\n`;
+    reportText += `✨ يرجى إخراج الملخص النهائي فقط.\n`;
+    reportText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+    
+    // نسخ إلى الحافظة
+    try {
+        await navigator.clipboard.writeText(reportText);
+        showMessage('📋 تم نسخ التقرير إلى الحافظة! سيتم فتح Gemini ولصق النص تلقائياً', 'success', 5000);
+    } catch (err) {
+        showMessage('⚠️ تعذر النسخ التلقائي، سيتم فتح نافذة يدوية', 'warning');
+        prompt('انسخ النص التالي يدوياً ثم الصقه في Gemini:', reportText);
+    }
+    
+    // فتح موقع Gemini
+    const geminiWindow = window.open('https://gemini.google.com/app', '_blank');
+    
+    // محاولة لصق النص تلقائياً بعد فتح النافذة (إذا كان المتصفح يدعم ذلك)
+    if (geminiWindow) {
+        setTimeout(async () => {
+            try {
+                // محاولة التركيز على حقل الإدخال في Gemini ولصق النص
+                // ملاحظة: قد لا تعمل هذه الطريقة بسبب سياسات الأمان عبر النوافذ
+                geminiWindow.focus();
+                
+                // محاولة كتابة النص عبر console.log (تعليمات للمستخدم)
+                console.log('%c🚀 تم فتح Gemini! النص موجود في الحافظة. اضغط Ctrl+V للصق', 'color: #1e3c72; font-size: 16px; font-weight: bold;');
+                
+                // عرض رسالة منبثقة داخل Gemini إذا أمكن (توجيه المستخدم)
+                showMessage('✅ تم فتح Gemini! النص في الحافظة، اضغط Ctrl+V للصق', 'info', 8000);
+                
+            } catch (e) {
+                console.log('تعذر اللصق التلقائي بسبب سياسات الأمان:', e);
+                showMessage('💡 تم فتح Gemini، الرجاء الضغط على Ctrl+V للصق النص', 'info', 6000);
+            }
+        }, 2000);
+    } else {
+        // إذا تم حظر النافذة المنبثقة
+        showMessage('⚠️ الرجاء السماح بالنوافذ المنبثقة ثم أعد المحاولة، أو الصق النص يدوياً', 'warning', 5000);
+    }
+    
+    closeRawDataModal();
+    showResultInputModal();
+}
+
+async function summarizeWithAI() {
+    if (!currentRawReports || currentRawReports.length === 0) {
+        showMessage('⚠️ لا توجد تقارير للتلخيص', 'warning');
+        return;
+    }
+    
+    const guidanceModal = document.getElementById('aiGuidanceModal');
+    guidanceModal.style.display = 'flex';
+    guidanceModal.classList.add('active');
+    toggleBodyScroll(true);
+    
+    const proceedBtn = document.getElementById('proceedToGeminiBtn');
+    const cancelBtn = document.getElementById('cancelAIGuidanceBtn');
+    
+    const handleProceed = () => {
+        guidanceModal.style.display = 'none';
+        guidanceModal.classList.remove('active');
+        toggleBodyScroll(false);
+        executeGeminiSummary();
+        proceedBtn.removeEventListener('click', handleProceed);
+        cancelBtn.removeEventListener('click', handleCancel);
+    };
+    
+    const handleCancel = () => {
+        guidanceModal.style.display = 'none';
+        guidanceModal.classList.remove('active');
+        toggleBodyScroll(false);
+        showMessage('ℹ️ تم إلغاء التلخيص بالذكاء الاصطناعي', 'info');
+        proceedBtn.removeEventListener('click', handleProceed);
+        cancelBtn.removeEventListener('click', handleCancel);
+    };
+    
+    proceedBtn.addEventListener('click', handleProceed);
+    cancelBtn.addEventListener('click', handleCancel);
+}
+
+async function summarizeWithLocal() {
+    const loadingOverlay = document.getElementById('summarizeLoading');
+    loadingOverlay.classList.add('active');
+    try {
+        await new Promise(r => setTimeout(r, 500));
+        const result = localSummarize();
+        if (!result) throw new Error('لا توجد بيانات كافية للتلخيص');
+        
+        // حفظ الفترة الحالية للتلخيص المحلي
+        tempPeriodInfo = {
+            type: currentPeriodInfo.type,
+            label: currentPeriodInfo.label,
+            startDate: currentPeriodInfo.startDate,
+            endDate: currentPeriodInfo.endDate
+        };
+        
+        currentSummaryData = {
+            report_type: currentReportType,
+            period_type: tempPeriodInfo.type,
+            period_from: tempPeriodInfo.startDate,
+            period_to: tempPeriodInfo.endDate,
+            period_label: tempPeriodInfo.label,
+            positive_aspects: result.positive_aspects || '', 
+            creative_ideas: result.creative_ideas || '',
+            challenges: result.challenges || '', 
+            recommendations: result.recommendations || '',
+            total_reports_count: result.total_count || currentRawReports.length,
+            generated_at: new Date().toISOString(), 
+            method: 'local'
+        };
+        
+        closeRawDataModal();
+        displaySummary(currentSummaryData);
+        document.getElementById('summaryModal').classList.add('active');
+        showMessage('✅ تم توليد الملخص بنجاح (باستخدام التلخيص المحلي)', 'success');
+    } catch(err) { console.error(err); showMessage('❌ ' + err.message, 'error'); }
+    finally { loadingOverlay.classList.remove('active'); }
+}
+
+function showSummarizeOptions() {
+    const overlay = document.createElement('div');
+    overlay.id = 'summarizeOptionsOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:400000;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = `<div style="background:white;border-radius:28px;max-width:500px;width:90%;padding:2rem;text-align:center;">
+        <div style="width:70px;height:70px;background:linear-gradient(135deg,#1e3c72,#2a5298);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;"><i class="fas fa-robot" style="font-size:2rem;color:white;"></i></div>
+        <h3 style="color:#1e3c72;margin-bottom:0.5rem;">اختر طريقة التلخيص</h3>
+        <p style="color:#8ba0bc;margin-bottom:1.5rem;">تم العثور على ${currentRawReports.length} تقرير.</p>
+        <div style="display:flex;flex-direction:column;gap:1rem;margin-bottom:1.5rem;">
+            <button id="optionAIBtn" style="background:linear-gradient(135deg,#1e3c72,#2a5298);color:white;border:none;padding:1rem;border-radius:16px;font-weight:600;cursor:pointer;"><i class="fas fa-microchip"></i> تلخيص بالذكاء الاصطناعي (Gemini AI)</button>
+            <button id="optionLocalBtn" style="background:#2e9b54;color:white;border:none;padding:1rem;border-radius:16px;font-weight:600;cursor:pointer;"><i class="fas fa-chart-simple"></i> تلخيص محلي (سريع - ذكي)</button>
+        </div>
+        <button id="cancelOptionsBtn"style="background:none;border:0.5px dashed #e34f76;color:#e34f76;cursor:pointer;padding:10px 50px;border-radius:8px;transition:all 0.3s ease;"><i class="fas fa-times"></i> إلغاء</button>
+        <style>#cancelOptionsBtn:hover{  background:#e34f76 !important;  color:white !important;  transform:scale(1.03);}</style>
+    </div>`;
+    document.body.appendChild(overlay);
+    document.getElementById('optionAIBtn').addEventListener('click', async () => { overlay.remove(); await summarizeWithAI(); });
+    document.getElementById('optionLocalBtn').addEventListener('click', async () => { overlay.remove(); await summarizeWithLocal(); });
+    document.getElementById('cancelOptionsBtn').addEventListener('click', () => { overlay.remove(); });
+}
+
+// ===================== دالة عرض الملخص =====================
+function displaySummary(data) {
+    const container = document.getElementById('summaryContent');
+    const saveBtn = document.getElementById('saveSummaryBtn');
+    const methodBadge = data.method === 'ai' ? '<span class="method-badge method-ai"><i class="fas fa-microchip"></i> تم التوليد بالذكاء الاصطناعي</span>' : '<span class="method-badge method-local"><i class="fas fa-chart-simple"></i> تم التوليد محلياً</span>';
+    
+    let html = '<div style="margin-bottom:1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; direction: rtl;">' + 
+               methodBadge + 
+               '<span style="background: #e8f0fe; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; color: #1e3c72;"><i class="fas fa-chart-simple"></i> عدد التقارير: ' + data.total_reports_count + '</span>' +
+               '</div>';
+    
+    // الجوانب الإيجابية
+    if (data.positive_aspects && data.positive_aspects !== 'لا توجد بيانات') {
+        html += '<div class="summary-section summary-positive" style="direction: rtl; text-align: right;">' +
+                    '<h4 style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-start; font-weight: bold; font-size: 1.1rem;">' +
+                        '<i class="fas fa-lightbulb" style="color:#2e9b54;"></i>' + 
+                        '<span style="font-weight: bold;">الجوانب الإيجابية</span>' +
+                    '</h4>' +
+                    formatToBulletPoints(data.positive_aspects) +
+                '</div>';
+    }
+    
+    // الأفكار الإبداعية
+    if (data.creative_ideas && data.creative_ideas !== 'لا توجد بيانات') {
+        html += '<div class="summary-section summary-positive" style="direction: rtl; text-align: right;">' +
+                    '<h4 style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-start; font-weight: bold; font-size: 1.1rem;">' +
+                        '<i class="fas fa-lightbulb" style="color:#2e9b54;"></i>' + 
+                        '<span style="font-weight: bold;">الأفكار الإبداعية</span>' +
+                    '</h4>' +
+                    formatToBulletPoints(data.creative_ideas) +
+                '</div>';
+    }
+    
+    // التحديات
+    html += '<div class="summary-section summary-challenges" style="direction: rtl; text-align: right;">' +
+                '<h4 style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-start; font-weight: bold; font-size: 1.1rem;">' +
+                    '<i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>' + 
+                    '<span style="font-weight: bold;">التحديات</span>' +
+                '</h4>' +
+                formatToBulletPoints(data.challenges || 'لا توجد تحديات') +
+            '</div>';
+    
+    // التوصيات
+    html += '<div class="summary-section summary-recommendations" style="direction: rtl; text-align: right;">' +
+                '<h4 style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-start; font-weight: bold; font-size: 1.1rem;">' +
+                    '<i class="fas fa-clipboard-list" style="color:#1e3c72;"></i>' + 
+                    '<span style="font-weight: bold;">التوصيات</span>' +
+                '</h4>' +
+                formatToBulletPoints(data.recommendations || 'لا توجد توصيات') +
+            '</div>';
+    
+    // معلومات إضافية
+    html += '<div style="font-size:0.75rem;color:#8ba0bc;padding-top:1rem;border-top:1px solid #eef2f7;direction:rtl;text-align:right;">' +
+                '<i class="fas fa-calendar-week"></i> الفترة: ' + data.period_label + '<br>' +
+                '<i class="fas fa-clock"></i> تاريخ التوليد: ' + new Date(data.generated_at).toLocaleString('ar') +
+            '</div>';
+    
+    container.innerHTML = html;
+    saveBtn.style.display = 'inline-flex';
+}
+
+// ===================== دالة تحويل النص إلى نقاط تعدادية =====================
+function formatToBulletPoints(text) {
+    if (!text || text === 'لا توجد بيانات' || text === 'لا توجد تحديات' || text === 'لا توجد توصيات') {
+        return '<p style="direction: rtl; text-align: right; padding-right: 0.5rem; margin: 0.5rem 0;">' + escapeHtml(text) + '</p>';
+    }
+    
+    var items = [];
+    var cleanText = text;
+    
+    // ===== الخطوة 1: إزالة علامات ** من العناوين =====
+    cleanText = cleanText.replace(/\*\*([^*]+)\*\*/g, function(match, content) {
+        return content;
+    });
+    
+    // ===== الخطوة 2: إزالة العناوين الرئيسية =====
+    var headersToRemove = [
+        /^التحديات\s*[•\-*\d]*\s*/gm,
+        /^التوصيات\s*[•\-*\d]*\s*/gm,
+        /^الجوانب الإيجابية\s*[•\-*\d]*\s*/gm,
+        /^الأفكار الإبداعية\s*[•\-*\d]*\s*/gm,
+        /^المقدمة\s*[•\-*\d]*\s*/gm,
+        /^الخلاصة\s*[•\-*\d]*\s*/gm,
+        /^التسلسل والتنظيم\s*[•\-*\d]*\s*/gm,
+        /^التقويم والتعلم البنائي\s*[•\-*\d]*\s*/gm,
+        /^الإدارة الصفية والتفاعل\s*[•\-*\d]*\s*/gm,
+        /^دافعية الطلبة وتحفيزهم\s*[•\-*\d]*\s*/gm,
+        /^التعزيز والدعم\s*[•\-*\d]*\s*/gm,
+        /^التعامل مع الفاقد التعليمي والفروق الفردية\s*[•\-*\d]*\s*/gm,
+        /^استراتيجيات التعلم النشط\s*[•\-*\d]*\s*/gm,
+        /^الوسائل التعليمية والمواد المساندة\s*[•\-*\d]*\s*/gm,
+        /^المهارات الأساسية والأعمال الكتابية\s*[•\-*\d]*\s*/gm,
+        /^ربط التعلم بالواقع وبناء القيم\s*[•\-*\d]*\s*/gm,
+        /^دمج ورعاية ذوي الاحتياجات الخاصة\s*[•\-*\d]*\s*/gm,
+        /^الابتكار في مواجهة التحديات\s*[•\-*\d]*\s*/gm,
+        /^التواصل والتغذية الراجعة\s*[•\-*\d]*\s*/gm,
+        /^ضعف البيئة الصفية واللوجستية\s*[•\-*\d]*\s*/gm,
+        /^الاكتظاظ وتلاصق مساحات التعلم\s*[•\-*\d]*\s*/gm,
+        /^الضوضاء والتشويش الخارجي\s*[•\-*\d]*\s*/gm,
+        /^نقص المواد التعليمية والوسائل\s*[•\-*\d]*\s*/gm,
+        /^الفاقد التعليمي وضعف المستويات\s*[•\-*\d]*\s*/gm,
+        /^التأخر والغياب والتحاق طلبة جدد\s*[•\-*\d]*\s*/gm,
+        /^تحديات التوقيت والظروف المحيطة\s*[•\-*\d]*\s*/gm,
+        /^توفير البيئة الصفية والمستلزمات الأساسية\s*[•\-*\d]*\s*/gm,
+        /^رعاية الفروق الفردية وذوي الاحتياجات\s*[•\-*\d]*\s*/gm
+    ];
+    
+    for (var h = 0; h < headersToRemove.length; h++) {
+        cleanText = cleanText.replace(headersToRemove[h], '');
+    }
+    
+    // ===== الخطوة 3: إزالة النقطتين الزائدة من بداية السطور =====
+    cleanText = cleanText.replace(/^:\s*/gm, '');
+    
+    // ===== الخطوة 4: تقسيم النص حسب السطور =====
+    var lines = cleanText.split(/\r?\n/);
+    
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (!line) continue;
+        
+        // إزالة أي علامات ** متبقية
+        line = line.replace(/\*\*/g, '');
+        
+        // ===== الخطوة 5: معالجة النقاط المدمجة (مثل "نص1 / نص2") =====
+        if (line.match(/.+\s*\/\s*.+/)) {
+            var parts = line.split(/\s*\/\s*/);
+            for (var p = 0; p < parts.length; p++) {
+                var cleanPart = parts[p]
+                    .replace(/^\d+[-\\.)]\s*/, '')
+                    .replace(/^[•\-*]\s*/, '')
+                    .replace(/^:\s*/, '')
+                    .trim();
+                if (cleanPart && cleanPart.length > 0 && !/^\d+$/.test(cleanPart)) {
+                    items.push(cleanPart);
+                }
+            }
+            continue;
+        }
+        
+        // ===== الخطوة 6: إزالة جميع الرموز من بداية السطر =====
+        var cleanLine = line
+            .replace(/^\d+[-\\.)]\s*/, '')
+            .replace(/^[•\-*]\s*/, '')
+            .replace(/^\/\s*/, '')
+            .replace(/^:\s*/, '')
+            .replace(/^[\d\s]+$/, '')
+            .trim();
+        
+        // إزالة البادئات الإضافية
+        cleanLine = cleanLine.replace(/^[\.•\-*:]\s*/, '');
+        
+        if (cleanLine && cleanLine.length > 0 && !/^\d+$/.test(cleanLine)) {
+            items.push(cleanLine);
+        }
+    }
+    
+    // ===== الخطوة 7: إذا لم نجد نقاط، حاول طرق بديلة =====
+    if (items.length === 0) {
+        // الطريقة البديلة 1: تقسيم حسب وجود (•) أو (-) أو (*)
+        if (text.indexOf('•') !== -1 || text.indexOf('-') !== -1 || text.indexOf('*') !== -1) {
+            var bulletMatch = text.split(/[•\-*]\s*/);
+            for (var b = 0; b < bulletMatch.length; b++) {
+                var cleanItem = bulletMatch[b]
+                    .replace(/^\d+[-\\.)]\s*/, '')
+                    .replace(/\*\*/g, '')
+                    .replace(/^:\s*/, '')
+                    .trim();
+                if (cleanItem && cleanItem.length > 0 && !/^\d+$/.test(cleanItem)) {
+                    cleanItem = cleanItem.replace(/:$/, '');
+                    items.push(cleanItem);
+                }
+            }
+        }
+        
+        // الطريقة البديلة 2: تقسيم حسب وجود أرقام متسلسلة
+        if (items.length === 0) {
+            var numberedMatch = text.match(/\d+[-\\.)][^\d]*(?=\d+[-\\.)]|$)/gs);
+            if (numberedMatch) {
+                for (var m = 0; m < numberedMatch.length; m++) {
+                    var cleanMatch = numberedMatch[m]
+                        .replace(/^\d+[-\\.)]\s*/, '')
+                        .replace(/\*\*/g, '')
+                        .trim();
+                    if (cleanMatch && cleanMatch.length > 0 && !/^\d+$/.test(cleanMatch)) {
+                        cleanMatch = cleanMatch.replace(/:$/, '');
+                        items.push(cleanMatch);
+                    }
+                }
+            }
+        }
+    }
+    
+    // ===== الخطوة 8: إذا لم توجد نقاط، اعرض النص كاملاً =====
+    if (items.length === 0) {
+        var cleanTextFinal = text.replace(/\*\*/g, '').replace(/:/g, '');
+        return '<p style="direction: rtl; text-align: right; padding-right: 0.5rem; margin: 0.5rem 0; white-space: pre-wrap;">' + escapeHtml(cleanTextFinal) + '</p>';
+    }
+    
+    // ===== الخطوة 9: إزالة التكرارات =====
+    var uniqueItems = [];
+    for (var u = 0; u < items.length; u++) {
+        if (uniqueItems.indexOf(items[u]) === -1) {
+            uniqueItems.push(items[u]);
+        }
+    }
+    items = uniqueItems;
+    
+    // ===== الخطوة 10: إنشاء القائمة النقطية النهائية =====
+    var bulletList = '<ul style="direction: rtl; text-align: right; list-style: none; padding-right: 0; margin: 0.5rem 0; width: 100%;">';
+    for (var it = 0; it < items.length; it++) {
+        var item = items[it];
+        bulletList += '<li style="position: relative; padding-right: 1.8rem; margin-bottom: 0.75rem; line-height: 1.6; display: flex; align-items: flex-start;">' +
+                          '<span style="position: absolute; right: 0; top: 2px; color: #1e3c72; font-weight: bold; font-size: 1.1rem;">•</span>' +
+                          '<span style="flex: 1; padding-right: 0.5rem; word-wrap: break-word;">' + escapeHtml(item) + '</span>' +
+                      '</li>';
+    }
+    bulletList += '</ul>';
+    
+    return bulletList;
+}
+
+// زر إغلاق المودال (بدون حفظ تلقائي)
+function closeSummaryModal() {
+    document.getElementById('summaryModal').classList.remove('active');
+    currentSummaryData = null;
+}
+
+// حفظ الملخص
+async function saveSummary() {
+    if (!currentSummaryData) { showMessage('لا يوجد ملخص للحفظ', 'warning'); return; }
+    
+    const saveBtn = document.getElementById('saveSummaryBtn');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+    saveBtn.disabled = true;
+    
+    try {
+        if (!currentUserIdNumber) {
+            const { data: { user } } = await window.supabaseClient.auth.getUser();
+            if (!user) throw new Error('لم يتم العثور على المستخدم');
+            const { data: userData } = await window.supabaseClient.from('users').select('id').eq('email', user.email).single();
+            if (!userData) throw new Error('لم يتم العثور على بيانات المستخدم');
+            currentUserIdNumber = userData.id;
+        }
+        
+        console.log('💾 حفظ الملخص:', {
+            report_type: currentSummaryData.report_type,
+            period_label: currentSummaryData.period_label,
+            period_from: currentSummaryData.period_from,
+            period_to: currentSummaryData.period_to,
+            total_reports: currentSummaryData.total_reports_count
+        });
+        
+        const { error } = await window.supabaseClient.from('report_summaries').insert({
+            report_type: currentSummaryData.report_type,
+            period_type: currentSummaryData.period_type,
+            period_label: currentSummaryData.period_label,
+            start_date: currentSummaryData.period_from,
+            end_date: currentSummaryData.period_to,
+            positive_aspects: currentSummaryData.positive_aspects || null,
+            creative_ideas: currentSummaryData.creative_ideas || null,
+            challenges: currentSummaryData.challenges || null,
+            recommendations: currentSummaryData.recommendations || null,
+            total_reports_count: currentSummaryData.total_reports_count || 0,
+            created_by: currentUserIdNumber
+        });
+        
+        if (error) throw new Error(error.message);
+        
+        showMessage('✅ تم حفظ الملخص بنجاح', 'success');
+        closeSummaryModal();
+        await loadSavedReports();
+        
+    } catch (err) {
+        console.error(err);
+        showMessage('❌ فشل حفظ الملخص: ' + err.message, 'error');
+    } finally {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    }
+}
+
+function closeRawDataModal() { document.getElementById('rawDataModal').classList.remove('active'); }
+
+// ===================== مستمع زر إرسال نتيجة التلخيص =====================
+document.getElementById('submitSummaryResultBtn')?.addEventListener('click', () => {
+    const userResult = document.getElementById('summaryResultText').value.trim();
+    if (userResult) {
+        // استخدام الفترة المخزنة مؤقتاً
+        const periodInfo = tempPeriodInfo || currentPeriodInfo;
+        
+        const positiveMatch = userResult.match(/\*\*الجوانب الإيجابية[^\*]*\*\*([\s\S]*?)(?=\*\*التحديات|$)/i);
+        const challengesMatch = userResult.match(/\*\*التحديات[^\*]*\*\*([\s\S]*?)(?=\*\*التوصيات|$)/i);
+        const recommendationsMatch = userResult.match(/\*\*التوصيات[^\*]*\*\*([\s\S]*?)$/i);
+        
+        const cleanPoints = (text) => text ? text.replace(/^[-\s•*]+/gm, '').trim() : '';
+        
+        currentSummaryData = {
+            report_type: currentReportType,
+            period_type: periodInfo.type,
+            period_from: periodInfo.startDate,
+            period_to: periodInfo.endDate,
+            period_label: periodInfo.label,
+            positive_aspects: positiveMatch ? cleanPoints(positiveMatch[1]) : userResult,
+            creative_ideas: '',
+            challenges: challengesMatch ? cleanPoints(challengesMatch[1]) : '',
+            recommendations: recommendationsMatch ? cleanPoints(recommendationsMatch[1]) : '',
+            total_reports_count: currentRawReports.length,
+            generated_at: new Date().toISOString(),
+            method: 'ai'
+        };
+        
+        console.log('✅ استلام الملخص بالفترة:', periodInfo.label);
+        console.log('📊 عدد التقارير:', currentRawReports.length);
+        
+        displaySummary(currentSummaryData);
+        closeResultInputModal();
+        document.getElementById('summaryModal').classList.add('active');
+        showMessage('✅ تم استلام الملخص بنجاح', 'success');
+        
+        tempPeriodInfo = null;
+    } else {
+        showMessage('⚠️ الرجاء إدخال نتيجة التلخيص', 'warning');
+    }
+});
+
+// ===================== دوال الإشعارات =====================
+async function updateUnreadBadge() {
+    try {
+        if (!window.getUnreadNotificationsCount || !currentUserIdNumber) return;
+        const result = await window.getUnreadNotificationsCount(currentUserIdNumber);
+        if (result.success) {
+            const badge = document.getElementById('unreadBadge');
+            if (badge) { badge.textContent = result.count > 99 ? '99+' : result.count; badge.style.display = result.count > 0 ? 'flex' : 'none'; }
+        }
+    } catch (error) { console.error(error); }
+}
+async function toggleNotificationsPanel() {
+    const panel = document.getElementById('notificationsPanel');
+    const overlay = document.getElementById('panelOverlay');
+    if (panel.classList.contains('open')) closeNotificationsPanel();
+    else { await loadNotifications(); panel.classList.add('open'); overlay.classList.add('open'); }
+}
+function closeNotificationsPanel() { document.getElementById('notificationsPanel').classList.remove('open'); document.getElementById('panelOverlay').classList.remove('open'); }
+async function loadNotifications() {
+    const list = document.getElementById('notificationsList');
+    if (!list) return;
+    list.innerHTML = '<div class="empty-notifications"><div class="loader-small"></div><p>جاري التحميل...</p></div>';
+    try {
+        if (!window.getRecentNotifications || !currentUserIdNumber) { list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>'; return; }
+        const result = await window.getRecentNotifications(currentUserIdNumber, 50);
+        if (result.success) {
+            const notifications = result.data;
+            if (!notifications || notifications.length === 0) list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
+            else {
+                list.innerHTML = notifications.map(n => `<div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationClick(${n.id})"><div><strong>${escapeHtml(n.title)}</strong></div><div style="font-size:0.8rem;">${escapeHtml(n.message)}</div><div style="font-size:0.65rem;">${formatTime(n.created_at)}</div><button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${n.id})"><i class="fas fa-trash"></i></button></div>`).join('');
+            }
+            await updateUnreadBadge();
+        }
+    } catch (error) { console.error(error); list.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ</p></div>'; }
+}
+async function handleNotificationClick(id) { try { await window.markNotificationAsRead?.(id); await loadNotifications(); await updateUnreadBadge(); closeNotificationsPanel(); } catch(e) {} }
+async function deleteNotificationItem(id) { try { await window.deleteNotification?.(id); await loadNotifications(); await updateUnreadBadge(); } catch(e) {} }
+async function markAllAsRead() { try { await window.markAllNotificationsAsRead?.(currentUserIdNumber); await loadNotifications(); await updateUnreadBadge(); showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success'); } catch(e) {} }
+function formatTime(dateString) { const date = new Date(dateString); const mins = Math.floor((new Date() - date) / 60000); if (mins < 1) return 'الآن'; if (mins < 60) return `منذ ${mins} دقيقة`; if (mins < 1440) return `منذ ${Math.floor(mins/60)} ساعة`; return `منذ ${Math.floor(mins/1440)} يوم`; }
+function startNotificationPolling() { if (notificationInterval) clearInterval(notificationInterval); notificationInterval = setInterval(() => { if (currentUserIdNumber && document.hasFocus()) updateUnreadBadge(); }, 30000); }
+
+// ===================== دوال المستخدم =====================
+async function logout() { if (notificationInterval) clearInterval(notificationInterval); localStorage.removeItem('currentUser'); try { await window.supabaseClient.auth.signOut(); } catch(e) {} window.location.href = 'login.html'; }
+function updateUIBasedOnRole(user) { if (!user) return; const analyticsLink = document.getElementById('navAnalytics'); const adminLinks = document.getElementById('adminLinks'); if (analyticsLink) analyticsLink.style.display = (user.role === 'admin' || user.role === 'support' || user.role === 'manger') ? 'flex' : 'none'; if (adminLinks) adminLinks.style.display = (user.role === 'admin' || user.role === 'support') ? 'block' : 'none'; }
+async function getCurrentUser() {
+    const localUser = localStorage.getItem('currentUser');
+    if (localUser && JSON.parse(localUser).id) {
+        const parsed = JSON.parse(localUser);
+        currentUser = parsed;
+        currentUserIdNumber = parsed.id;
+        return currentUser;
+    }
+    try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (!user) return null;
+        const { data: userData } = await window.supabaseClient.from('users').select('*').eq('email', user.email).single();
+        if (!userData) return null;
+        currentUser = userData;
+        currentUserIdNumber = userData.id;
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        return currentUser;
+    } catch(e) { return null; }
+}
+
+async function loadSavedReports() {
+    const container = document.getElementById('savedReportsList');
+    if (!currentUserIdNumber) { container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-pulse"></i><p>جاري التحميل...</p></div>'; return; }
+    try {
+        const { data, error } = await window.supabaseClient.from('report_summaries').select('*').eq('created_by', currentUserIdNumber).order('generated_at', { ascending: false });
+        if (error) throw error;
+        if (!data?.length) { container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد ملخصات محفوظة بعد</p></div>`; return; }
+        container.innerHTML = data.map(report => {
+            const previewText = report.positive_aspects || report.creative_ideas || report.challenges || report.recommendations || '';
+            return `<div class="report-item">
+                <div class="report-header">
+                    <div>
+                        <span class="report-badge ${report.report_type === 'in_person' ? 'badge-inperson' : 'badge-remote'}">${report.report_type === 'in_person' ? '📋 وجاهي' : '💻 عن بعد'}</span>
+                        <span class="report-period">${report.start_date} إلى ${report.end_date}</span>
+                        <span style="background:#e8f0fe; padding:0.2rem 0.5rem; border-radius:12px;"><i class="fas fa-chart-simple"></i> ${report.total_reports_count || 0} تقرير</span>
+                    </div>
+                    <div class="report-actions">
+                        <button onclick="previewSummary(${report.id})" class="action-btn view"><i class="fas fa-eye"></i></button>
+                        <button onclick="openDeleteSummaryModal(${report.id})" class="action-btn delete"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+                <div class="report-preview">${escapeHtml(previewText.substring(0, 120))}...</div>
+            </div>`;
+        }).join('');
+    } catch (error) { console.error(error); container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ</p></div>'; }
+}
+
+window.previewSummary = async (id) => {
+    const { data, error } = await window.supabaseClient.from('report_summaries').select('*').eq('id', id).single();
+    if (error || !data) return;
+    currentSummaryData = {
+        report_type: data.report_type, period_type: data.period_type,
+        period_from: data.start_date, period_to: data.end_date, period_label: data.period_label,
+        positive_aspects: data.positive_aspects || '', creative_ideas: data.creative_ideas || '',
+        challenges: data.challenges || '', recommendations: data.recommendations || '',
+        total_reports_count: data.total_reports_count || 0, generated_at: data.generated_at, method: 'saved'
+    };
+    displaySummary(currentSummaryData);
+    document.getElementById('summaryModal').classList.add('active');
+};
+
+window.openDeleteSummaryModal = function(id) {
+    deleteSummaryId = id;
+    const modal = document.getElementById('deleteSummaryModal');
+    if (modal) { modal.style.display = 'flex'; modal.classList.add('active'); toggleBodyScroll(true); }
+};
+
+function closeDeleteSummaryModal() {
+    const modal = document.getElementById('deleteSummaryModal');
+    if (modal) { modal.style.display = 'none'; modal.classList.remove('active'); toggleBodyScroll(false); }
+    deleteSummaryId = null;
+}
+
+document.getElementById('confirmDeleteSummaryBtn')?.addEventListener('click', async () => {
+    if (!deleteSummaryId) return;
+    try {
+        const { error } = await window.supabaseClient.from('report_summaries').delete().eq('id', deleteSummaryId);
+        if (error) throw error;
+        showMessage('تم حذف الملخص بنجاح', 'success');
+        closeDeleteSummaryModal();
+        await loadSavedReports();
+    } catch (error) { showMessage('حدث خطأ في حذف الملخص', 'error'); }
+});
+
+// ربط أزرار المودال
+document.getElementById('closeModalBtn')?.addEventListener('click', closeSummaryModal);
+document.getElementById('saveSummaryBtn')?.addEventListener('click', saveSummary);
+
+// التهيئة
+window.addEventListener('DOMContentLoaded', async () => {
+    currentUser = await getCurrentUser();
+    if (!currentUser) { window.location.href = 'login.html'; return; }
+    document.getElementById('userNameDisplay').textContent = currentUser.name || 'مستخدم';
+    document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
+    document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(currentUser);
+    updateUIBasedOnRole(currentUser);
+    const endDateInput = document.getElementById('endDate');
+    if (endDateInput) endDateInput.max = getTodayFormatted();
+    document.getElementById('periodTypeSelect').addEventListener('change', togglePeriodOptions);
+    document.getElementById('generateDataBtn').addEventListener('click', generateReport);
+    document.getElementById('summarizeBtn').addEventListener('click', showSummarizeOptions);
+    document.getElementById('startDate')?.addEventListener('change', () => { const start = document.getElementById('startDate').value; if (start && endDateInput) endDateInput.min = start; });
+    document.getElementById('toggleSidebarBtn')?.addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('open'); });
+    await loadSavedReports();
+    await updateUnreadBadge();
+    startNotificationPolling();
+});
+</script>
+</body>
+</html>
