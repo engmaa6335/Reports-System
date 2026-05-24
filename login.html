@@ -250,9 +250,9 @@
                     </label>
                     <div class="input-field">
                         <i class="fas fa-user"></i>
-                        <input type="text" id="usernameOrEmail" placeholder="أدخل اسم المستخدم أو البريد الإلكتروني" required>
+                        <input type="text" id="usernameOrEmail" placeholder="أدخل اسم المستخدم أو البريد الإلكتروني" required autocomplete="username">
                     </div>
-                    <div class="input-hint">يمكنك استخدام اسم المستخدم أو البريد الإلكتروني</div>
+                    <div class="input-hint">يمكنك استخدام اسم المستخدم أو البريد الإلكتروني (غير حساس لحالة الأحرف)</div>
                 </div>
 
                 <div class="input-group">
@@ -262,9 +262,10 @@
                     </label>
                     <div class="input-field">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="password" placeholder="أدخل كلمة المرور" required>
+                        <input type="password" id="password" placeholder="أدخل كلمة المرور" required autocomplete="current-password">
                         <i class="fas fa-eye toggle-password" id="toggleIcon" onclick="togglePassword()"></i>
                     </div>
+                    <div class="input-hint">كلمة المرور حساسة لحالة الأحرف</div>
                 </div>
 
                 <button type="submit" class="login-btn" id="loginBtn">
@@ -309,7 +310,8 @@ function togglePassword() {
 function showMessage(text, type) {
     const messageDiv = document.getElementById('message');
     messageDiv.className = `message ${type}`;
-    messageDiv.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-circle'}"></i> ${text}`;
+    const icon = type === 'success' ? 'fa-check-circle' : (type === 'info' ? 'fa-info-circle' : 'fa-exclamation-circle');
+    messageDiv.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
     messageDiv.style.display = 'block';
     
     setTimeout(() => {
@@ -336,7 +338,7 @@ async function fetchUserRelations(user) {
                 .from('districts')
                 .select('name')
                 .eq('id', user.district_id)
-                .single();
+                .maybeSingle();
             
             if (district) {
                 userData.district_name = district.name;
@@ -350,7 +352,7 @@ async function fetchUserRelations(user) {
                 .from('schools')
                 .select('name')
                 .eq('id', user.school_id)
-                .single();
+                .maybeSingle();
             
             if (school) {
                 userData.school_name = school.name;
@@ -371,15 +373,15 @@ async function fetchUserRelations(user) {
     }
 }
 
-// دالة تسجيل الدخول (تدعم اسم المستخدم أو البريد الإلكتروني)
+// دالة تسجيل الدخول (تدعم اسم المستخدم أو البريد الإلكتروني - غير حساسة لحالة الأحرف)
 async function handleLogin(event) {
     event.preventDefault();
     
-    const usernameOrEmail = document.getElementById('usernameOrEmail').value.trim();
+    const usernameOrEmailInput = document.getElementById('usernameOrEmail').value.trim();
     const password = document.getElementById('password').value;
     const loginBtn = document.getElementById('loginBtn');
     
-    if (!usernameOrEmail || !password) {
+    if (!usernameOrEmailInput || !password) {
         showMessage('الرجاء إدخال اسم المستخدم/البريد الإلكتروني وكلمة المرور', 'error');
         return;
     }
@@ -395,36 +397,82 @@ async function handleLogin(event) {
     loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
     
     try {
-        console.log('Attempting login with:', usernameOrEmail);
+        console.log('Attempting login with (case-insensitive):', usernameOrEmailInput);
         
-        // البحث باستخدام اسم المستخدم أو البريد الإلكتروني
-        const { data: users, error } = await window.supabaseClient
-            .from('users')
-            .select('*')
-            .or(`username.eq.${usernameOrEmail},email.eq.${usernameOrEmail}`)
-            .eq('password', password);
+        // التحقق مما إذا كان الإدخال يحتوي على @ لتحديد نوع البحث
+        const isEmail = usernameOrEmailInput.includes('@');
         
-        if (error) {
-            console.error('Supabase query error:', error);
+        let users = null;
+        let queryError = null;
+        
+        if (isEmail) {
+            // إذا كان الإدخال بريد إلكتروني: بحث غير حساس لحالة الأحرف باستخدام ilike
+            // ملاحظة: نستخدم ilike للمقارنة غير الحساسة لحالة الأحرف في Supabase
+            const { data, error } = await window.supabaseClient
+                .from('users')
+                .select('*')
+                .ilike('email', usernameOrEmailInput);
+            
+            users = data;
+            queryError = error;
+        } else {
+            // إذا كان الإدخال اسم مستخدم: بحث غير حساس لحالة الأحرف باستخدام ilike
+            const { data, error } = await window.supabaseClient
+                .from('users')
+                .select('*')
+                .ilike('username', usernameOrEmailInput);
+            
+            users = data;
+            queryError = error;
+        }
+        
+        if (queryError) {
+            console.error('Supabase query error:', queryError);
             throw new Error('حدث خطأ في الاتصال بقاعدة البيانات');
         }
         
-        console.log('Query result:', users);
+        console.log('Query result (case-insensitive):', users);
+        
+        // تصفية النتائج يدوياً للتأكد من التطابق مع كلمة المرور
+        // (لأننا استخدمنا ilike الذي قد يعيد نتائج متعددة)
+        let matchedUser = null;
         
         if (users && users.length > 0) {
-            const user = users[0];
+            // البحث عن أول مستخدم يتطابق مع كلمة المرور
+            for (const user of users) {
+                if (user.password === password) {
+                    matchedUser = user;
+                    break;
+                }
+            }
+            
+            // إذا لم نجد تطابقاً مع كلمة المرور، نعطي رسالة خطأ
+            if (!matchedUser) {
+                showMessage('اسم المستخدم/البريد الإلكتروني أو كلمة المرور غير صحيحة', 'error');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> تسجيل الدخول';
+                return;
+            }
+        }
+        
+        if (matchedUser) {
+            const user = matchedUser;
             
             showMessage('جاري تحميل بيانات المستخدم...', 'info');
             
             // جلب بيانات المنطقة والمدرسة
             const fullUserData = await fetchUserRelations(user);
             
+            // إضافة معلومات إضافية للمستخدم
+            fullUserData.login_method = isEmail ? 'email' : 'username';
+            fullUserData.login_timestamp = new Date().toISOString();
+            
             // حفظ بيانات المستخدم الكاملة في localStorage
             localStorage.setItem('currentUser', JSON.stringify(fullUserData));
             
-            console.log('User logged in:', fullUserData);
+            console.log('User logged in (case-insensitive):', fullUserData);
             
-            showMessage('تم تسجيل الدخول بنجاح', 'success');
+            showMessage(`مرحباً ${fullUserData.name}، تم تسجيل الدخول بنجاح`, 'success');
             
             setTimeout(() => {
                 window.location.href = 'dashboard.html';
@@ -442,8 +490,96 @@ async function handleLogin(event) {
     }
 }
 
+// دالة احتياطية باستخدام OR logic مع ilike لكلا الحقلين في نفس الوقت
+// (للحالات التي قد يكون فيها الإدخال بريداً إلكترونياً أو اسماً)
+async function handleLoginWithOrLogic(event) {
+    event.preventDefault();
+    
+    const usernameOrEmailInput = document.getElementById('usernameOrEmail').value.trim();
+    const password = document.getElementById('password').value;
+    const loginBtn = document.getElementById('loginBtn');
+    
+    if (!usernameOrEmailInput || !password) {
+        showMessage('الرجاء إدخال اسم المستخدم/البريد الإلكتروني وكلمة المرور', 'error');
+        return;
+    }
+    
+    if (typeof window.supabaseClient === 'undefined' || !window.supabaseClient) {
+        showMessage('خطأ في تحميل قاعدة البيانات', 'error');
+        console.error('Supabase client is not available');
+        return;
+    }
+    
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
+    
+    try {
+        // استعلام متقدم: البحث في كلا الحقلين (username و email) بطريقة غير حساسة لحالة الأحرف
+        // باستخدام ilike مع OR (ملاحظة: بناء جملة OR في Supabase يكون باستخدام الفواصل)
+        const { data: users, error } = await window.supabaseClient
+            .from('users')
+            .select('*')
+            .or(`username.ilike.%${usernameOrEmailInput}%,email.ilike.%${usernameOrEmailInput}%`);
+        
+        if (error) {
+            console.error('Supabase query error:', error);
+            throw new Error('حدث خطأ في الاتصال بقاعدة البيانات');
+        }
+        
+        console.log('Query result (OR logic case-insensitive):', users);
+        
+        // البحث عن التطابق الدقيق (نحتاج للتأكد من أن اسم المستخدم أو البريد الإلكتروني يتطابق تماماً وليس جزءاً منه)
+        let matchedUser = null;
+        
+        if (users && users.length > 0) {
+            // تصفية للتأكد من التطابق التام (بما أن ilike مع % قد يعيد نتائج جزئية)
+            for (const user of users) {
+                const usernameMatch = user.username && user.username.toLowerCase() === usernameOrEmailInput.toLowerCase();
+                const emailMatch = user.email && user.email.toLowerCase() === usernameOrEmailInput.toLowerCase();
+                
+                if ((usernameMatch || emailMatch) && user.password === password) {
+                    matchedUser = user;
+                    break;
+                }
+            }
+        }
+        
+        if (matchedUser) {
+            const user = matchedUser;
+            
+            showMessage('جاري تحميل بيانات المستخدم...', 'info');
+            
+            const fullUserData = await fetchUserRelations(user);
+            fullUserData.login_timestamp = new Date().toISOString();
+            
+            localStorage.setItem('currentUser', JSON.stringify(fullUserData));
+            
+            console.log('User logged in (OR logic):', fullUserData);
+            
+            showMessage(`مرحباً ${fullUserData.name}، تم تسجيل الدخول بنجاح`, 'success');
+            
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1500);
+        } else {
+            showMessage('اسم المستخدم/البريد الإلكتروني أو كلمة المرور غير صحيحة', 'error');
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> تسجيل الدخول';
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        showMessage(error.message || 'حدث خطأ في تسجيل الدخول', 'error');
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> تسجيل الدخول';
+    }
+}
+
+// استخدام الدالة المتقدمة التي تدعم OR logic مع ilike لمقارنة غير حساسة للأحرف
+// نسخة محسنة تتعامل مع حالات متعددة
+const loginHandler = handleLoginWithOrLogic;
+
 // ربط حدث submit
-document.getElementById('loginForm').addEventListener('submit', handleLogin);
+document.getElementById('loginForm').addEventListener('submit', loginHandler);
 
 // التحقق من حالة المستخدم
 window.addEventListener('load', () => {
@@ -453,6 +589,8 @@ window.addEventListener('load', () => {
         try {
             const user = JSON.parse(savedUser);
             if (user && user.id) {
+                // يمكن إضافة تحقق إضافي من صلاحية الجلسة هنا
+                console.log('User already logged in, redirecting to dashboard');
                 window.location.href = 'dashboard.html';
             }
         } catch (e) {
@@ -462,11 +600,32 @@ window.addEventListener('load', () => {
     }
 });
 
-// إضافة دعم للضغط على Enter
+// إضافة دعم للضغط على Enter في حقل كلمة المرور
 document.getElementById('password').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         e.preventDefault();
         document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+    }
+});
+
+// إضافة دعم للضغط على Enter في حقل اسم المستخدم/البريد الإلكتروني
+document.getElementById('usernameOrEmail').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+    }
+});
+
+// إضافة تحويل تلقائي للإدخال إلى أحرف صغيرة للبريد الإلكتروني (اختياري)
+document.getElementById('usernameOrEmail').addEventListener('input', function(e) {
+    // لا نقوم بتغيير قيمة الإدخال تلقائياً للحفاظ على ما يكتبه المستخدم
+    // ولكن يمكن إضافة تلميح بصري
+    const input = e.target;
+    if (input.value.includes('@')) {
+        // إذا كان بريداً إلكترونياً، يمكن عرض تلميح
+        input.setAttribute('data-type', 'email');
+    } else {
+        input.setAttribute('data-type', 'username');
     }
 });
 </script>
