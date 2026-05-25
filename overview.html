@@ -16,7 +16,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f5f7fb; overflow-x: hidden; }
 
-        /* القائمة الجانبية */
         .sidebar {
             position: fixed; right: 0; top: 0; width: 280px; height: 100%;
             background: white; border-left: 1px solid #eef2f7; transition: all 0.3s ease;
@@ -39,7 +38,6 @@
         .logout-btn { width: 100%; padding: 0.75rem; background: none; border: 1px solid #e34f76; color: #e34f76; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
         .logout-btn:hover { background: #fff2f5; }
 
-        /* المحتوى الرئيسي */
         .main-content { margin-right: 280px; min-height: 100vh; padding: 1.5rem; }
         .toggle-sidebar { display: none; position: fixed; right: 20px; top: 20px; background: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; z-index: 1001; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         @media (max-width: 768px) {
@@ -49,7 +47,6 @@
             .toggle-sidebar { display: flex; align-items: center; justify-content: center; }
         }
 
-        /* البطاقات */
         .config-card, .saved-card { background: white; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .config-header, .saved-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #eef2f7; }
         .config-header i, .saved-header i { font-size: 1.5rem; color: #1e3c72; }
@@ -88,7 +85,6 @@
         .empty-state { text-align: center; padding: 3rem; color: #8ba0bc; }
         .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
 
-        /* المودالات */
         .modal { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); 
@@ -103,14 +99,12 @@
         .modal-body { padding: 1.5rem; }
         .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #eef2f7; display: flex; gap: 1rem; }
 
-        /* شاشة التحميل */
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 300000 !important; display: none; align-items: center; justify-content: center; flex-direction: column; }
         .loading-overlay.active { display: flex; }
         .loading-card { background: white; border-radius: 24px; padding: 2rem; text-align: center; min-width: 300px; }
         .spinner { width: 50px; height: 50px; border: 4px solid #eef2f7; border-top: 4px solid #1e3c72; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* تنسيق التقرير الملخص */
         .summary-section { background: #f8fafd; border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; border-right: 4px solid; }
         .summary-positive { border-right-color: #2e9b54; }
         .summary-challenges { border-right-color: #f59e0b; }
@@ -124,7 +118,6 @@
         .method-ai { background: #e8f0fe; color: #1e3c72; }
         .method-local { background: #eef9f0; color: #2e9b54; }
 
-        /* نظام الإشعارات */
         .notifications-container { position: fixed; top: 20px; left: 20px; z-index: 9999999 !important; max-width: 350px; }
         .notification-item { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-right: 4px solid #1e3c72; animation: slideIn 0.3s ease; cursor: pointer; }
         .notification-item.success { border-right-color: #2e9b54; }
@@ -133,7 +126,6 @@
         .notification-item.info { border-right-color: #1e3c72; }
         @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* لوحة الإشعارات الجانبية */
         .notifications-panel {
             position: fixed; top: 0; left: -380px; width: 380px; height: 100vh; background: white;
             box-shadow: -5px 0 25px rgba(0,0,0,0.1); z-index: 9999998 !important; transition: left 0.3s ease;
@@ -151,10 +143,8 @@
         .notifications-trigger button { background: none; border: none; width: 100%; text-align: right; padding: 0.75rem 1rem; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; color: #4e6580; position: relative; }
         .notifications-trigger button:hover { background: #f0f4fa; color: #1e3c72; }
 
-        /* مودال الحذف والتأكيد */
         #deleteSummaryModal .modal-content { max-width: 400px; text-align: center; }
         
-        /* مودال إرشادات التلخيص بالذكاء الاصطناعي */
         #aiGuidanceModal .modal-content { max-width: 500px; }
         .guidance-icon { width: 70px; height: 70px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
         .guidance-icon i { font-size: 2rem; color: white; }
@@ -181,7 +171,6 @@
         .guidance-btn-secondary { background: #eef2f7; color: #4e6580; border: 1px solid #e2e8f0; }
         .guidance-btn-secondary:hover { background: #e2e8f0; transform: translateY(-1px); }
 
-        /* مودال إدخال نتيجة التلخيص */
         .result-input-modal .modal-content { max-width: 550px; }
         .result-textarea {
             width: 100%;
@@ -205,84 +194,60 @@
             .guidance-actions { flex-direction: column; }
         }
 
-        /* إضافة بعد التنسيقات الموجودة */
-.summary-section p {
-    color: #4e6580;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    direction: rtl; /* إضافة: عكس الاتجاه إلى اليمين */
-    text-align: right; /* إضافة: محاذاة النص لليمين */
-}
-
-/* تنسيق النقاط التعدادية */
-.summary-section p br {
-    display: none;
-}
-
-.summary-section ul, 
-.summary-section ol {
-    direction: rtl;
-    padding-right: 1.5rem;
-    margin: 0.5rem 0;
-}
-
-.summary-section li {
-    margin-bottom: 0.5rem;
-    line-height: 1.6;
-}
-.summary-section h4 {
-    justify-content: flex-start !important;
-}
-
-/* تنسيق النص الذي يحتوي على أرقام ونقاط */
-.point-list {
-    list-style-type: none;
-    padding-right: 0;
-    direction: rtl !important;
-    text-align: right !important;
-}
-
-.point-list li {
-    position: relative;
-    padding-right: 1.5rem;
-    margin-bottom: 0.75rem;
-    direction: rtl !important;
-    text-align: right !important;
-}
-
-.point-list li:before {
-    content: "•";
-    color: #1e3c72;
-    font-weight: bold;
-    position: absolute;
-    right: 0;
-    font-size: 1.2rem;
-}
-
-.numbered-list {
-    list-style-type: none;
-    padding-right: 0;
-}
-
-.numbered-list li {
-    position: relative;
-    padding-right: 2rem;
-    margin-bottom: 0.75rem;
-    counter-increment: step-counter;
-}
-
-.numbered-list li:before {
-    content: counter(step-counter) ".";
-    color: #1e3c72;
-    font-weight: bold;
-    position: absolute;
-    right: 0;
-}
-
-.numbered-list {
-    counter-reset: step-counter;
-}
-
+        .summary-section p {
+            color: #4e6580;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            direction: rtl;
+            text-align: right;
+        }
+        .summary-section p br { display: none; }
+        .summary-section ul, .summary-section ol {
+            direction: rtl;
+            padding-right: 1.5rem;
+            margin: 0.5rem 0;
+        }
+        .summary-section li { margin-bottom: 0.5rem; line-height: 1.6; }
+        .summary-section h4 { justify-content: flex-start !important; }
+        .point-list {
+            list-style-type: none;
+            padding-right: 0;
+            direction: rtl !important;
+            text-align: right !important;
+        }
+        .point-list li {
+            position: relative;
+            padding-right: 1.5rem;
+            margin-bottom: 0.75rem;
+            direction: rtl !important;
+            text-align: right !important;
+        }
+        .point-list li:before {
+            content: "•";
+            color: #1e3c72;
+            font-weight: bold;
+            position: absolute;
+            right: 0;
+            font-size: 1.2rem;
+        }
+        .numbered-list {
+            list-style-type: none;
+            padding-right: 0;
+            counter-reset: step-counter;
+        }
+        .numbered-list li {
+            position: relative;
+            padding-right: 2rem;
+            margin-bottom: 0.75rem;
+            counter-increment: step-counter;
+        }
+        .numbered-list li:before {
+            content: counter(step-counter) ".";
+            color: #1e3c72;
+            font-weight: bold;
+            position: absolute;
+            right: 0;
+        }
     </style>
 </head>
 <body>
@@ -345,13 +310,11 @@
 
 <div id="summarizeLoading" class="loading-overlay"><div class="loading-card"><div class="spinner"></div><h3 style="color:#1e3c72;">جاري التلخيص...</h3><p style="color:#8ba0bc;">يتم تحليل البيانات وإنشاء الملخص الذكي</p></div></div>
 
-<!-- مودال إرشادات التلخيص بالذكاء الاصطناعي -->
 <div id="aiGuidanceModal" class="modal">
     <div class="modal-content">
         <div class="guidance-icon"><i class="fas fa-robot"></i></div>
         <h3 class="guidance-title">🤖 التلخيص بالذكاء الاصطناعي</h3>
         <p class="guidance-subtitle">سنساعدك في تلخيص التقارير باستخدام Gemini AI</p>
-        
         <div class="steps-container">
             <h4 class="steps-title"><i class="fas fa-list-ol"></i> الخطوات المطلوبة:</h4>
             <div class="step-item"><span class="step-number">1</span><span class="step-text">سيتم <strong>نسخ التقرير تلقائياً</strong> إلى الحافظة</span></div>
@@ -360,9 +323,7 @@
             <div class="step-item"><span class="step-number">4</span><span class="step-text">اضغط على <kbd>زر الإرسال</kbd>  وانتظر التلخيص</span></div>
             <div class="step-item"><span class="step-number">5</span><span class="step-text">انسخ النتيجة <strong>وارجع وألصقها في النافذة</strong> واضغط زر  <kbd style="padding:3px;">استلام الملخص</kbd></span></div>
         </div>
-        
-        <div class="note-container"><i class="fas fa-lightbulb"></i><span><strong>ملاحظة:</strong > <span style="font-size:0.7rem;">بعد لصق النتيجة في النافذة، سيتم عرض الملخص تلقائياً ويمكنك حفظه</span>.</span></div>
-        
+        <div class="note-container"><i class="fas fa-lightbulb"></i><span><strong>ملاحظة:</strong> <span style="font-size:0.7rem;">بعد لصق النتيجة في النافذة، سيتم عرض الملخص تلقائياً ويمكنك حفظه</span>.</span></div>
         <div class="guidance-actions">
             <button id="proceedToGeminiBtn" class="guidance-btn-primary"><i class="fas fa-external-link-alt"></i> المتابعة إلى Gemini</button>
             <button id="cancelAIGuidanceBtn" class="guidance-btn-secondary"><i class="fas fa-times"></i> إلغاء</button>
@@ -370,7 +331,6 @@
     </div>
 </div>
 
-<!-- مودال إدخال نتيجة التلخيص -->
 <div id="resultInputModal" class="modal result-input-modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -390,7 +350,6 @@
     </div>
 </div>
 
-<!-- مودال تأكيد الحذف -->
 <div id="deleteSummaryModal" class="modal">
     <div class="modal-content">
         <div style="text-align: center; padding: 1.5rem;">
@@ -408,7 +367,13 @@
 <div class="notifications-container" id="notificationsContainer"></div>
 <div id="panelOverlay" class="panel-overlay" onclick="closeNotificationsPanel()"></div>
 <div id="notificationsPanel" class="notifications-panel">
-    <div class="notifications-panel-header"><h3>الإشعارات</h3><button onclick="markAllAsRead()" class="mark-all-read" id="markAllReadBtn" style="display: none;">تعيين الكل كمقروء</button><button onclick="closeNotificationsPanel()" class="close-panel"><i class="fas fa-times"></i></button></div>
+    <div class="notifications-panel-header" style="padding: 1.25rem; border-bottom: 1px solid #eef2f7; display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">الإشعارات</h3>
+        <div>
+            <button onclick="markAllAsRead()" class="mark-all-read" id="markAllReadBtn" style="display: none; background: none; border: none; color: #1e3c72; cursor: pointer; margin-left: 1rem;">تعيين الكل كمقروء</button>
+            <button onclick="closeNotificationsPanel()" class="close-panel" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">✕</button>
+        </div>
+    </div>
     <div class="notifications-list" id="notificationsList"><div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div></div>
 </div>
 
@@ -422,8 +387,6 @@ let currentPeriodInfo = null;
 let currentSummaryData = null;
 let notificationInterval = null;
 let deleteSummaryId = null;
-
-// متغير لتخزين الفترة المؤقتة أثناء عملية التلخيص
 let tempPeriodInfo = null;
 
 // ===================== دوال المساعدة =====================
@@ -447,6 +410,7 @@ function toggleBodyScroll(disable) {
     if (disable) { document.body.style.overflow = 'hidden'; document.body.style.position = 'fixed'; document.body.style.width = '100%'; document.body.style.top = `-${window.scrollY}px`;
     } else { const scrollY = document.body.style.top; document.body.style.overflow = ''; document.body.style.position = ''; document.body.style.width = ''; document.body.style.top = ''; if (scrollY) window.scrollTo(0, parseInt(scrollY || '0') * -1); }
 }
+
 function getHalfMonthRange(half) {
     const now = new Date(); let start, end;
     if(half==='first') { start = new Date(now.getFullYear(), now.getMonth(), 1); end = new Date(now.getFullYear(), now.getMonth(), 15); }
@@ -454,6 +418,7 @@ function getHalfMonthRange(half) {
     const format = d => d.toISOString().split('T')[0];
     return { start: format(start), end: format(end) };
 }
+
 function togglePeriodOptions() {
     const periodType = document.getElementById('periodTypeSelect').value;
     const halfDiv = document.getElementById('halfMonthOptions');
@@ -468,6 +433,7 @@ function togglePeriodOptions() {
         document.getElementById('endDate').value = today;
     }
 }
+
 async function fetchReportsData(reportType, startDate, endDate) {
     const tableName = (reportType==='in_person') ? 'in_person_reports' : 'remote_reports';
     let selectFields = '';
@@ -485,6 +451,7 @@ async function fetchReportsData(reportType, startDate, endDate) {
     if(error) throw new Error('فشل في جلب التقارير');
     return data || [];
 }
+
 async function generateReport() {
     const reportType = document.getElementById('reportTypeSelect').value;
     const periodType = document.getElementById('periodTypeSelect').value;
@@ -519,6 +486,7 @@ async function generateReport() {
     } catch(err) { showMessage('❌ ' + (err.message || 'حدث خطأ أثناء جلب البيانات'), 'error'); }
     finally { generateBtn.innerHTML = originalText; generateBtn.disabled = false; }
 }
+
 function displayRawData(reports, reportType, periodLabel) {
     const container = document.getElementById('rawDataContent');
     const labels = reportType==='in_person' ? { first: 'الجوانب الإيجابية', second: 'التحديات', third: 'التوصيات' } : { first: 'الأفكار الإبداعية', second: 'التحديات', third: 'التوصيات' };
@@ -530,7 +498,7 @@ function displayRawData(reports, reportType, periodLabel) {
     container.innerHTML=html;
 }
 
-// ===================== التلخيص المحلي =====================
+// ===================== دوال التلخيص =====================
 function localSummarize() {
     if(!currentRawReports?.length) return null;
     let positiveTexts = [], creativeTexts = [], challengesTexts = [], recommendationsTexts = [];
@@ -591,20 +559,17 @@ function localSummarize() {
         return groups;
     };
     
-    // 🔥 التعديل هنا: تغيير formatOutput لإرجاع نص منسق كـ HTML مع نقاط تعدادية
     const formatOutput = (groups) => {
         if (groups.length === 0) return 'لا توجد بيانات';
         let result = [];
         for (let i = 0; i < groups.length; i++) {
             const group = groups[i];
             if (group.length === 1) {
-                result.push(group[0]);  // فقط النص بدون رقم
+                result.push(group[0]);
             } else {
-                // دمج النقاط المتشابهة
                 result.push([...new Set(group)].join(' / '));
             }
         }
-        // إرجاع النقاط كسطور مفصولة بفواصل (سيتم تحويلها إلى HTML في displaySummary)
         return result.join('\n');
     };
     
@@ -632,7 +597,6 @@ function localSummarize() {
     };
 }
 
-// ===================== دوال التلخيص بالذكاء الاصطناعي =====================
 function extractPointsFromText(text) {
     let points = [];
     const numberedMatch = text.match(/\d+[-\\.)][^\\d]*(?=\\d+[-\\.)]|$)/gs);
@@ -668,9 +632,7 @@ function showResultInputModal() {
     document.getElementById('summaryResultText').focus();
 }
 
-// دالة التنفيذ الفعلية للتلخيص مع لصق تلقائي
 async function executeGeminiSummary() {
-    // حفظ نسخة من الفترة الحالية
     tempPeriodInfo = {
         type: currentPeriodInfo.type,
         label: currentPeriodInfo.label,
@@ -678,11 +640,6 @@ async function executeGeminiSummary() {
         endDate: currentPeriodInfo.endDate
     };
     
-    console.log('📅 بدء التلخيص بالفترة:', tempPeriodInfo.label);
-    console.log('📊 عدد التقارير:', currentRawReports.length);
-    console.log('📋 نوع التقرير:', currentReportType);
-    
-    // تجميع النقاط
     let positivePoints = [], creativePoints = [], challengesPoints = [], recommendationsPoints = [];
     
     if (currentReportType === 'in_person') {
@@ -704,7 +661,6 @@ async function executeGeminiSummary() {
     challengesPoints = [...new Set(challengesPoints)];
     recommendationsPoints = [...new Set(recommendationsPoints)];
     
-    // بناء التقرير النصي
     let reportText = `📊 تقرير تحليلي للتلخيص والدمج\n\n`;
     reportText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     reportText += `📋 نوع التقرير: ${currentReportType === 'in_person' ? 'زيارات وجاهية' : 'متابعة عن بعد'}\n`;
@@ -738,7 +694,6 @@ async function executeGeminiSummary() {
     reportText += `✨ يرجى إخراج الملخص النهائي فقط.\n`;
     reportText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
     
-    // نسخ إلى الحافظة
     try {
         await navigator.clipboard.writeText(reportText);
         showMessage('📋 تم نسخ التقرير إلى الحافظة! سيتم فتح Gemini ولصق النص تلقائياً', 'success', 5000);
@@ -747,33 +702,7 @@ async function executeGeminiSummary() {
         prompt('انسخ النص التالي يدوياً ثم الصقه في Gemini:', reportText);
     }
     
-    // فتح موقع Gemini
-    const geminiWindow = window.open('https://gemini.google.com/app', '_blank');
-    
-    // محاولة لصق النص تلقائياً بعد فتح النافذة (إذا كان المتصفح يدعم ذلك)
-    if (geminiWindow) {
-        setTimeout(async () => {
-            try {
-                // محاولة التركيز على حقل الإدخال في Gemini ولصق النص
-                // ملاحظة: قد لا تعمل هذه الطريقة بسبب سياسات الأمان عبر النوافذ
-                geminiWindow.focus();
-                
-                // محاولة كتابة النص عبر console.log (تعليمات للمستخدم)
-                console.log('%c🚀 تم فتح Gemini! النص موجود في الحافظة. اضغط Ctrl+V للصق', 'color: #1e3c72; font-size: 16px; font-weight: bold;');
-                
-                // عرض رسالة منبثقة داخل Gemini إذا أمكن (توجيه المستخدم)
-                showMessage('✅ تم فتح Gemini! النص في الحافظة، اضغط Ctrl+V للصق', 'info', 8000);
-                
-            } catch (e) {
-                console.log('تعذر اللصق التلقائي بسبب سياسات الأمان:', e);
-                showMessage('💡 تم فتح Gemini، الرجاء الضغط على Ctrl+V للصق النص', 'info', 6000);
-            }
-        }, 2000);
-    } else {
-        // إذا تم حظر النافذة المنبثقة
-        showMessage('⚠️ الرجاء السماح بالنوافذ المنبثقة ثم أعد المحاولة، أو الصق النص يدوياً', 'warning', 5000);
-    }
-    
+    window.open('https://gemini.google.com/app', '_blank');
     closeRawDataModal();
     showResultInputModal();
 }
@@ -822,7 +751,6 @@ async function summarizeWithLocal() {
         const result = localSummarize();
         if (!result) throw new Error('لا توجد بيانات كافية للتلخيص');
         
-        // حفظ الفترة الحالية للتلخيص المحلي
         tempPeriodInfo = {
             type: currentPeriodInfo.type,
             label: currentPeriodInfo.label,
@@ -874,7 +802,6 @@ function showSummarizeOptions() {
     document.getElementById('cancelOptionsBtn').addEventListener('click', () => { overlay.remove(); });
 }
 
-// ===================== دالة عرض الملخص =====================
 function displaySummary(data) {
     const container = document.getElementById('summaryContent');
     const saveBtn = document.getElementById('saveSummaryBtn');
@@ -885,7 +812,6 @@ function displaySummary(data) {
                '<span style="background: #e8f0fe; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; color: #1e3c72;"><i class="fas fa-chart-simple"></i> عدد التقارير: ' + data.total_reports_count + '</span>' +
                '</div>';
     
-    // الجوانب الإيجابية
     if (data.positive_aspects && data.positive_aspects !== 'لا توجد بيانات') {
         html += '<div class="summary-section summary-positive" style="direction: rtl; text-align: right;">' +
                     '<h4 style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-start; font-weight: bold; font-size: 1.1rem;">' +
@@ -896,7 +822,6 @@ function displaySummary(data) {
                 '</div>';
     }
     
-    // الأفكار الإبداعية
     if (data.creative_ideas && data.creative_ideas !== 'لا توجد بيانات') {
         html += '<div class="summary-section summary-positive" style="direction: rtl; text-align: right;">' +
                     '<h4 style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-start; font-weight: bold; font-size: 1.1rem;">' +
@@ -907,7 +832,6 @@ function displaySummary(data) {
                 '</div>';
     }
     
-    // التحديات
     html += '<div class="summary-section summary-challenges" style="direction: rtl; text-align: right;">' +
                 '<h4 style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-start; font-weight: bold; font-size: 1.1rem;">' +
                     '<i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>' + 
@@ -916,7 +840,6 @@ function displaySummary(data) {
                 formatToBulletPoints(data.challenges || 'لا توجد تحديات') +
             '</div>';
     
-    // التوصيات
     html += '<div class="summary-section summary-recommendations" style="direction: rtl; text-align: right;">' +
                 '<h4 style="display: flex; align-items: center; gap: 0.5rem; justify-content: flex-start; font-weight: bold; font-size: 1.1rem;">' +
                     '<i class="fas fa-clipboard-list" style="color:#1e3c72;"></i>' + 
@@ -925,7 +848,6 @@ function displaySummary(data) {
                 formatToBulletPoints(data.recommendations || 'لا توجد توصيات') +
             '</div>';
     
-    // معلومات إضافية
     html += '<div style="font-size:0.75rem;color:#8ba0bc;padding-top:1rem;border-top:1px solid #eef2f7;direction:rtl;text-align:right;">' +
                 '<i class="fas fa-calendar-week"></i> الفترة: ' + data.period_label + '<br>' +
                 '<i class="fas fa-clock"></i> تاريخ التوليد: ' + new Date(data.generated_at).toLocaleString('ar') +
@@ -935,78 +857,37 @@ function displaySummary(data) {
     saveBtn.style.display = 'inline-flex';
 }
 
-// ===================== دالة تحويل النص إلى نقاط تعدادية =====================
 function formatToBulletPoints(text) {
     if (!text || text === 'لا توجد بيانات' || text === 'لا توجد تحديات' || text === 'لا توجد توصيات') {
         return '<p style="direction: rtl; text-align: right; padding-right: 0.5rem; margin: 0.5rem 0;">' + escapeHtml(text) + '</p>';
     }
     
-    var items = [];
-    var cleanText = text;
+    let items = [];
+    let cleanText = text;
     
-    // ===== الخطوة 1: إزالة علامات ** من العناوين =====
-    cleanText = cleanText.replace(/\*\*([^*]+)\*\*/g, function(match, content) {
-        return content;
-    });
+    cleanText = cleanText.replace(/\*\*([^*]+)\*\*/g, function(match, content) { return content; });
     
-    // ===== الخطوة 2: إزالة العناوين الرئيسية =====
-    var headersToRemove = [
-        /^التحديات\s*[•\-*\d]*\s*/gm,
-        /^التوصيات\s*[•\-*\d]*\s*/gm,
-        /^الجوانب الإيجابية\s*[•\-*\d]*\s*/gm,
-        /^الأفكار الإبداعية\s*[•\-*\d]*\s*/gm,
-        /^المقدمة\s*[•\-*\d]*\s*/gm,
-        /^الخلاصة\s*[•\-*\d]*\s*/gm,
-        /^التسلسل والتنظيم\s*[•\-*\d]*\s*/gm,
-        /^التقويم والتعلم البنائي\s*[•\-*\d]*\s*/gm,
-        /^الإدارة الصفية والتفاعل\s*[•\-*\d]*\s*/gm,
-        /^دافعية الطلبة وتحفيزهم\s*[•\-*\d]*\s*/gm,
-        /^التعزيز والدعم\s*[•\-*\d]*\s*/gm,
-        /^التعامل مع الفاقد التعليمي والفروق الفردية\s*[•\-*\d]*\s*/gm,
-        /^استراتيجيات التعلم النشط\s*[•\-*\d]*\s*/gm,
-        /^الوسائل التعليمية والمواد المساندة\s*[•\-*\d]*\s*/gm,
-        /^المهارات الأساسية والأعمال الكتابية\s*[•\-*\d]*\s*/gm,
-        /^ربط التعلم بالواقع وبناء القيم\s*[•\-*\d]*\s*/gm,
-        /^دمج ورعاية ذوي الاحتياجات الخاصة\s*[•\-*\d]*\s*/gm,
-        /^الابتكار في مواجهة التحديات\s*[•\-*\d]*\s*/gm,
-        /^التواصل والتغذية الراجعة\s*[•\-*\d]*\s*/gm,
-        /^ضعف البيئة الصفية واللوجستية\s*[•\-*\d]*\s*/gm,
-        /^الاكتظاظ وتلاصق مساحات التعلم\s*[•\-*\d]*\s*/gm,
-        /^الضوضاء والتشويش الخارجي\s*[•\-*\d]*\s*/gm,
-        /^نقص المواد التعليمية والوسائل\s*[•\-*\d]*\s*/gm,
-        /^الفاقد التعليمي وضعف المستويات\s*[•\-*\d]*\s*/gm,
-        /^التأخر والغياب والتحاق طلبة جدد\s*[•\-*\d]*\s*/gm,
-        /^تحديات التوقيت والظروف المحيطة\s*[•\-*\d]*\s*/gm,
-        /^توفير البيئة الصفية والمستلزمات الأساسية\s*[•\-*\d]*\s*/gm,
-        /^رعاية الفروق الفردية وذوي الاحتياجات\s*[•\-*\d]*\s*/gm
+    const headersToRemove = [
+        /^التحديات\s*[•\-*\d]*\s*/gm, /^التوصيات\s*[•\-*\d]*\s*/gm, /^الجوانب الإيجابية\s*[•\-*\d]*\s*/gm,
+        /^الأفكار الإبداعية\s*[•\-*\d]*\s*/gm, /^المقدمة\s*[•\-*\d]*\s*/gm, /^الخلاصة\s*[•\-*\d]*\s*/gm
     ];
     
-    for (var h = 0; h < headersToRemove.length; h++) {
+    for (let h = 0; h < headersToRemove.length; h++) {
         cleanText = cleanText.replace(headersToRemove[h], '');
     }
     
-    // ===== الخطوة 3: إزالة النقطتين الزائدة من بداية السطور =====
     cleanText = cleanText.replace(/^:\s*/gm, '');
+    const lines = cleanText.split(/\r?\n/);
     
-    // ===== الخطوة 4: تقسيم النص حسب السطور =====
-    var lines = cleanText.split(/\r?\n/);
-    
-    for (var i = 0; i < lines.length; i++) {
-        var line = lines[i].trim();
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
         if (!line) continue;
-        
-        // إزالة أي علامات ** متبقية
         line = line.replace(/\*\*/g, '');
         
-        // ===== الخطوة 5: معالجة النقاط المدمجة (مثل "نص1 / نص2") =====
         if (line.match(/.+\s*\/\s*.+/)) {
-            var parts = line.split(/\s*\/\s*/);
-            for (var p = 0; p < parts.length; p++) {
-                var cleanPart = parts[p]
-                    .replace(/^\d+[-\\.)]\s*/, '')
-                    .replace(/^[•\-*]\s*/, '')
-                    .replace(/^:\s*/, '')
-                    .trim();
+            const parts = line.split(/\s*\/\s*/);
+            for (let p = 0; p < parts.length; p++) {
+                let cleanPart = parts[p].replace(/^\d+[-\\.)]\s*/, '').replace(/^[•\-*]\s*/, '').replace(/^:\s*/, '').trim();
                 if (cleanPart && cleanPart.length > 0 && !/^\d+$/.test(cleanPart)) {
                     items.push(cleanPart);
                 }
@@ -1014,16 +895,7 @@ function formatToBulletPoints(text) {
             continue;
         }
         
-        // ===== الخطوة 6: إزالة جميع الرموز من بداية السطر =====
-        var cleanLine = line
-            .replace(/^\d+[-\\.)]\s*/, '')
-            .replace(/^[•\-*]\s*/, '')
-            .replace(/^\/\s*/, '')
-            .replace(/^:\s*/, '')
-            .replace(/^[\d\s]+$/, '')
-            .trim();
-        
-        // إزالة البادئات الإضافية
+        let cleanLine = line.replace(/^\d+[-\\.)]\s*/, '').replace(/^[•\-*]\s*/, '').replace(/^\/\s*/, '').replace(/^:\s*/, '').replace(/^[\d\s]+$/, '').trim();
         cleanLine = cleanLine.replace(/^[\.•\-*:]\s*/, '');
         
         if (cleanLine && cleanLine.length > 0 && !/^\d+$/.test(cleanLine)) {
@@ -1031,78 +903,46 @@ function formatToBulletPoints(text) {
         }
     }
     
-    // ===== الخطوة 7: إذا لم نجد نقاط، حاول طرق بديلة =====
-    if (items.length === 0) {
-        // الطريقة البديلة 1: تقسيم حسب وجود (•) أو (-) أو (*)
-        if (text.indexOf('•') !== -1 || text.indexOf('-') !== -1 || text.indexOf('*') !== -1) {
-            var bulletMatch = text.split(/[•\-*]\s*/);
-            for (var b = 0; b < bulletMatch.length; b++) {
-                var cleanItem = bulletMatch[b]
-                    .replace(/^\d+[-\\.)]\s*/, '')
-                    .replace(/\*\*/g, '')
-                    .replace(/^:\s*/, '')
-                    .trim();
-                if (cleanItem && cleanItem.length > 0 && !/^\d+$/.test(cleanItem)) {
-                    cleanItem = cleanItem.replace(/:$/, '');
-                    items.push(cleanItem);
-                }
-            }
-        }
-        
-        // الطريقة البديلة 2: تقسيم حسب وجود أرقام متسلسلة
-        if (items.length === 0) {
-            var numberedMatch = text.match(/\d+[-\\.)][^\d]*(?=\d+[-\\.)]|$)/gs);
-            if (numberedMatch) {
-                for (var m = 0; m < numberedMatch.length; m++) {
-                    var cleanMatch = numberedMatch[m]
-                        .replace(/^\d+[-\\.)]\s*/, '')
-                        .replace(/\*\*/g, '')
-                        .trim();
-                    if (cleanMatch && cleanMatch.length > 0 && !/^\d+$/.test(cleanMatch)) {
-                        cleanMatch = cleanMatch.replace(/:$/, '');
-                        items.push(cleanMatch);
-                    }
-                }
+    if (items.length === 0 && (text.indexOf('•') !== -1 || text.indexOf('-') !== -1 || text.indexOf('*') !== -1)) {
+        const bulletMatch = text.split(/[•\-*]\s*/);
+        for (let b = 0; b < bulletMatch.length; b++) {
+            let cleanItem = bulletMatch[b].replace(/^\d+[-\\.)]\s*/, '').replace(/\*\*/g, '').replace(/^:\s*/, '').trim();
+            if (cleanItem && cleanItem.length > 0 && !/^\d+$/.test(cleanItem)) {
+                cleanItem = cleanItem.replace(/:$/, '');
+                items.push(cleanItem);
             }
         }
     }
     
-    // ===== الخطوة 8: إذا لم توجد نقاط، اعرض النص كاملاً =====
     if (items.length === 0) {
-        var cleanTextFinal = text.replace(/\*\*/g, '').replace(/:/g, '');
+        let cleanTextFinal = text.replace(/\*\*/g, '').replace(/:/g, '');
         return '<p style="direction: rtl; text-align: right; padding-right: 0.5rem; margin: 0.5rem 0; white-space: pre-wrap;">' + escapeHtml(cleanTextFinal) + '</p>';
     }
     
-    // ===== الخطوة 9: إزالة التكرارات =====
-    var uniqueItems = [];
-    for (var u = 0; u < items.length; u++) {
+    const uniqueItems = [];
+    for (let u = 0; u < items.length; u++) {
         if (uniqueItems.indexOf(items[u]) === -1) {
             uniqueItems.push(items[u]);
         }
     }
     items = uniqueItems;
     
-    // ===== الخطوة 10: إنشاء القائمة النقطية النهائية =====
-    var bulletList = '<ul style="direction: rtl; text-align: right; list-style: none; padding-right: 0; margin: 0.5rem 0; width: 100%;">';
-    for (var it = 0; it < items.length; it++) {
-        var item = items[it];
+    let bulletList = '<ul style="direction: rtl; text-align: right; list-style: none; padding-right: 0; margin: 0.5rem 0; width: 100%;">';
+    for (let it = 0; it < items.length; it++) {
         bulletList += '<li style="position: relative; padding-right: 1.8rem; margin-bottom: 0.75rem; line-height: 1.6; display: flex; align-items: flex-start;">' +
                           '<span style="position: absolute; right: 0; top: 2px; color: #1e3c72; font-weight: bold; font-size: 1.1rem;">•</span>' +
-                          '<span style="flex: 1; padding-right: 0.5rem; word-wrap: break-word;">' + escapeHtml(item) + '</span>' +
+                          '<span style="flex: 1; padding-right: 0.5rem; word-wrap: break-word;">' + escapeHtml(items[it]) + '</span>' +
                       '</li>';
     }
     bulletList += '</ul>';
-    
     return bulletList;
 }
 
-// زر إغلاق المودال (بدون حفظ تلقائي)
 function closeSummaryModal() {
     document.getElementById('summaryModal').classList.remove('active');
     currentSummaryData = null;
 }
 
-// حفظ الملخص
 async function saveSummary() {
     if (!currentSummaryData) { showMessage('لا يوجد ملخص للحفظ', 'warning'); return; }
     
@@ -1119,14 +959,6 @@ async function saveSummary() {
             if (!userData) throw new Error('لم يتم العثور على بيانات المستخدم');
             currentUserIdNumber = userData.id;
         }
-        
-        console.log('💾 حفظ الملخص:', {
-            report_type: currentSummaryData.report_type,
-            period_label: currentSummaryData.period_label,
-            period_from: currentSummaryData.period_from,
-            period_to: currentSummaryData.period_to,
-            total_reports: currentSummaryData.total_reports_count
-        });
         
         const { error } = await window.supabaseClient.from('report_summaries').insert({
             report_type: currentSummaryData.report_type,
@@ -1159,17 +991,13 @@ async function saveSummary() {
 
 function closeRawDataModal() { document.getElementById('rawDataModal').classList.remove('active'); }
 
-// ===================== مستمع زر إرسال نتيجة التلخيص =====================
 document.getElementById('submitSummaryResultBtn')?.addEventListener('click', () => {
     const userResult = document.getElementById('summaryResultText').value.trim();
     if (userResult) {
-        // استخدام الفترة المخزنة مؤقتاً
         const periodInfo = tempPeriodInfo || currentPeriodInfo;
-        
         const positiveMatch = userResult.match(/\*\*الجوانب الإيجابية[^\*]*\*\*([\s\S]*?)(?=\*\*التحديات|$)/i);
         const challengesMatch = userResult.match(/\*\*التحديات[^\*]*\*\*([\s\S]*?)(?=\*\*التوصيات|$)/i);
         const recommendationsMatch = userResult.match(/\*\*التوصيات[^\*]*\*\*([\s\S]*?)$/i);
-        
         const cleanPoints = (text) => text ? text.replace(/^[-\s•*]+/gm, '').trim() : '';
         
         currentSummaryData = {
@@ -1187,64 +1015,158 @@ document.getElementById('submitSummaryResultBtn')?.addEventListener('click', () 
             method: 'ai'
         };
         
-        console.log('✅ استلام الملخص بالفترة:', periodInfo.label);
-        console.log('📊 عدد التقارير:', currentRawReports.length);
-        
         displaySummary(currentSummaryData);
         closeResultInputModal();
         document.getElementById('summaryModal').classList.add('active');
         showMessage('✅ تم استلام الملخص بنجاح', 'success');
-        
         tempPeriodInfo = null;
     } else {
         showMessage('⚠️ الرجاء إدخال نتيجة التلخيص', 'warning');
     }
 });
 
-// ===================== دوال الإشعارات =====================
+// ===================== دوال الإشعارات (استدعاء من supabase.js) =====================
+
 async function updateUnreadBadge() {
-    try {
-        if (!window.getUnreadNotificationsCount || !currentUserIdNumber) return;
-        const result = await window.getUnreadNotificationsCount(currentUserIdNumber);
-        if (result.success) {
-            const badge = document.getElementById('unreadBadge');
-            if (badge) { badge.textContent = result.count > 99 ? '99+' : result.count; badge.style.display = result.count > 0 ? 'flex' : 'none'; }
+    if (!window.getUnreadNotificationsCount || !currentUserIdNumber) return;
+    const result = await window.getUnreadNotificationsCount(currentUserIdNumber);
+    if (result.success) {
+        const badge = document.getElementById('unreadBadge');
+        if (badge) {
+            badge.textContent = result.count > 99 ? '99+' : result.count;
+            badge.style.display = result.count > 0 ? 'flex' : 'none';
         }
-    } catch (error) { console.error(error); }
+    }
 }
+
 async function toggleNotificationsPanel() {
     const panel = document.getElementById('notificationsPanel');
     const overlay = document.getElementById('panelOverlay');
-    if (panel.classList.contains('open')) closeNotificationsPanel();
-    else { await loadNotifications(); panel.classList.add('open'); overlay.classList.add('open'); }
+    if (panel.classList.contains('open')) {
+        closeNotificationsPanel();
+    } else {
+        await loadNotifications();
+        panel.classList.add('open');
+        overlay.classList.add('open');
+    }
 }
-function closeNotificationsPanel() { document.getElementById('notificationsPanel').classList.remove('open'); document.getElementById('panelOverlay').classList.remove('open'); }
+
+function closeNotificationsPanel() {
+    const panel = document.getElementById('notificationsPanel');
+    const overlay = document.getElementById('panelOverlay');
+    if (panel) panel.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+}
+
 async function loadNotifications() {
     const list = document.getElementById('notificationsList');
     if (!list) return;
     list.innerHTML = '<div class="empty-notifications"><div class="loader-small"></div><p>جاري التحميل...</p></div>';
-    try {
-        if (!window.getRecentNotifications || !currentUserIdNumber) { list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>'; return; }
-        const result = await window.getRecentNotifications(currentUserIdNumber, 50);
-        if (result.success) {
-            const notifications = result.data;
-            if (!notifications || notifications.length === 0) list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
-            else {
-                list.innerHTML = notifications.map(n => `<div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationClick(${n.id})"><div><strong>${escapeHtml(n.title)}</strong></div><div style="font-size:0.8rem;">${escapeHtml(n.message)}</div><div style="font-size:0.65rem;">${formatTime(n.created_at)}</div><button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${n.id})"><i class="fas fa-trash"></i></button></div>`).join('');
-            }
-            await updateUnreadBadge();
+    
+    if (!window.getRecentNotifications || !currentUserIdNumber) {
+        list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
+        return;
+    }
+    
+    const result = await window.getRecentNotifications(currentUserIdNumber, 50);
+    if (result.success) {
+        const notifications = result.data;
+        if (!notifications || notifications.length === 0) {
+            list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
+        } else {
+            list.innerHTML = notifications.map(n => `
+                <div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationClickFromSupabase(${n.id})">
+                    <div><strong>${escapeHtml(n.title)}</strong></div>
+                    <div style="font-size:0.8rem;">${escapeHtml(n.message)}</div>
+                    <div style="font-size:0.65rem;">${formatTime(n.created_at)}</div>
+                    <button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${n.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
         }
-    } catch (error) { console.error(error); list.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ</p></div>'; }
+        await updateUnreadBadge();
+        
+        const hasUnread = notifications.some(n => !n.is_read);
+        const markAllBtn = document.getElementById('markAllReadBtn');
+        if (markAllBtn) markAllBtn.style.display = hasUnread ? 'inline-flex' : 'none';
+    } else {
+        list.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ</p></div>';
+    }
 }
-async function handleNotificationClick(id) { try { await window.markNotificationAsRead?.(id); await loadNotifications(); await updateUnreadBadge(); closeNotificationsPanel(); } catch(e) {} }
-async function deleteNotificationItem(id) { try { await window.deleteNotification?.(id); await loadNotifications(); await updateUnreadBadge(); } catch(e) {} }
-async function markAllAsRead() { try { await window.markAllNotificationsAsRead?.(currentUserIdNumber); await loadNotifications(); await updateUnreadBadge(); showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success'); } catch(e) {} }
-function formatTime(dateString) { const date = new Date(dateString); const mins = Math.floor((new Date() - date) / 60000); if (mins < 1) return 'الآن'; if (mins < 60) return `منذ ${mins} دقيقة`; if (mins < 1440) return `منذ ${Math.floor(mins/60)} ساعة`; return `منذ ${Math.floor(mins/1440)} يوم`; }
-function startNotificationPolling() { if (notificationInterval) clearInterval(notificationInterval); notificationInterval = setInterval(() => { if (currentUserIdNumber && document.hasFocus()) updateUnreadBadge(); }, 30000); }
+
+// دالة مخصصة لفتح الإشعارات - تستخدم الدالة من supabase.js
+async function handleNotificationClickFromSupabase(notificationId) {
+    try {
+        const result = await window.handleNotificationClick(notificationId);
+        closeNotificationsPanel();
+        if (!result || !result.success) {
+            console.error('خطأ من supabase.js:', result?.error);
+            showMessage('حدث خطأ في فتح الإشعار', 'error');
+        }
+    } catch(e) { 
+        console.error('خطأ في فتح الإشعار:', e);
+        showMessage('حدث خطأ في فتح الإشعار: ' + e.message, 'error');
+    }
+}
+
+async function deleteNotificationItem(id) {
+    try { 
+        await window.deleteNotification?.(id); 
+        await loadNotifications(); 
+        await updateUnreadBadge(); 
+        showMessage('تم حذف الإشعار', 'success');
+    } catch(e) { 
+        console.error(e);
+        showMessage('حدث خطأ في حذف الإشعار', 'error');
+    }
+}
+
+async function markAllAsRead() {
+    try { 
+        await window.markAllNotificationsAsRead?.(currentUserIdNumber); 
+        await loadNotifications(); 
+        await updateUnreadBadge(); 
+        showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success'); 
+    } catch(e) { 
+        console.error(e);
+        showMessage('حدث خطأ', 'error');
+    }
+}
+
+function formatTime(dateString) { 
+    const date = new Date(dateString); 
+    const mins = Math.floor((new Date() - date) / 60000); 
+    if (mins < 1) return 'الآن'; 
+    if (mins < 60) return `منذ ${mins} دقيقة`; 
+    if (mins < 1440) return `منذ ${Math.floor(mins/60)} ساعة`; 
+    return `منذ ${Math.floor(mins/1440)} يوم`; 
+}
+
+function startNotificationPolling() { 
+    if (notificationInterval) clearInterval(notificationInterval); 
+    notificationInterval = setInterval(() => { 
+        if (currentUserIdNumber && document.hasFocus()) updateUnreadBadge(); 
+    }, 30000); 
+}
 
 // ===================== دوال المستخدم =====================
-async function logout() { if (notificationInterval) clearInterval(notificationInterval); localStorage.removeItem('currentUser'); try { await window.supabaseClient.auth.signOut(); } catch(e) {} window.location.href = 'login.html'; }
-function updateUIBasedOnRole(user) { if (!user) return; const analyticsLink = document.getElementById('navAnalytics'); const adminLinks = document.getElementById('adminLinks'); if (analyticsLink) analyticsLink.style.display = (user.role === 'admin' || user.role === 'support' || user.role === 'manger') ? 'flex' : 'none'; if (adminLinks) adminLinks.style.display = (user.role === 'admin' || user.role === 'support') ? 'block' : 'none'; }
+
+async function logout() { 
+    if (notificationInterval) clearInterval(notificationInterval); 
+    localStorage.removeItem('currentUser'); 
+    try { await window.supabaseClient.auth.signOut(); } catch(e) {} 
+    window.location.href = 'login.html'; 
+}
+
+function updateUIBasedOnRole(user) { 
+    if (!user) return; 
+    const analyticsLink = document.getElementById('navAnalytics'); 
+    const adminLinks = document.getElementById('adminLinks'); 
+    if (analyticsLink) analyticsLink.style.display = (user.role === 'admin' || user.role === 'support' || user.role === 'manger') ? 'flex' : 'none'; 
+    if (adminLinks) adminLinks.style.display = (user.role === 'admin' || user.role === 'support') ? 'block' : 'none'; 
+}
+
 async function getCurrentUser() {
     const localUser = localStorage.getItem('currentUser');
     if (localUser && JSON.parse(localUser).id) {
@@ -1329,11 +1251,23 @@ document.getElementById('confirmDeleteSummaryBtn')?.addEventListener('click', as
     } catch (error) { showMessage('حدث خطأ في حذف الملخص', 'error'); }
 });
 
-// ربط أزرار المودال
 document.getElementById('closeModalBtn')?.addEventListener('click', closeSummaryModal);
 document.getElementById('saveSummaryBtn')?.addEventListener('click', saveSummary);
 
-// التهيئة
+// إغلاق لوحة الإشعارات عند النقر خارجها
+document.addEventListener('click', function(event) {
+    const panel = document.getElementById('notificationsPanel');
+    const trigger = document.querySelector('.notifications-trigger button');
+    const overlay = document.getElementById('panelOverlay');
+    
+    if (panel && panel.classList.contains('open')) {
+        if (!panel.contains(event.target) && !trigger?.contains(event.target)) {
+            closeNotificationsPanel();
+        }
+    }
+});
+
+// ===================== التهيئة =====================
 window.addEventListener('DOMContentLoaded', async () => {
     currentUser = await getCurrentUser();
     if (!currentUser) { window.location.href = 'login.html'; return; }
