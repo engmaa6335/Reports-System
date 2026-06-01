@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>إدارة المستخدمين - نظام التقارير التربوية</title>
     <link rel="icon" type="image/png" sizes="32x32" href="lib/favicon-32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="lib/favicon-16.png">
@@ -17,6 +17,62 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="js/supabase.js"></script>
     <style>
+        /* ======= تنسيق القائمة الجانبية المتجاوبة مثل overview ======= */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; overflow-x: hidden; }
+
+        .sidebar {
+            position: fixed; right: 0; top: 0; width: 280px; height: 100%;
+            background: white; border-left: 1px solid #eef2f7; transition: right 0.3s ease;
+            z-index: 1000; display: flex; flex-direction: column;
+        }
+        @media (max-width: 768px) {
+            .sidebar { right: -280px; }
+            .sidebar.open { right: 0; box-shadow: -5px 0 25px rgba(0,0,0,0.15); }
+            .main-content { margin-right: 0 !important; }
+            .toggle-sidebar { display: flex !important; }
+        }
+        
+        .toggle-sidebar {
+            display: none;
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #1e3c72;
+            transition: all 0.2s;
+        }
+        .toggle-sidebar:hover { background: #f0f4fa; transform: scale(1.05); }
+        
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #eef2f7; text-align: center; }
+        .sidebar-logo { width: 50px; height: 50px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem; }
+        .sidebar-header h2 { font-size: 1.1rem; color: #1e3c72; margin-bottom: 0.25rem; }
+        .user-role { font-size: 0.75rem; color: #8ba0bc; }
+        .sidebar-nav { flex: 1; padding: 1rem; }
+        .sidebar-nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: #4e6580; text-decoration: none; border-radius: 12px; margin-bottom: 0.25rem; transition: all 0.2s; }
+        .sidebar-nav a:hover { background: #e8f0fe; color: #1e3c72; }
+        .sidebar-nav a.active { background: linear-gradient(135deg, #1e3c72, #153155); color: white; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid #eef2f7; }
+        .user-info { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+        .user-avatar { width: 45px; height: 45px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+        .user-name { font-size: 0.9rem; font-weight: 600; color: #1e3c72; }
+        .user-district { font-size: 0.7rem; color: #8ba0bc; }
+        .logout-btn { width: 100%; padding: 0.75rem; background: none; border: 1px solid #e34f76; color: #e34f76; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .logout-btn:hover { background: #fff2f5; }
+        
+        .main-content { margin-right: 280px; min-height: 100vh; padding: 1.5rem; transition: margin-right 0.3s ease; }
+        
+        /* باقي التنسيقات الأصلية */
         .stats-card {
             background: white;
             border-radius: 20px;
@@ -71,20 +127,21 @@
         .btn-excel { background: linear-gradient(135deg, #1e7e34, #155724); border: none; padding: 0.6rem 1.2rem; border-radius: 10px; cursor: pointer; color: white; font-weight: 500; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
         .btn-excel:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30,60,114,0.2); }
         
-        /* تنسيقات الإشعارات */
         .notifications-trigger button {
             background: none;
             border: none;
             width: 100%;
-            text-align: right;
+            text-align: center;
             padding: 0.75rem 1rem;
             border-radius: 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 0.75rem;
             color: #4e6580;
             transition: all 0.2s;
+            position: relative;
         }
         .notifications-trigger button:hover {
             background: #f0f4fa;
@@ -94,7 +151,7 @@
         .badge-count {
             position: absolute;
             top: -8px;
-            right: -8px;
+            right: 20px;
             background: #e34f76;
             color: white;
             font-size: 0.65rem;
@@ -106,7 +163,6 @@
             align-items: center;
             justify-content: center;
             padding: 0 4px;
-            margin-right: auto;
         }
         .loader { border: 3px solid #eef2f7; border-top: 3px solid #1e3c72; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
         .loader-small { border: 2px solid #eef2f7; border-top: 2px solid #1e3c72; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; margin-right: 0.5rem; }
@@ -198,984 +254,1276 @@
         }
         .panel-overlay.open { display: block; }
 
-        /* أيقونة الدوران */
-.fa-spin {
-    animation: fa-spin 1s infinite linear;
-}
-
-@keyframes fa-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* تعطيل الأزرار */
-button:disabled {
-    cursor: wait !important;
-    opacity: 0.6;
-}
-        @media (max-width: 480px) { .notifications-panel { width: 100%; left: -100%; } }
+        .fa-spin {
+            animation: fa-spin 1s infinite linear;
+        }
+        @keyframes fa-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        button:disabled {
+            cursor: wait !important;
+            opacity: 0.6;
+        }
+        .btn-primary {
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .btn-secondary {
+            background: #eef2f7;
+            color: #4e6580;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .btn-danger {
+            background: #e34f76;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .table-container {
+            background: white;
+            border-radius: 20px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .modern-table th, .modern-table td {
+            padding: 12px 16px;
+            text-align: right;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .modern-table th {
+            background: #f8fafd;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e3c72;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: 1px solid #d7e0ea;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            max-width: 750px;
+            width: 90%;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #4e6580;
+        }
+        .filters-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .filter-group label {
+            font-size: 0.8rem;
+            color: #4e6580;
+        }
+        .filter-group select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d7e0ea;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 480px) {
+            .notifications-panel { width: 100%; left: -100%; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
-                <h2>نظام التقارير التربوية</h2>
-                <p class="user-role" id="userRoleDisplay">...</p>
-            </div>
 
-            <!-- زر الإشعارات -->
-            <div class="notifications-trigger" style="margin: 0.5rem 1rem;">
-                <button onclick="toggleNotificationsPanel()" class="notification-badge">
-                    <i class="fas fa-bell" style="font-size: 1.1rem;"></i>
-                    <span>الإشعارات</span>
-                    <span id="unreadBadge" class="badge-count" style="display: none;">0</span>
+    <!-- مودال تأكيد تنظيف الإشعارات -->
+<div id="cleanupConfirmModal" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div style="text-align: center;">
+            <div style="width: 70px; height: 70px; background: #fff2f5; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <i class="fas fa-trash-alt" style="font-size: 2rem; color: #e34f76;"></i>
+            </div>
+            <h3 style="color: #0b1f35; margin-bottom: 0.5rem;">تأكيد تنظيف الإشعارات</h3>
+            <p style="color: #4e6580; margin-bottom: 1rem;">هل أنت متأكد من حذف جميع الإشعارات الأقدم من 15 يومًا لجميع المستخدمين؟</p>
+            <div style="background: #fff2f5; padding: 0.75rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                <p style="color: #e34f76; font-size: 0.85rem; margin: 0;">
+                    <i class="fas fa-exclamation-circle"></i> ملاحظة: هذا الإجراء نهائي ولا يمكن التراجع عنه
+                </p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button onclick="confirmCleanup()" id="cleanupConfirmBtn" class="btn-danger" style="flex: 1;">
+                    <i class="fas fa-trash-alt"></i> نعم، قم بالتنظيف
+                </button>
+                <button onclick="closeCleanupConfirmModal()" class="btn-secondary" style="flex: 1;">
+                    <i class="fas fa-times"></i> إلغاء
                 </button>
             </div>
-
-            <nav class="sidebar-nav">
-                <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
-                <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
-                <a href="summary-reports.html" id="summaryReportsLink" style="display: none;"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
-                <a href="analytics.html" id="navAnalytics" style="display: none;"><i class="fas fa-chart-bar"></i> التحليلات</a>
-                <div id="adminLinks" style="display: none;">
-                    <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
-                    <a href="districts-management.html" id="districtsManagementLink"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
-                    <a href="users-management.html" class="active" id="usersManagementLink"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
-                </div>
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar"><i class="fas fa-user"></i></div>
-                    <div class="user-details">
-                        <h4 class="user-name" id="userNameDisplay">...</h4>
-                        <p class="user-district" id="userDistrictDisplay">...</p>
-                    </div>
-                </div>
-                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-                <div>
-                    <h1 class="section-title" style="margin-bottom: 0.5rem;"><i class="fas fa-users-cog"></i> إدارة المستخدمين</h1>
-                    <p style="color: #4e6580;">إدارة حسابات المستخدمين والصلاحيات</p>
-                </div>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button onclick="exportToExcel()" class="btn-excel"><i class="fas fa-file-excel"></i> تصدير إكسل</button>
-                    <button onclick="openAddModal()" class="btn-primary"><i class="fas fa-plus"></i> إضافة مستخدم جديد</button>
-                </div>
-            </div>
-
-            <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr); margin-bottom: 2rem; gap: 1rem;">
-                <div class="stats-card"><i class="fas fa-user-shield admin"></i><h3>الإدارة العليا</h3><div class="number" id="adminCount">0</div></div>
-                <div class="stats-card"><i class="fas fa-headset support"></i><h3>الدعم الفني</h3><div class="number" id="supportCount">0</div></div>
-                <div class="stats-card"><i class="fas fa-user-tie manger"></i><h3>مديري المناطق</h3><div class="number" id="managerCount">0</div></div>
-                <div class="stats-card"><i class="fas fa-school spuser"></i><h3>مديري المدارس</h3><div class="number" id="spuserCount">0</div></div>
-                <div class="stats-card"><i class="fas fa-chalkboard-teacher user"></i><h3>المختصين</h3><div class="number" id="userCount">0</div></div>
-            </div>
-
-            <div class="filters-bar" style="margin-bottom: 1.5rem;">
-                <div class="filter-group" style="flex: 1;">
-                    <label><i class="fas fa-search"></i> بحث</label>
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="بحث باسم المستخدم أو البريد الإلكتروني...">
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <label><i class="fas fa-filter"></i> الدور</label>
-                    <select id="roleFilter">
-                        <option value="">الكل</option>
-                        <option value="admin">إدارة عليا</option>
-                        <option value="support">دعم فني</option>
-                        <option value="manger">مدير منطقة</option>
-                        <option value="spuser">مدير مدرسة</option>
-                        <option value="user">مختص</option>
-                    </select>
-                </div>
-                <div style="display: flex; gap: 0.5rem; align-items: center;">
-                    <button onclick="loadUsers()" class="btn-primary"><i class="fas fa-sync-alt"></i> تحديث</button>
-                    <button onclick="clearFilters()" class="btn-secondary"><i class="fas fa-eraser"></i> مسح</button>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <div style="overflow-x: auto;">
-                    <table class="modern-table">
-                        <thead>
-                            <tr><th>#</th><th>الاسم</th><th>اسم المستخدم</th><th>البريد الإلكتروني</th><th>الدور</th><th>المنطقة</th><th>المدرسة</th><th>تاريخ التسجيل</th><th>الإجراءات</th></tr>
-                        </thead>
-                        <tbody id="usersTableBody"><tr><td colspan="9" style="text-align: center; padding: 3rem;"><div class="loader"></div><p style="margin-top: 1rem;">جاري تحميل المستخدمين...</p></td></tr></tbody>
-                    </table>
-                </div>
-                <div style="margin-top: 1rem; color: #4e6580;" id="resultsCount">عدد النتائج: 0</div>
-            </div>
-        </main>
-    </div>
-
-    <div id="userModal" class="modal">
-        <div class="modal-content modal-medium">
-            <div class="modal-header">
-                <h2 id="modalTitle">إضافة مستخدم جديد</h2>
-                <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-            </div>
-            <form id="userForm">
-                <input type="hidden" id="userId">
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                    <div><label>الاسم الكامل <span style="color: #e34f76;">*</span></label><input type="text" id="userName" class="form-input" required><div class="form-hint" id="nameAutoFillHint"></div></div>
-                    <div><label>اسم المستخدم <span style="color: #e34f76;">*</span></label><input type="text" id="username" class="form-input" required><div class="form-hint">أدخل اسم المستخدم يدوياً</div></div>
-                    <div><label>البريد الإلكتروني <span style="color: #e34f76;">*</span></label><input type="email" id="email" class="form-input" required><div class="form-hint" id="emailAutoFillHint"></div></div>
-                    <div><label>الدور <span style="color: #e34f76;">*</span></label><select id="role" class="form-input" required onchange="toggleRoleFields()"><option value="">اختر الدور</option><option value="admin">إدارة عليا</option><option value="support">دعم فني</option><option value="manger">مدير منطقة</option><option value="spuser">مدير مدرسة</option><option value="user">مختص</option></select></div>
-                    <div id="districtField" style="display: none;"><label>المنطقة <span style="color: #e34f76;">*</span></label><select id="districtId" class="form-input" onchange="onDistrictChange()"><option value="">اختر المنطقة</option></select><div class="form-hint">سيتم جلب اسم و بريد مدير المنطقة تلقائياً</div></div>
-                    <div id="schoolField" style="display: none;"><label>المدرسة <span style="color: #e34f76;">*</span></label><select id="schoolId" class="form-input" onchange="onSchoolChange()"><option value="">اختر المنطقة أولاً</option></select><div class="form-hint">سيتم جلب اسم و بريد مدير المدرسة تلقائياً</div></div>
-                    <div id="specialistField" style="display: none;"><label>اختر المختص <span style="color: #e34f76;">*</span></label><select id="specialistId" class="form-input" onchange="onSpecialistChange()"><option value="">اختر المختص</option></select><div class="form-hint" id="specialistHint"></div></div>
-                    <div id="passwordField"><label id="passwordLabel">كلمة المرور <span style="color: #e34f76;">*</span></label><div class="password-field"><input type="password" id="password" class="form-input"><i class="fas fa-eye toggle-password" onclick="togglePassword()"></i></div><small id="passwordHint" style="color: #4e6580; font-size: 0.8rem;">أدخل كلمة المرور للمستخدم الجديد</small></div>
-                </div>
-                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                    <button type="submit" id="saveUserBtn" class="btn-primary" style="flex: 2;"><i class="fas fa-save"></i> حفظ</button>
-                    <button type="button" onclick="closeModal()" class="btn-secondary" style="flex: 1;"><i class="fas fa-times"></i> إلغاء</button>
-                </div>
-            </form>
         </div>
     </div>
-
-    <div id="resetPasswordModal" class="modal">
-        <div class="modal-content" style="max-width: 400px;">
-            <div class="modal-header"><h2>إعادة تعيين كلمة المرور</h2><button class="modal-close" onclick="closeResetPasswordModal()"><i class="fas fa-times"></i></button></div>
-            <div style="text-align: center; margin-bottom: 1.5rem;"><i class="fas fa-key" style="font-size: 3rem; color: #f59e0b; margin-bottom: 1rem;"></i><p>أدخل كلمة المرور الجديدة للمستخدم</p></div>
-            <div class="password-field" style="margin-bottom: 1.5rem;"><input type="password" id="newPassword" class="form-input" placeholder="كلمة المرور الجديدة"><i class="fas fa-eye toggle-password" onclick="toggleNewPassword()"></i></div>
-            <div style="display: flex; gap: 1rem;"><button onclick="confirmResetPassword()" id="resetPasswordBtn" class="btn-primary" style="flex: 1;"><i class="fas fa-save"></i> حفظ</button><button onclick="closeResetPasswordModal()" class="btn-secondary" style="flex: 1;"><i class="fas fa-times"></i> إلغاء</button></div>
+</div>
+<!-- مودال عرض الإحصائيات -->
+<div id="statsModal" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">
+            <h2><i class="fas fa-chart-bar"></i> إحصائيات الإشعارات</h2>
+            <button class="modal-close" onclick="closeStatsModal()"><i class="fas fa-times"></i></button>
         </div>
-    </div>
-
-    <div id="deleteModal" class="modal">
-        <div class="modal-content" style="max-width: 400px;">
-            <div style="text-align: center; margin-bottom: 2rem;"><div style="width: 70px; height: 70px; background: #fff2f5; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #e34f76;"></i></div><h3 style="color: #0b1f35;">تأكيد الحذف</h3><p style="color: #4e6580;">هل أنت متأكد من حذف هذا المستخدم؟</p><p style="color: #e34f76; font-size: 0.9rem;"><i class="fas fa-exclamation-circle"></i> ملاحظة: سيتم حذف جميع تقارير هذا المستخدم</p></div>
-            <div style="display: flex; gap: 1rem;"><button onclick="confirmDelete()" id="deleteConfirmBtn" class="btn-danger" style="flex: 1;"><i class="fas fa-trash"></i> حذف</button><button onclick="closeDeleteModal()" class="btn-secondary" style="flex: 1;"><i class="fas fa-times"></i> إلغاء</button></div>
+        <div id="statsContent" style="padding: 1rem 0;">
+            <div style="text-align: center;">
+                <div class="loader"></div>
+                <p>جاري تحميل الإحصائيات...</p>
+            </div>
         </div>
-    </div>
-
-    <!-- حاوية الإشعارات المنبثقة -->
-    <div class="notifications-container" id="notificationsContainer"></div>
-
-    <!-- لوحة الإشعارات المنبثقة -->
-    <div id="panelOverlay" class="panel-overlay" onclick="closeNotificationsPanel()"></div>
-    <div id="notificationsPanel" class="notifications-panel">
-        <div class="notifications-panel-header">
-            <h3><i class="fas fa-bell"></i> الإشعارات</h3>
-            <button onclick="markAllAsRead()" class="mark-all-read" id="markAllReadBtn" style="display: none;">
-                <i class="fas fa-check-double"></i> تعيين الكل كمقروء
-            </button>
-            <button onclick="closeNotificationsPanel()" class="close-panel">
-                <i class="fas fa-times"></i>
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <button onclick="closeStatsModal()" class="btn-secondary" style="flex: 1;">
+                <i class="fas fa-times"></i> إغلاق
             </button>
         </div>
-        <div class="notifications-list" id="notificationsList">
-            <div class="empty-notifications">
-                <i class="fas fa-bell-slash"></i>
-                <p>لا توجد إشعارات</p>
+    </div>
+</div>
+
+<!-- زر فتح القائمة للجوال -->
+<button class="toggle-sidebar" id="toggleSidebarBtn" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- القائمة الجانبية -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
+        <h2>نظام التقارير التربوية</h2>
+        <p class="user-role" id="userRoleDisplay">...</p>
+    </div>
+
+    <!-- زر الإشعارات -->
+    <div class="notifications-trigger" style="margin: 0.5rem 1rem;">
+        <button onclick="toggleNotificationsPanel()" class="notification-badge">
+            <i class="fas fa-bell" style="font-size: 1.1rem;"></i>
+            <span>الإشعارات</span>
+            <span id="unreadBadge" class="badge-count" style="display: none;">0</span>
+        </button>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
+        <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
+        <a href="summary-reports.html" id="summaryReportsLink" style="display: none;"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
+        <a href="analytics.html" id="navAnalytics" style="display: none;"><i class="fas fa-chart-bar"></i> التحليلات</a>
+        <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
+        <div id="adminLinks" style="display: none;">
+            <a href="districts-management.html" id="districtsManagementLink"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+            <a href="users-management.html" class="active" id="usersManagementLink"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
+        </div>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-info">
+            <div class="user-avatar"><i class="fas fa-user"></i></div>
+            <div class="user-details">
+                <h4 class="user-name" id="userNameDisplay">...</h4>
+                <p class="user-district" id="userDistrictDisplay">...</p>
             </div>
+        </div>
+        <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 class="section-title" style="margin-bottom: 0.5rem;"><i class="fas fa-users-cog"></i> إدارة المستخدمين</h1>
+            <p style="color: #4e6580;">إدارة حسابات المستخدمين والصلاحيات</p>
+        </div>
+        <!-- استبدل قسم الأزرار الموجود بهذا: -->
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button onclick="showCleanupStatsModal()" class="btn-secondary" style="background: #e8f0fe;"><i class="fas fa-chart-bar"></i> إحصائيات</button>
+            <button onclick="openCleanupConfirmModal()" id="cleanupBtn" class="btn-primary" style="background: linear-gradient(135deg, #e34f76, #c13b5c);">  <i class="fas fa-trash-alt"></i> تنظيف الإشعارات القديمة</button>
+            <button onclick="exportToExcel()" class="btn-excel"><i class="fas fa-file-excel"></i> تصدير إكسل</button>
+            <button onclick="openAddModal()" class="btn-primary"><i class="fas fa-plus"></i> إضافة مستخدم جديد</button>
+            
         </div>
     </div>
 
-    <script>
-        let currentUser = null, users = [], specialists = [], deleteUserId = null, resetUserId = null, districts = [], schools = [], isSaving = false;
+    <div class="stats-grid" style="margin-bottom: 2rem;">
+        <div class="stats-card"><i class="fas fa-user-shield admin"></i><h3>الإدارة العليا</h3><div class="number" id="adminCount">0</div></div>
+        <div class="stats-card"><i class="fas fa-headset support"></i><h3>الدعم الفني</h3><div class="number" id="supportCount">0</div></div>
+        <div class="stats-card"><i class="fas fa-user-tie manger"></i><h3>مديري المناطق</h3><div class="number" id="managerCount">0</div></div>
+        <div class="stats-card"><i class="fas fa-school spuser"></i><h3>مديري المدارس</h3><div class="number" id="spuserCount">0</div></div>
+        <div class="stats-card"><i class="fas fa-chalkboard-teacher user"></i><h3>المختصين</h3><div class="number" id="userCount">0</div></div>
+    </div>
 
-        function getUserSubtitle(user) {
-            if (!user) return '';
-            if (user.role === 'admin' || user.role === 'support') return 'مدير نظام';
-            if (user.role === 'manger') return user.district_name || user.district || 'مدير منطقة';
-            if (user.role === 'spuser') return user.school_name || user.school || 'مدير مدرسة';
-            if (user.role === 'user') return 'مشرف تربوي';
-            return '';
+    <div class="filters-bar">
+        <div class="filter-group" style="flex: 1;">
+            <label><i class="fas fa-search"></i> بحث</label>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="بحث باسم المستخدم أو البريد الإلكتروني...">
+            </div>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-filter"></i> الدور</label>
+            <select id="roleFilter">
+                <option value="">الكل</option>
+                <option value="admin">إدارة عليا</option>
+                <option value="support">دعم فني</option>
+                <option value="manger">مدير منطقة</option>
+                <option value="spuser">مدير مدرسة</option>
+                <option value="user">مختص</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button onclick="loadUsers()" class="btn-primary"><i class="fas fa-sync-alt"></i> تحديث</button>
+            <button onclick="clearFilters()" class="btn-secondary"><i class="fas fa-eraser"></i> مسح</button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <div style="overflow-x: auto;">
+            <table class="modern-table">
+                <thead>
+                    <tr><th>#</th><th>الاسم</th><th>اسم المستخدم</th><th>البريد الإلكتروني</th><th>الدور</th><th>المنطقة</th><th>المدرسة</th><th>تاريخ التسجيل</th><th>الإجراءات</th></tr>
+                </thead>
+                <tbody id="usersTableBody"><tr><td colspan="9" style="text-align: center; padding: 3rem;"><div class="loader"></div><p style="margin-top: 1rem;">جاري تحميل المستخدمين...</p></tbody>
+            </table>
+        </div>
+        <div style="margin-top: 1rem; color: #4e6580;" id="resultsCount">عدد النتائج: 0</div>
+    </div>
+</main>
+
+<div id="userModal" class="modal">
+    <div class="modal-content modal-medium">
+        <div class="modal-header">
+            <h2 id="modalTitle">إضافة مستخدم جديد</h2>
+            <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="userForm">
+            <input type="hidden" id="userId">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                <div><label>الاسم الكامل <span style="color: #e34f76;">*</span></label><input type="text" id="userName" class="form-input" required><div class="form-hint" id="nameAutoFillHint"></div></div>
+                <div><label>اسم المستخدم <span style="color: #e34f76;">*</span></label><input type="text" id="username" class="form-input" required><div class="form-hint">أدخل اسم المستخدم يدوياً</div></div>
+                <div><label>البريد الإلكتروني <span style="color: #e34f76;">*</span></label><input type="email" id="email" class="form-input" required><div class="form-hint" id="emailAutoFillHint"></div></div>
+                <div><label>الدور <span style="color: #e34f76;">*</span></label><select id="role" class="form-input" required onchange="toggleRoleFields()"><option value="">اختر الدور</option><option value="admin">إدارة عليا</option><option value="support">دعم فني</option><option value="manger">مدير منطقة</option><option value="spuser">مدير مدرسة</option><option value="user">مختص</option></select></div>
+                <div id="districtField" style="display: none;"><label>المنطقة <span style="color: #e34f76;">*</span></label><select id="districtId" class="form-input" onchange="onDistrictChange()"><option value="">اختر المنطقة</option></select><div class="form-hint">سيتم جلب اسم و بريد مدير المنطقة تلقائياً</div></div>
+                <div id="schoolField" style="display: none;"><label>المدرسة <span style="color: #e34f76;">*</span></label><select id="schoolId" class="form-input" onchange="onSchoolChange()"><option value="">اختر المنطقة أولاً</option></select><div class="form-hint">سيتم جلب اسم و بريد مدير المدرسة تلقائياً</div></div>
+                <div id="specialistField" style="display: none;"><label>اختر المختص <span style="color: #e34f76;">*</span></label><select id="specialistId" class="form-input" onchange="onSpecialistChange()"><option value="">اختر المختص</option></select><div class="form-hint" id="specialistHint"></div></div>
+                <div id="passwordField"><label id="passwordLabel">كلمة المرور <span style="color: #e34f76;">*</span></label><div class="password-field"><input type="password" id="password" class="form-input"><i class="fas fa-eye toggle-password" onclick="togglePassword()"></i></div><small id="passwordHint" style="color: #4e6580; font-size: 0.8rem;">أدخل كلمة المرور للمستخدم الجديد</small></div>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" id="saveUserBtn" class="btn-primary" style="flex: 2;"><i class="fas fa-save"></i> حفظ</button>
+                <button type="button" onclick="closeModal()" class="btn-secondary" style="flex: 1;"><i class="fas fa-times"></i> إلغاء</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="resetPasswordModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header"><h2>إعادة تعيين كلمة المرور</h2><button class="modal-close" onclick="closeResetPasswordModal()"><i class="fas fa-times"></i></button></div>
+        <div style="text-align: center; margin-bottom: 1.5rem;"><i class="fas fa-key" style="font-size: 3rem; color: #f59e0b; margin-bottom: 1rem;"></i><p>أدخل كلمة المرور الجديدة للمستخدم</p></div>
+        <div class="password-field" style="margin-bottom: 1.5rem;"><input type="password" id="newPassword" class="form-input" placeholder="كلمة المرور الجديدة"><i class="fas fa-eye toggle-password" onclick="toggleNewPassword()"></i></div>
+        <div style="display: flex; gap: 1rem;"><button onclick="confirmResetPassword()" id="resetPasswordBtn" class="btn-primary" style="flex: 1;"><i class="fas fa-save"></i> حفظ</button><button onclick="closeResetPasswordModal()" class="btn-secondary" style="flex: 1;"><i class="fas fa-times"></i> إلغاء</button></div>
+    </div>
+</div>
+
+<div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div style="text-align: center; margin-bottom: 2rem;"><div style="width: 70px; height: 70px; background: #fff2f5; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #e34f76;"></i></div><h3 style="color: #0b1f35;">تأكيد الحذف</h3><p style="color: #4e6580;">هل أنت متأكد من حذف هذا المستخدم؟</p><p style="color: #e34f76; font-size: 0.9rem;"><i class="fas fa-exclamation-circle"></i> ملاحظة: سيتم حذف جميع تقارير هذا المستخدم</p></div>
+        <div style="display: flex; gap: 1rem;"><button onclick="confirmDelete()" id="deleteConfirmBtn" class="btn-danger" style="flex: 1;"><i class="fas fa-trash"></i> حذف</button><button onclick="closeDeleteModal()" class="btn-secondary" style="flex: 1;"><i class="fas fa-times"></i> إلغاء</button></div>
+    </div>
+</div>
+
+<!-- حاوية الإشعارات المنبثقة -->
+<div class="notifications-container" id="notificationsContainer"></div>
+
+<!-- لوحة الإشعارات المنبثقة -->
+<div id="panelOverlay" class="panel-overlay" onclick="closeNotificationsPanel()"></div>
+<div id="notificationsPanel" class="notifications-panel">
+    <div class="notifications-panel-header">
+        <h3><i class="fas fa-bell"></i> الإشعارات</h3>
+        <button onclick="markAllAsRead()" class="mark-all-read" id="markAllReadBtn" style="display: none;">
+            <i class="fas fa-check-double"></i> تعيين الكل كمقروء
+        </button>
+        <button onclick="closeNotificationsPanel()" class="close-panel">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="notifications-list" id="notificationsList">
+        <div class="empty-notifications">
+            <i class="fas fa-bell-slash"></i>
+            <p>لا توجد إشعارات</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== دوال القائمة الجانبية ====================
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('open');
+    }
+
+    function closeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.remove('open');
+    }
+
+    let currentUser = null, users = [], specialists = [], deleteUserId = null, resetUserId = null, districts = [], schools = [], isSaving = false;
+
+    function getUserSubtitle(user) {
+        if (!user) return '';
+        if (user.role === 'admin' || user.role === 'support') return 'مدير نظام';
+        if (user.role === 'manger') return user.district_name || user.district || 'مدير منطقة';
+        if (user.role === 'spuser') return user.school_name || user.school || 'مدير مدرسة';
+        if (user.role === 'user') return 'مشرف تربوي';
+        return '';
+    }
+
+    function getRoleName(role) {
+        const roles = { 'admin': 'مدير النظام', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'spuser': 'مدير مدرسة', 'user': 'مختص تربوي' };
+        return roles[role] || role;
+    }
+
+    window.addEventListener('load', async () => {
+        currentUser = await getCurrentUser();
+        if (!currentUser) { window.location.href = 'login.html'; return; }
+        if (currentUser.role !== 'support') {
+            showMessage('لا تملك صلاحية الوصول لهذه الصفحة', 'error');
+            setTimeout(() => window.location.href = 'dashboard.html', 2000);
+            return;
         }
-
-        function getRoleName(role) {
-            const roles = { 'admin': 'مدير النظام', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'spuser': 'مدير مدرسة', 'user': 'مختص تربوي' };
-            return roles[role] || role;
-        }
-
-        window.addEventListener('load', async () => {
-            currentUser = await getCurrentUser();
-            if (!currentUser) { window.location.href = 'login.html'; return; }
-            if (currentUser.role !== 'support') {
-                showMessage('لا تملك صلاحية الوصول لهذه الصفحة', 'error');
-                setTimeout(() => window.location.href = 'dashboard.html', 2000);
-                return;
+        document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username;
+        document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
+        const districtDisplay = document.getElementById('userDistrictDisplay');
+        if (districtDisplay) districtDisplay.textContent = getUserSubtitle(currentUser);
+        updateUIForUser(currentUser);
+        await loadDistricts();
+        await loadSchools();
+        await loadSpecialists();
+        await loadUsers();
+        await updateUnreadBadge();
+        startNotificationPolling();
+        document.getElementById('searchInput').addEventListener('input', filterUsers);
+        document.getElementById('roleFilter').addEventListener('change', filterUsers);
+        
+        // إغلاق القائمة عند النقر خارجها
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('toggleSidebarBtn');
+            if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                    closeSidebar();
+                }
             }
-            document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username;
-            document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
-            const districtDisplay = document.getElementById('userDistrictDisplay');
-            if (districtDisplay) districtDisplay.textContent = getUserSubtitle(currentUser);
-            updateUIForUser(currentUser);
-            await loadDistricts();
-            await loadSchools();
-            await loadSpecialists();
-            await loadUsers();
-            await updateUnreadBadge();
-            startNotificationPolling();
-            document.getElementById('searchInput').addEventListener('input', filterUsers);
-            document.getElementById('roleFilter').addEventListener('change', filterUsers);
         });
+    });
 
-        async function getCurrentUser() {
-            const localUser = localStorage.getItem('currentUser');
-            if (localUser && JSON.parse(localUser).id) {
-                const parsed = JSON.parse(localUser);
-                if (parsed.district_name || parsed.school_name) return parsed;
-            }
-            try {
-                const { data: { user } } = await window.supabaseClient.auth.getUser();
-                if (user) {
-                    const { data: userData } = await window.supabaseClient.from('users').select('*').eq('email', user.email).single();
-                    if (userData) {
-                        if (userData.district_id) {
-                            const { data: district } = await window.supabaseClient.from('districts').select('name').eq('id', userData.district_id).single();
-                            if (district) userData.district_name = district.name;
-                        }
-                        if (userData.school_id) {
-                            const { data: school } = await window.supabaseClient.from('schools').select('name').eq('id', userData.school_id).single();
-                            if (school) userData.school_name = school.name;
-                        }
-                        localStorage.setItem('currentUser', JSON.stringify(userData));
-                        return userData;
+    async function getCurrentUser() {
+        const localUser = localStorage.getItem('currentUser');
+        if (localUser && JSON.parse(localUser).id) {
+            const parsed = JSON.parse(localUser);
+            if (parsed.district_name || parsed.school_name) return parsed;
+        }
+        try {
+            const { data: { user } } = await window.supabaseClient.auth.getUser();
+            if (user) {
+                const { data: userData } = await window.supabaseClient.from('users').select('*').eq('email', user.email).single();
+                if (userData) {
+                    if (userData.district_id) {
+                        const { data: district } = await window.supabaseClient.from('districts').select('name').eq('id', userData.district_id).single();
+                        if (district) userData.district_name = district.name;
                     }
-                }
-            } catch(e) { console.log(e); }
-            return localUser ? JSON.parse(localUser) : null;
-        }
-
-        async function logout() {
-            stopNotificationPolling();
-            localStorage.removeItem('currentUser');
-            try { await window.supabaseClient.auth.signOut(); } catch(e) {}
-            window.location.href = 'login.html';
-        }
-
-        function togglePassword() {
-            const pwd = document.getElementById('password');
-            const icon = document.querySelector('#passwordField .toggle-password');
-            if (pwd.type === 'password') { pwd.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
-            else { pwd.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
-        }
-        function toggleNewPassword() {
-            const pwd = document.getElementById('newPassword');
-            const icon = document.querySelector('#resetPasswordModal .toggle-password');
-            if (pwd.type === 'password') { pwd.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
-            else { pwd.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
-        }
-
-        async function loadSpecialists() {
-            try {
-                const { data, error } = await window.supabaseClient.from('specialists').select('id, name, specialization, email').order('name');
-                if (error) throw error;
-                specialists = data || [];
-                const specialistSelect = document.getElementById('specialistId');
-                if (specialistSelect) {
-                    const currentValue = specialistSelect.value;
-                    specialistSelect.innerHTML = '<option value="">اختر المختص</option>' + specialists.map(s => `<option value="${s.id}">${s.name} - ${s.specialization || 'بدون تخصص'}</option>`).join('');
-                    if (currentValue) specialistSelect.value = currentValue;
-                }
-            } catch (error) {
-                console.error('Error loading specialists:', error);
-                showMessage('حدث خطأ في تحميل بيانات المختصين', 'error');
-            }
-        }
-
-        async function checkSpecialistHasUser(specialistId) {
-            if (!specialistId) return null;
-            try {
-                const specialist = specialists.find(s => s.id == specialistId);
-                if (!specialist) return null;
-                const { data, error } = await window.supabaseClient.from('users').select('id, name, username, email, specialist_id').eq('specialist_id', specialistId).maybeSingle();
-                if (!error && data) return data;
-                if (specialist.email) {
-                    const { data: userByEmail, error: emailError } = await window.supabaseClient.from('users').select('id, name, username, email, specialist_id').eq('email', specialist.email).maybeSingle();
-                    if (!emailError && userByEmail && !userByEmail.specialist_id) {
-                        await window.supabaseClient.from('users').update({ specialist_id: specialistId }).eq('id', userByEmail.id);
-                        return userByEmail;
+                    if (userData.school_id) {
+                        const { data: school } = await window.supabaseClient.from('schools').select('name').eq('id', userData.school_id).single();
+                        if (school) userData.school_name = school.name;
                     }
+                    localStorage.setItem('currentUser', JSON.stringify(userData));
+                    return userData;
+                }
+            }
+        } catch(e) { console.log(e); }
+        return localUser ? JSON.parse(localUser) : null;
+    }
+
+    async function logout() {
+        stopNotificationPolling();
+        localStorage.removeItem('currentUser');
+        try { await window.supabaseClient.auth.signOut(); } catch(e) {}
+        window.location.href = 'login.html';
+    }
+
+    function togglePassword() {
+        const pwd = document.getElementById('password');
+        const icon = document.querySelector('#passwordField .toggle-password');
+        if (pwd.type === 'password') { pwd.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+        else { pwd.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+    }
+    function toggleNewPassword() {
+        const pwd = document.getElementById('newPassword');
+        const icon = document.querySelector('#resetPasswordModal .toggle-password');
+        if (pwd.type === 'password') { pwd.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+        else { pwd.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+    }
+
+    async function loadSpecialists() {
+        try {
+            const { data, error } = await window.supabaseClient.from('specialists').select('id, name, specialization, email').order('name');
+            if (error) throw error;
+            specialists = data || [];
+            const specialistSelect = document.getElementById('specialistId');
+            if (specialistSelect) {
+                const currentValue = specialistSelect.value;
+                specialistSelect.innerHTML = '<option value="">اختر المختص</option>' + specialists.map(s => `<option value="${s.id}">${s.name} - ${s.specialization || 'بدون تخصص'}</option>`).join('');
+                if (currentValue) specialistSelect.value = currentValue;
+            }
+        } catch (error) {
+            console.error('Error loading specialists:', error);
+            showMessage('حدث خطأ في تحميل بيانات المختصين', 'error');
+        }
+    }
+
+    async function checkSpecialistHasUser(specialistId) {
+        if (!specialistId) return null;
+        try {
+            const specialist = specialists.find(s => s.id == specialistId);
+            if (!specialist) return null;
+            const { data, error } = await window.supabaseClient.from('users').select('id, name, username, email, specialist_id').eq('specialist_id', specialistId).maybeSingle();
+            if (!error && data) return data;
+            if (specialist.email) {
+                const { data: userByEmail, error: emailError } = await window.supabaseClient.from('users').select('id, name, username, email, specialist_id').eq('email', specialist.email).maybeSingle();
+                if (!emailError && userByEmail && !userByEmail.specialist_id) {
+                    await window.supabaseClient.from('users').update({ specialist_id: specialistId }).eq('id', userByEmail.id);
                     return userByEmail;
                 }
-                return null;
-            } catch (error) { console.error(error); return null; }
-        }
+                return userByEmail;
+            }
+            return null;
+        } catch (error) { console.error(error); return null; }
+    }
 
-        async function onSpecialistChange() {
-            const specialistId = document.getElementById('specialistId').value;
-            const role = document.getElementById('role').value;
-            if (role === 'user' && specialistId) {
-                const specialist = specialists.find(s => s.id == specialistId);
-                if (specialist) {
-                    document.getElementById('userName').value = specialist.name;
-                    document.getElementById('nameAutoFillHint').innerHTML = '<span class="auto-fill-badge"><i class="fas fa-magic"></i> تم جلب اسم المختص</span>';
-                    if (specialist.specialization) {
-                        document.getElementById('specialistHint').innerHTML = `<span class="auto-fill-badge"><i class="fas fa-graduation-cap"></i> التخصص: ${specialist.specialization}</span>`;
-                    }
-                    if (specialist.email) {
-                        document.getElementById('email').value = specialist.email;
-                        document.getElementById('emailAutoFillHint').innerHTML = '<span class="auto-fill-badge"><i class="fas fa-magic"></i> تم جلب البريد الإلكتروني للمختص</span>';
-                    }
-                    const existingUser = await checkSpecialistHasUser(specialistId);
-                    if (existingUser) {
-                        const editMode = document.getElementById('userId').value;
-                        if (!editMode || (editMode && existingUser.id != editMode)) {
-                            document.getElementById('specialistHint').innerHTML += `<span class="auto-fill-badge exists"><i class="fas fa-exclamation-triangle"></i> هذا المختص لديه حساب مستخدم بالفعل (${existingUser.name})</span>`;
-                            showMessage(`المختص ${specialist.name} لديه حساب مستخدم بالفعل`, 'info');
-                        }
+    async function onSpecialistChange() {
+        const specialistId = document.getElementById('specialistId').value;
+        const role = document.getElementById('role').value;
+        if (role === 'user' && specialistId) {
+            const specialist = specialists.find(s => s.id == specialistId);
+            if (specialist) {
+                document.getElementById('userName').value = specialist.name;
+                document.getElementById('nameAutoFillHint').innerHTML = '<span class="auto-fill-badge"><i class="fas fa-magic"></i> تم جلب اسم المختص</span>';
+                if (specialist.specialization) {
+                    document.getElementById('specialistHint').innerHTML = `<span class="auto-fill-badge"><i class="fas fa-graduation-cap"></i> التخصص: ${specialist.specialization}</span>`;
+                }
+                if (specialist.email) {
+                    document.getElementById('email').value = specialist.email;
+                    document.getElementById('emailAutoFillHint').innerHTML = '<span class="auto-fill-badge"><i class="fas fa-magic"></i> تم جلب البريد الإلكتروني للمختص</span>';
+                }
+                const existingUser = await checkSpecialistHasUser(specialistId);
+                if (existingUser) {
+                    const editMode = document.getElementById('userId').value;
+                    if (!editMode || (editMode && existingUser.id != editMode)) {
+                        document.getElementById('specialistHint').innerHTML += `<span class="auto-fill-badge exists"><i class="fas fa-exclamation-triangle"></i> هذا المختص لديه حساب مستخدم بالفعل (${existingUser.name})</span>`;
+                        showMessage(`المختص ${specialist.name} لديه حساب مستخدم بالفعل`, 'info');
                     }
                 }
             }
         }
+    }
 
-        async function loadDistricts() {
-            try {
-                const { data, error } = await window.supabaseClient.from('districts').select('id, name, manger, mangerEmail').order('name');
-                if (error) throw error;
-                districts = data || [];
-                document.getElementById('districtId').innerHTML = '<option value="">اختر المنطقة</option>' + districts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-            } catch (error) { console.error(error); showMessage('حدث خطأ في تحميل المناطق', 'error'); }
+    async function loadDistricts() {
+        try {
+            const { data, error } = await window.supabaseClient.from('districts').select('id, name, manger, mangerEmail').order('name');
+            if (error) throw error;
+            districts = data || [];
+            document.getElementById('districtId').innerHTML = '<option value="">اختر المنطقة</option>' + districts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+        } catch (error) { console.error(error); showMessage('حدث خطأ في تحميل المناطق', 'error'); }
+    }
+
+    async function loadSchools() {
+        try {
+            const { data, error } = await window.supabaseClient.from('schools').select('id, name, district_id, schoolPrincipal, schoolPrincipalEmail');
+            if (error) throw error;
+            schools = data || [];
+        } catch (error) { console.error(error); showMessage('حدث خطأ في تحميل المدارس', 'error'); }
+    }
+
+    async function loadSchoolsByDistrict() {
+        const districtId = document.getElementById('districtId').value;
+        const schoolSelect = document.getElementById('schoolId');
+        if (!districtId) { schoolSelect.innerHTML = '<option value="">اختر المنطقة أولاً</option>'; return; }
+        try {
+            const { data, error } = await window.supabaseClient.from('schools').select('id, name, schoolPrincipal, schoolPrincipalEmail').eq('district_id', parseInt(districtId)).order('name');
+            if (error) throw error;
+            if (!data || data.length === 0) { schoolSelect.innerHTML = '<option value="">لا توجد مدارس في هذه المنطقة</option>'; return; }
+            schoolSelect.innerHTML = '<option value="">اختر المدرسة</option>' + data.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        } catch (error) { console.error(error); schoolSelect.innerHTML = '<option value="">حدث خطأ</option>'; }
+    }
+
+    async function onDistrictChange() {
+        const role = document.getElementById('role').value;
+        const districtId = document.getElementById('districtId').value;
+        if (role === 'manger' && districtId) {
+            const district = districts.find(d => d.id == districtId);
+            if (district) {
+                document.getElementById('userName').value = district.manger || `مدير منطقة ${district.name}`;
+                document.getElementById('nameAutoFillHint').innerHTML = '<span class="auto-fill-badge"><i class="fas fa-magic"></i> تم جلب الاسم من المنطقة</span>';
+                if (district.mangerEmail) {
+                    document.getElementById('email').value = district.mangerEmail;
+                    document.getElementById('emailAutoFillHint').innerHTML = '<span class="auto-fill-badge"><i class="fas fa-magic"></i> تم جلب البريد الإلكتروني</span>';
+                }
+            }
+        } else if (role === 'spuser' && districtId) {
+            await loadSchoolsByDistrict();
+            document.getElementById('userName').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('nameAutoFillHint').innerHTML = '';
+            document.getElementById('emailAutoFillHint').innerHTML = '';
         }
+    }
 
-        async function loadSchools() {
+    async function onSchoolChange() {
+        const schoolId = document.getElementById('schoolId').value;
+        if (schoolId) {
             try {
-                const { data, error } = await window.supabaseClient.from('schools').select('id, name, district_id, schoolPrincipal, schoolPrincipalEmail');
+                const { data: school, error } = await window.supabaseClient.from('schools').select('name, schoolPrincipal, schoolPrincipalEmail').eq('id', parseInt(schoolId)).single();
                 if (error) throw error;
-                schools = data || [];
-            } catch (error) { console.error(error); showMessage('حدث خطأ في تحميل المدارس', 'error'); }
-        }
-
-        async function loadSchoolsByDistrict() {
-            const districtId = document.getElementById('districtId').value;
-            const schoolSelect = document.getElementById('schoolId');
-            if (!districtId) { schoolSelect.innerHTML = '<option value="">اختر المنطقة أولاً</option>'; return; }
-            try {
-                const { data, error } = await window.supabaseClient.from('schools').select('id, name, schoolPrincipal, schoolPrincipalEmail').eq('district_id', parseInt(districtId)).order('name');
-                if (error) throw error;
-                if (!data || data.length === 0) { schoolSelect.innerHTML = '<option value="">لا توجد مدارس في هذه المنطقة</option>'; return; }
-                schoolSelect.innerHTML = '<option value="">اختر المدرسة</option>' + data.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            } catch (error) { console.error(error); schoolSelect.innerHTML = '<option value="">حدث خطأ</option>'; }
-        }
-
-        async function onDistrictChange() {
-            const role = document.getElementById('role').value;
-            const districtId = document.getElementById('districtId').value;
-            if (role === 'manger' && districtId) {
-                const district = districts.find(d => d.id == districtId);
-                if (district) {
-                    document.getElementById('userName').value = district.manger || `مدير منطقة ${district.name}`;
-                    document.getElementById('nameAutoFillHint').innerHTML = '<span class="auto-fill-badge"><i class="fas fa-magic"></i> تم جلب الاسم من المنطقة</span>';
-                    if (district.mangerEmail) {
-                        document.getElementById('email').value = district.mangerEmail;
+                if (school) {
+                    document.getElementById('userName').value = school.schoolPrincipal || `مدير مدرسة ${school.name}`;
+                    document.getElementById('nameAutoFillHint').innerHTML = '<span class="auto-fill-badge"><i class="fas fa-magic"></i> تم جلب اسم مدير المدرسة</span>';
+                    if (school.schoolPrincipalEmail) {
+                        document.getElementById('email').value = school.schoolPrincipalEmail;
                         document.getElementById('emailAutoFillHint').innerHTML = '<span class="auto-fill-badge"><i class="fas fa-magic"></i> تم جلب البريد الإلكتروني</span>';
                     }
                 }
-            } else if (role === 'spuser' && districtId) {
+            } catch (error) { console.error(error); showMessage('حدث خطأ في جلب بيانات المدرسة', 'error'); }
+        }
+    }
+
+    function toggleRoleFields() {
+        const role = document.getElementById('role').value;
+        const districtField = document.getElementById('districtField');
+        const schoolField = document.getElementById('schoolField');
+        const specialistField = document.getElementById('specialistField');
+        districtField.style.display = 'none';
+        schoolField.style.display = 'none';
+        specialistField.style.display = 'none';
+        document.getElementById('nameAutoFillHint').innerHTML = '';
+        document.getElementById('emailAutoFillHint').innerHTML = '';
+        document.getElementById('specialistHint').innerHTML = '';
+        if (role === 'manger') {
+            districtField.style.display = 'block';
+            document.getElementById('districtId').required = true;
+        } else if (role === 'spuser') {
+            districtField.style.display = 'block';
+            schoolField.style.display = 'block';
+            document.getElementById('districtId').required = true;
+            document.getElementById('schoolId').required = true;
+        } else if (role === 'user') {
+            specialistField.style.display = 'block';
+            document.getElementById('specialistId').required = true;
+            loadSpecialists();
+        } else {
+            document.getElementById('districtId').required = false;
+            document.getElementById('schoolId').required = false;
+            document.getElementById('specialistId').required = false;
+        }
+    }
+
+    function getSchoolName(schoolId) { if (!schoolId) return '-'; const s = schools.find(s => s.id == schoolId); return s ? s.name : '-'; }
+    function getDistrictName(districtId) { if (!districtId) return '-'; const d = districts.find(d => d.id == districtId); return d ? d.name : '-'; }
+
+    async function loadUsers() {
+        try {
+            const { data, error } = await window.supabaseClient.from('users').select('*').order('created_at', { ascending: false });
+            if (error) throw error;
+            users = data || [];
+            displayUsers(users);
+            updateStatistics();
+        } catch (error) { console.error(error); showMessage('حدث خطأ في تحميل المستخدمين', 'error'); }
+    }
+
+    function updateStatistics() {
+        document.getElementById('adminCount').textContent = users.filter(u => u.role === 'admin').length;
+        document.getElementById('supportCount').textContent = users.filter(u => u.role === 'support').length;
+        document.getElementById('managerCount').textContent = users.filter(u => u.role === 'manger').length;
+        document.getElementById('spuserCount').textContent = users.filter(u => u.role === 'spuser').length;
+        document.getElementById('userCount').textContent = users.filter(u => u.role === 'user').length;
+    }
+
+    function exportToExcel() {
+        const roleNames = { 'admin': 'إدارة عليا', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'spuser': 'مدير مدرسة', 'user': 'مختص' };
+        const rows = [['#', 'الاسم', 'اسم المستخدم', 'البريد الإلكتروني', 'الدور', 'المنطقة', 'المدرسة', 'تاريخ التسجيل']];
+        users.forEach((user, i) => {
+            rows.push([i + 1, user.name || '-', user.username || '-', user.email || '-', roleNames[user.role] || user.role, getDistrictName(user.district_id), user.role === 'spuser' ? getSchoolName(user.school_id) : '-', new Date(user.created_at).toLocaleDateString('ar-SA')]);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'المستخدمين');
+        XLSX.writeFile(wb, `المستخدمين_${new Date().toISOString().split('T')[0]}.xlsx`);
+        showMessage('تم تصدير المستخدمين بنجاح', 'success');
+    }
+
+    function displayUsers(usersList) {
+        const tbody = document.getElementById('usersTableBody');
+        if (!usersList || usersList.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:3rem;"><i class="fas fa-users-slash" style="font-size:3rem;"></i><p>لا توجد مستخدمين</p><button onclick="openAddModal()" class="btn-primary">إضافة مستخدم جديد</button></td></tr>`;
+            document.getElementById('resultsCount').textContent = 'عدد النتائج: 0';
+            return;
+        }
+        const roleNames = { 'admin': 'إدارة عليا', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'spuser': 'مدير مدرسة', 'user': 'مختص' };
+        tbody.innerHTML = usersList.map((user, index) => `<tr><td>${index + 1}</td><td><strong>${user.name || '-'}</strong></td><td>${user.username || '-'}</td><td>${user.email || '-'}</td><td><span class="role-badge ${user.role}">${roleNames[user.role] || user.role}</span></td><td>${getDistrictName(user.district_id)}</td><td>${user.role === 'spuser' ? getSchoolName(user.school_id) : '-'}</td><td>${new Date(user.created_at).toLocaleDateString('ar-SA')}</td><td><div class="action-buttons"><button onclick="openEditModal('${user.id}')" class="action-btn edit"><i class="fas fa-edit"></i></button><button onclick="openResetPasswordModal('${user.id}')" class="action-btn reset"><i class="fas fa-key"></i></button>${user.id != currentUser.id ? `<button onclick="openDeleteModal('${user.id}')" class="action-btn delete"><i class="fas fa-trash"></i></button>` : ''}</div></td>`).join('');
+        document.getElementById('resultsCount').textContent = `عدد النتائج: ${usersList.length}`;
+    }
+
+    function filterUsers() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const roleFilter = document.getElementById('roleFilter').value;
+        const filtered = users.filter(user => {
+            if (searchTerm && !(user.name?.toLowerCase().includes(searchTerm) || user.email?.toLowerCase().includes(searchTerm) || user.username?.toLowerCase().includes(searchTerm))) return false;
+            if (roleFilter && user.role !== roleFilter) return false;
+            return true;
+        });
+        displayUsers(filtered);
+    }
+
+    function clearFilters() { document.getElementById('searchInput').value = ''; document.getElementById('roleFilter').value = ''; displayUsers(users); }
+
+    function openAddModal() {
+        document.getElementById('modalTitle').textContent = 'إضافة مستخدم جديد';
+        document.getElementById('userForm').reset();
+        document.getElementById('userId').value = '';
+        document.getElementById('districtField').style.display = 'none';
+        document.getElementById('schoolField').style.display = 'none';
+        document.getElementById('specialistField').style.display = 'none';
+        document.getElementById('nameAutoFillHint').innerHTML = '';
+        document.getElementById('emailAutoFillHint').innerHTML = '';
+        document.getElementById('specialistHint').innerHTML = '';
+        document.getElementById('passwordLabel').innerHTML = 'كلمة المرور <span style="color: #e34f76;">*</span>';
+        document.getElementById('password').required = true;
+        document.getElementById('userModal').classList.add('active');
+    }
+
+    async function openEditModal(userId) {
+        const user = users.find(u => u.id == userId);
+        if (!user) return;
+        
+        document.getElementById('modalTitle').textContent = 'تعديل المستخدم';
+        document.getElementById('userId').value = user.id;
+        document.getElementById('userName').value = user.name || '';
+        document.getElementById('username').value = user.username || '';
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('role').value = user.role || '';
+        
+        if (user.district_id) {
+            document.getElementById('districtId').value = user.district_id;
+            if (user.role === 'spuser' && user.school_id) {
                 await loadSchoolsByDistrict();
-                document.getElementById('userName').value = '';
-                document.getElementById('email').value = '';
-                document.getElementById('nameAutoFillHint').innerHTML = '';
-                document.getElementById('emailAutoFillHint').innerHTML = '';
+                setTimeout(() => { document.getElementById('schoolId').value = user.school_id; }, 100);
             }
         }
-
-        async function onSchoolChange() {
-            const schoolId = document.getElementById('schoolId').value;
-            if (schoolId) {
-                try {
-                    const { data: school, error } = await window.supabaseClient.from('schools').select('name, schoolPrincipal, schoolPrincipalEmail').eq('id', parseInt(schoolId)).single();
-                    if (error) throw error;
-                    if (school) {
-                        document.getElementById('userName').value = school.schoolPrincipal || `مدير مدرسة ${school.name}`;
-                        document.getElementById('nameAutoFillHint').innerHTML = '<span class="auto-fill-badge"><i class="fas fa-magic"></i> تم جلب اسم مدير المدرسة</span>';
-                        if (school.schoolPrincipalEmail) {
-                            document.getElementById('email').value = school.schoolPrincipalEmail;
-                            document.getElementById('emailAutoFillHint').innerHTML = '<span class="auto-fill-badge"><i class="fas fa-magic"></i> تم جلب البريد الإلكتروني</span>';
-                        }
-                    }
-                } catch (error) { console.error(error); showMessage('حدث خطأ في جلب بيانات المدرسة', 'error'); }
-            }
-        }
-
-        function toggleRoleFields() {
-            const role = document.getElementById('role').value;
-            const districtField = document.getElementById('districtField');
-            const schoolField = document.getElementById('schoolField');
-            const specialistField = document.getElementById('specialistField');
-            districtField.style.display = 'none';
-            schoolField.style.display = 'none';
-            specialistField.style.display = 'none';
-            document.getElementById('nameAutoFillHint').innerHTML = '';
-            document.getElementById('emailAutoFillHint').innerHTML = '';
-            document.getElementById('specialistHint').innerHTML = '';
-            if (role === 'manger') {
-                districtField.style.display = 'block';
-                document.getElementById('districtId').required = true;
-            } else if (role === 'spuser') {
-                districtField.style.display = 'block';
-                schoolField.style.display = 'block';
-                document.getElementById('districtId').required = true;
-                document.getElementById('schoolId').required = true;
-            } else if (role === 'user') {
-                specialistField.style.display = 'block';
-                document.getElementById('specialistId').required = true;
-                loadSpecialists();
-            } else {
-                document.getElementById('districtId').required = false;
-                document.getElementById('schoolId').required = false;
-                document.getElementById('specialistId').required = false;
-            }
-        }
-
-        function getSchoolName(schoolId) { if (!schoolId) return '-'; const s = schools.find(s => s.id == schoolId); return s ? s.name : '-'; }
-        function getDistrictName(districtId) { if (!districtId) return '-'; const d = districts.find(d => d.id == districtId); return d ? d.name : '-'; }
-
-        async function loadUsers() {
-            try {
-                const { data, error } = await window.supabaseClient.from('users').select('*').order('created_at', { ascending: false });
-                if (error) throw error;
-                users = data || [];
-                displayUsers(users);
-                updateStatistics();
-            } catch (error) { console.error(error); showMessage('حدث خطأ في تحميل المستخدمين', 'error'); }
-        }
-
-        function updateStatistics() {
-            document.getElementById('adminCount').textContent = users.filter(u => u.role === 'admin').length;
-            document.getElementById('supportCount').textContent = users.filter(u => u.role === 'support').length;
-            document.getElementById('managerCount').textContent = users.filter(u => u.role === 'manger').length;
-            document.getElementById('spuserCount').textContent = users.filter(u => u.role === 'spuser').length;
-            document.getElementById('userCount').textContent = users.filter(u => u.role === 'user').length;
-        }
-
-        function exportToExcel() {
-            const roleNames = { 'admin': 'إدارة عليا', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'spuser': 'مدير مدرسة', 'user': 'مختص' };
-            const rows = [['#', 'الاسم', 'اسم المستخدم', 'البريد الإلكتروني', 'الدور', 'المنطقة', 'المدرسة', 'تاريخ التسجيل']];
-            users.forEach((user, i) => {
-                rows.push([i + 1, user.name || '-', user.username || '-', user.email || '-', roleNames[user.role] || user.role, getDistrictName(user.district_id), user.role === 'spuser' ? getSchoolName(user.school_id) : '-', new Date(user.created_at).toLocaleDateString('ar-SA')]);
-            });
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'المستخدمين');
-            XLSX.writeFile(wb, `المستخدمين_${new Date().toISOString().split('T')[0]}.xlsx`);
-            showMessage('تم تصدير المستخدمين بنجاح', 'success');
-        }
-
-        function displayUsers(usersList) {
-            const tbody = document.getElementById('usersTableBody');
-            if (!usersList || usersList.length === 0) {
-                tbody.innerHTML = `<td><td colspan="9" style="text-align:center;padding:3rem;"><i class="fas fa-users-slash" style="font-size:3rem;"></i><p>لا توجد مستخدمين</p><button onclick="openAddModal()" class="btn-primary">إضافة مستخدم جديد</button></td></tr>`;
-                document.getElementById('resultsCount').textContent = 'عدد النتائج: 0';
-                return;
-            }
-            const roleNames = { 'admin': 'إدارة عليا', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'spuser': 'مدير مدرسة', 'user': 'مختص' };
-            tbody.innerHTML = usersList.map((user, index) => `<tr><td>${index + 1}</td><td><strong>${user.name || '-'}</strong></td><td>${user.username || '-'}</td><td>${user.email || '-'}</td><td><span class="role-badge ${user.role}">${roleNames[user.role] || user.role}</span></td><td>${getDistrictName(user.district_id)}</td><td>${user.role === 'spuser' ? getSchoolName(user.school_id) : '-'}</td><td>${new Date(user.created_at).toLocaleDateString('ar-SA')}</td><td><div class="action-buttons"><button onclick="openEditModal('${user.id}')" class="action-btn edit"><i class="fas fa-edit"></i></button><button onclick="openResetPasswordModal('${user.id}')" class="action-btn reset"><i class="fas fa-key"></i></button>${user.id != currentUser.id ? `<button onclick="openDeleteModal('${user.id}')" class="action-btn delete"><i class="fas fa-trash"></i></button>` : ''}</div></td></tr>`).join('');
-            document.getElementById('resultsCount').textContent = `عدد النتائج: ${usersList.length}`;
-        }
-
-        function filterUsers() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const roleFilter = document.getElementById('roleFilter').value;
-            const filtered = users.filter(user => {
-                if (searchTerm && !(user.name?.toLowerCase().includes(searchTerm) || user.email?.toLowerCase().includes(searchTerm) || user.username?.toLowerCase().includes(searchTerm))) return false;
-                if (roleFilter && user.role !== roleFilter) return false;
-                return true;
-            });
-            displayUsers(filtered);
-        }
-
-        function clearFilters() { document.getElementById('searchInput').value = ''; document.getElementById('roleFilter').value = ''; displayUsers(users); }
-
-        function openAddModal() {
-            document.getElementById('modalTitle').textContent = 'إضافة مستخدم جديد';
-            document.getElementById('userForm').reset();
-            document.getElementById('userId').value = '';
-            document.getElementById('districtField').style.display = 'none';
-            document.getElementById('schoolField').style.display = 'none';
-            document.getElementById('specialistField').style.display = 'none';
-            document.getElementById('nameAutoFillHint').innerHTML = '';
-            document.getElementById('emailAutoFillHint').innerHTML = '';
-            document.getElementById('specialistHint').innerHTML = '';
-            document.getElementById('passwordLabel').innerHTML = 'كلمة المرور <span style="color: #e34f76;">*</span>';
-            document.getElementById('password').required = true;
-            document.getElementById('userModal').classList.add('active');
-        }
-
-        async function openEditModal(userId) {
-            const user = users.find(u => u.id == userId);
-            if (!user) return;
-            
-            document.getElementById('modalTitle').textContent = 'تعديل المستخدم';
-            document.getElementById('userId').value = user.id;
-            document.getElementById('userName').value = user.name || '';
-            document.getElementById('username').value = user.username || '';
-            document.getElementById('email').value = user.email || '';
-            document.getElementById('role').value = user.role || '';
-            
-            if (user.district_id) {
-                document.getElementById('districtId').value = user.district_id;
-                if (user.role === 'spuser' && user.school_id) {
-                    await loadSchoolsByDistrict();
-                    setTimeout(() => { document.getElementById('schoolId').value = user.school_id; }, 100);
-                }
-            }
-            
-            toggleRoleFields();
-            
-            if (user.role === 'manger') {
-                document.getElementById('districtField').style.display = 'block';
-            } else if (user.role === 'spuser') {
-                document.getElementById('districtField').style.display = 'block';
-                document.getElementById('schoolField').style.display = 'block';
-            } else if (user.role === 'user') {
-                document.getElementById('specialistField').style.display = 'block';
-                if (specialists.length === 0) await loadSpecialists();
-                const specialistSelect = document.getElementById('specialistId');
-                const targetSpecialistId = user.specialist_id || (specialists.find(s => s.email === user.email)?.id);
-                if (targetSpecialistId) {
-                    const setSpecialistValue = () => {
-                        if (specialistSelect && specialistSelect.options.length > 1) {
-                            for (let i = 0; i < specialistSelect.options.length; i++) {
-                                if (specialistSelect.options[i].value == targetSpecialistId) {
-                                    specialistSelect.value = targetSpecialistId.toString();
-                                    const specialist = specialists.find(s => s.id == targetSpecialistId);
-                                    if (specialist) {
-                                        document.getElementById('specialistHint').innerHTML = `<span class="auto-fill-badge"><i class="fas fa-check-circle"></i> مرتبط بالمختص: ${specialist.name} ${specialist.specialization ? `- ${specialist.specialization}` : ''}</span>`;
-                                    }
-                                    return true;
+        
+        toggleRoleFields();
+        
+        if (user.role === 'manger') {
+            document.getElementById('districtField').style.display = 'block';
+        } else if (user.role === 'spuser') {
+            document.getElementById('districtField').style.display = 'block';
+            document.getElementById('schoolField').style.display = 'block';
+        } else if (user.role === 'user') {
+            document.getElementById('specialistField').style.display = 'block';
+            if (specialists.length === 0) await loadSpecialists();
+            const specialistSelect = document.getElementById('specialistId');
+            const targetSpecialistId = user.specialist_id || (specialists.find(s => s.email === user.email)?.id);
+            if (targetSpecialistId) {
+                const setSpecialistValue = () => {
+                    if (specialistSelect && specialistSelect.options.length > 1) {
+                        for (let i = 0; i < specialistSelect.options.length; i++) {
+                            if (specialistSelect.options[i].value == targetSpecialistId) {
+                                specialistSelect.value = targetSpecialistId.toString();
+                                const specialist = specialists.find(s => s.id == targetSpecialistId);
+                                if (specialist) {
+                                    document.getElementById('specialistHint').innerHTML = `<span class="auto-fill-badge"><i class="fas fa-check-circle"></i> مرتبط بالمختص: ${specialist.name} ${specialist.specialization ? `- ${specialist.specialization}` : ''}</span>`;
                                 }
+                                return true;
                             }
                         }
-                        return false;
-                    };
-                    if (!setSpecialistValue()) {
-                        const interval = setInterval(() => { if (setSpecialistValue()) clearInterval(interval); }, 100);
-                        setTimeout(() => clearInterval(interval), 5000);
                     }
+                    return false;
+                };
+                if (!setSpecialistValue()) {
+                    const interval = setInterval(() => { if (setSpecialistValue()) clearInterval(interval); }, 100);
+                    setTimeout(() => clearInterval(interval), 5000);
                 }
             }
-            
-            document.getElementById('passwordLabel').innerHTML = 'كلمة المرور <span style="color: #4e6580;">(اختياري)</span>';
-            document.getElementById('passwordHint').innerHTML = 'اتركه فارغاً إذا كنت لا تريد تغيير كلمة المرور';
-            document.getElementById('password').required = false;
-            document.getElementById('password').value = '';
-            
-            document.getElementById('userModal').classList.add('active');
-        }
-
-        document.getElementById('userForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (isSaving) { showMessage('جاري الحفظ... الرجاء الانتظار', 'info'); return; }
-            
-            const userId = document.getElementById('userId').value;
-            const role = document.getElementById('role').value;
-            const userData = {
-                name: document.getElementById('userName').value.trim(),
-                username: document.getElementById('username').value.trim(),
-                email: document.getElementById('email').value.trim(),
-                role: role,
-                district_id: null,
-                school_id: null,
-                specialist_id: null
-            };
-            
-            if (role === 'manger' || role === 'spuser') {
-                const districtId = document.getElementById('districtId').value;
-                if (!districtId) { showMessage('الرجاء اختيار المنطقة', 'error'); return; }
-                userData.district_id = parseInt(districtId);
-            }
-            if (role === 'spuser') {
-                const schoolId = document.getElementById('schoolId').value;
-                if (!schoolId) { showMessage('الرجاء اختيار المدرسة', 'error'); return; }
-                userData.school_id = parseInt(schoolId);
-            }
-            if (role === 'user') {
-                const specialistId = document.getElementById('specialistId').value;
-                if (!specialistId) { showMessage('الرجاء اختيار المختص', 'error'); return; }
-                userData.specialist_id = parseInt(specialistId);
-            }
-            if (!userData.name || !userData.username || !userData.email || !userData.role) {
-                showMessage('الرجاء ملء جميع الحقول المطلوبة', 'error');
-                return;
-            }
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
-                showMessage('الرجاء إدخال بريد إلكتروني صحيح', 'error');
-                return;
-            }
-            
-            isSaving = true;
-            const saveBtn = document.getElementById('saveUserBtn');
-            const originalHtml = saveBtn.innerHTML;
-            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
-            saveBtn.disabled = true;
-            
-            try {
-                const password = document.getElementById('password').value;
-                let result;
-                if (userId) {
-                    if (password) userData.password = password;
-                    result = await window.supabaseClient.from('users').update(userData).eq('id', userId);
-                } else {
-                    if (!password) { showMessage('الرجاء إدخال كلمة المرور', 'error'); return; }
-                    userData.password = password;
-                    result = await window.supabaseClient.from('users').insert([userData]);
-                }
-                if (result.error) throw result.error;
-                closeModal();
-                await loadUsers();
-                showMessage(userId ? 'تم تحديث المستخدم بنجاح' : 'تم إضافة المستخدم بنجاح', 'success');
-            } catch (error) {
-                showMessage('حدث خطأ: ' + error.message, 'error');
-            } finally {
-                isSaving = false;
-                saveBtn.innerHTML = originalHtml;
-                saveBtn.disabled = false;
-            }
-        });
-
-        function openResetPasswordModal(userId) { resetUserId = userId; document.getElementById('newPassword').value = ''; document.getElementById('resetPasswordModal').classList.add('active'); }
-        async function confirmResetPassword() {
-            const newPassword = document.getElementById('newPassword').value;
-            if (!newPassword) { showMessage('الرجاء إدخال كلمة المرور الجديدة', 'error'); return; }
-            const resetBtn = document.getElementById('resetPasswordBtn');
-            const originalHtml = resetBtn.innerHTML;
-            resetBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
-            resetBtn.disabled = true;
-            try {
-                const { error } = await window.supabaseClient.from('users').update({ password: newPassword }).eq('id', resetUserId);
-                if (error) throw error;
-                closeResetPasswordModal();
-                showMessage('تم إعادة تعيين كلمة المرور بنجاح', 'success');
-            } catch (error) { showMessage('حدث خطأ', 'error'); }
-            finally { resetBtn.innerHTML = originalHtml; resetBtn.disabled = false; }
-        }
-        function openDeleteModal(userId) { deleteUserId = userId; document.getElementById('deleteModal').classList.add('active'); }
-        async function confirmDelete() {
-            if (!deleteUserId) return;
-            const deleteBtn = document.getElementById('deleteConfirmBtn');
-            const originalHtml = deleteBtn.innerHTML;
-            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحذف...';
-            deleteBtn.disabled = true;
-            try {
-                const { error } = await window.supabaseClient.from('users').delete().eq('id', deleteUserId);
-                if (error) throw error;
-                closeDeleteModal();
-                await loadUsers();
-                showMessage('تم حذف المستخدم بنجاح', 'success');
-            } catch (error) { showMessage('حدث خطأ', 'error'); }
-            finally { deleteBtn.innerHTML = originalHtml; deleteBtn.disabled = false; }
-        }
-        function closeModal() { document.getElementById('userModal').classList.remove('active'); isSaving = false; }
-        function closeResetPasswordModal() { document.getElementById('resetPasswordModal').classList.remove('active'); resetUserId = null; }
-        function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('active'); deleteUserId = null; }
-        
-        function showMessage(msg, type) {
-            const container = document.getElementById('notificationsContainer');
-            if (!container) return;
-            const el = document.createElement('div');
-            el.className = `notification-item ${type}`;
-            el.innerHTML = `<div style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-${type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-circle'}"></i><span>${msg}</span></div>`;
-            container.appendChild(el);
-            setTimeout(() => el.remove(), 3000);
         }
         
-        function updateUIForUser(user) {
-            const showAdminLinks = ['admin', 'support'].includes(user.role);
-            document.getElementById('adminLinks').style.display = showAdminLinks ? 'block' : 'none';
-            const showAnalytics = ['admin', 'support', 'manger'].includes(user.role);
-            document.getElementById('navAnalytics').style.display = showAnalytics ? 'flex' : 'none';
-            const summaryReportsLink = document.getElementById('summaryReportsLink');
-            if (summaryReportsLink) summaryReportsLink.style.display = (user.role === 'spuser') ? 'none' : 'flex';
-        }
-
-        // ==================== دوال الإشعارات ====================
+        document.getElementById('passwordLabel').innerHTML = 'كلمة المرور <span style="color: #4e6580;">(اختياري)</span>';
+        document.getElementById('passwordHint').innerHTML = 'اتركه فارغاً إذا كنت لا تريد تغيير كلمة المرور';
+        document.getElementById('password').required = false;
+        document.getElementById('password').value = '';
         
-        async function updateUnreadBadge() {
-            try {
-                const result = await window.getUnreadNotificationsCount(currentUser?.id);
-                if (result.success) {
-                    const badge = document.getElementById('unreadBadge');
-                    if (badge) {
-                        if (result.count > 0) {
-                            badge.textContent = result.count > 99 ? '99+' : result.count;
-                            badge.style.display = 'flex';
-                        } else {
-                            badge.style.display = 'none';
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating badge:', error);
-            }
-        }
+        document.getElementById('userModal').classList.add('active');
+    }
 
-        async function toggleNotificationsPanel() {
-            const panel = document.getElementById('notificationsPanel');
-            const overlay = document.getElementById('panelOverlay');
-            if (panel.classList.contains('open')) {
-                closeNotificationsPanel();
+    document.getElementById('userForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (isSaving) { showMessage('جاري الحفظ... الرجاء الانتظار', 'info'); return; }
+        
+        const userId = document.getElementById('userId').value;
+        const role = document.getElementById('role').value;
+        const userData = {
+            name: document.getElementById('userName').value.trim(),
+            username: document.getElementById('username').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            role: role,
+            district_id: null,
+            school_id: null,
+            specialist_id: null
+        };
+        
+        if (role === 'manger' || role === 'spuser') {
+            const districtId = document.getElementById('districtId').value;
+            if (!districtId) { showMessage('الرجاء اختيار المنطقة', 'error'); return; }
+            userData.district_id = parseInt(districtId);
+        }
+        if (role === 'spuser') {
+            const schoolId = document.getElementById('schoolId').value;
+            if (!schoolId) { showMessage('الرجاء اختيار المدرسة', 'error'); return; }
+            userData.school_id = parseInt(schoolId);
+        }
+        if (role === 'user') {
+            const specialistId = document.getElementById('specialistId').value;
+            if (!specialistId) { showMessage('الرجاء اختيار المختص', 'error'); return; }
+            userData.specialist_id = parseInt(specialistId);
+        }
+        if (!userData.name || !userData.username || !userData.email || !userData.role) {
+            showMessage('الرجاء ملء جميع الحقول المطلوبة', 'error');
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
+            showMessage('الرجاء إدخال بريد إلكتروني صحيح', 'error');
+            return;
+        }
+        
+        isSaving = true;
+        const saveBtn = document.getElementById('saveUserBtn');
+        const originalHtml = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+        saveBtn.disabled = true;
+        
+        try {
+            const password = document.getElementById('password').value;
+            let result;
+            if (userId) {
+                if (password) userData.password = password;
+                result = await window.supabaseClient.from('users').update(userData).eq('id', userId);
             } else {
-                await loadNotifications();
-                panel.classList.add('open');
-                overlay.classList.add('open');
+                if (!password) { showMessage('الرجاء إدخال كلمة المرور', 'error'); return; }
+                userData.password = password;
+                result = await window.supabaseClient.from('users').insert([userData]);
             }
+            if (result.error) throw result.error;
+            closeModal();
+            await loadUsers();
+            showMessage(userId ? 'تم تحديث المستخدم بنجاح' : 'تم إضافة المستخدم بنجاح', 'success');
+        } catch (error) {
+            showMessage('حدث خطأ: ' + error.message, 'error');
+        } finally {
+            isSaving = false;
+            saveBtn.innerHTML = originalHtml;
+            saveBtn.disabled = false;
         }
+    });
 
-        function closeNotificationsPanel() {
-            const panel = document.getElementById('notificationsPanel');
-            const overlay = document.getElementById('panelOverlay');
-            panel.classList.remove('open');
-            overlay.classList.remove('open');
-        }
+    function openResetPasswordModal(userId) { resetUserId = userId; document.getElementById('newPassword').value = ''; document.getElementById('resetPasswordModal').classList.add('active'); }
+    async function confirmResetPassword() {
+        const newPassword = document.getElementById('newPassword').value;
+        if (!newPassword) { showMessage('الرجاء إدخال كلمة المرور الجديدة', 'error'); return; }
+        const resetBtn = document.getElementById('resetPasswordBtn');
+        const originalHtml = resetBtn.innerHTML;
+        resetBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+        resetBtn.disabled = true;
+        try {
+            const { error } = await window.supabaseClient.from('users').update({ password: newPassword }).eq('id', resetUserId);
+            if (error) throw error;
+            closeResetPasswordModal();
+            showMessage('تم إعادة تعيين كلمة المرور بنجاح', 'success');
+        } catch (error) { showMessage('حدث خطأ', 'error'); }
+        finally { resetBtn.innerHTML = originalHtml; resetBtn.disabled = false; }
+    }
+    function openDeleteModal(userId) { deleteUserId = userId; document.getElementById('deleteModal').classList.add('active'); }
+    async function confirmDelete() {
+        if (!deleteUserId) return;
+        const deleteBtn = document.getElementById('deleteConfirmBtn');
+        const originalHtml = deleteBtn.innerHTML;
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحذف...';
+        deleteBtn.disabled = true;
+        try {
+            const { error } = await window.supabaseClient.from('users').delete().eq('id', deleteUserId);
+            if (error) throw error;
+            closeDeleteModal();
+            await loadUsers();
+            showMessage('تم حذف المستخدم بنجاح', 'success');
+        } catch (error) { showMessage('حدث خطأ', 'error'); }
+        finally { deleteBtn.innerHTML = originalHtml; deleteBtn.disabled = false; }
+    }
+    function closeModal() { document.getElementById('userModal').classList.remove('active'); isSaving = false; }
+    function closeResetPasswordModal() { document.getElementById('resetPasswordModal').classList.remove('active'); resetUserId = null; }
+    function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('active'); deleteUserId = null; }
+    
+    function showMessage(msg, type) {
+        const container = document.getElementById('notificationsContainer');
+        if (!container) return;
+        const el = document.createElement('div');
+        el.className = `notification-item ${type}`;
+        el.innerHTML = `<div style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-${type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-circle'}"></i><span>${msg}</span></div>`;
+        container.appendChild(el);
+        setTimeout(() => el.remove(), 3000);
+    }
+    
+    function updateUIForUser(user) {
+        const showAdminLinks = ['admin', 'support'].includes(user.role);
+        document.getElementById('adminLinks').style.display = showAdminLinks ? 'block' : 'none';
+        const showAnalytics = ['admin', 'support', 'manger'].includes(user.role);
+        document.getElementById('navAnalytics').style.display = showAnalytics ? 'flex' : 'none';
+        const summaryReportsLink = document.getElementById('summaryReportsLink');
+        if (summaryReportsLink) summaryReportsLink.style.display = (user.role === 'spuser') ? 'none' : 'flex';
+    }
 
-        async function loadNotifications() {
-            const listContainer = document.getElementById('notificationsList');
-            if (!listContainer) return;
-            listContainer.innerHTML = '<div class="empty-notifications"><div class="loader-small"></div><p>جاري تحميل الإشعارات...</p></div>';
-            try {
-                const result = await window.getRecentNotifications(currentUser?.id, 50);
-                if (result.success) {
-                    displayNotifications(result.data);
-                    await updateUnreadBadge();
-                    const markAllBtn = document.getElementById('markAllReadBtn');
-                    if (markAllBtn) {
-                        const hasUnread = result.data.some(n => !n.is_read);
-                        markAllBtn.style.display = hasUnread ? 'flex' : 'none';
+    // ==================== دوال الإشعارات ====================
+    
+    async function updateUnreadBadge() {
+        try {
+            const result = await window.getUnreadNotificationsCount(currentUser?.id);
+            if (result.success) {
+                const badge = document.getElementById('unreadBadge');
+                if (badge) {
+                    if (result.count > 0) {
+                        badge.textContent = result.count > 99 ? '99+' : result.count;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
                     }
-                } else {
-                    listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>';
                 }
-            } catch (error) {
-                console.error('Error loading notifications:', error);
+            }
+        } catch (error) {
+            console.error('Error updating badge:', error);
+        }
+    }
+
+    async function toggleNotificationsPanel() {
+        const panel = document.getElementById('notificationsPanel');
+        const overlay = document.getElementById('panelOverlay');
+        if (panel.classList.contains('open')) {
+            closeNotificationsPanel();
+        } else {
+            await loadNotifications();
+            panel.classList.add('open');
+            overlay.classList.add('open');
+        }
+    }
+
+    function closeNotificationsPanel() {
+        const panel = document.getElementById('notificationsPanel');
+        const overlay = document.getElementById('panelOverlay');
+        panel.classList.remove('open');
+        overlay.classList.remove('open');
+    }
+
+    async function loadNotifications() {
+        const listContainer = document.getElementById('notificationsList');
+        if (!listContainer) return;
+        listContainer.innerHTML = '<div class="empty-notifications"><div class="loader-small"></div><p>جاري تحميل الإشعارات...</p></div>';
+        try {
+            const result = await window.getRecentNotifications(currentUser?.id, 50);
+            if (result.success) {
+                displayNotifications(result.data);
+                await updateUnreadBadge();
+                const markAllBtn = document.getElementById('markAllReadBtn');
+                if (markAllBtn) {
+                    const hasUnread = result.data.some(n => !n.is_read);
+                    markAllBtn.style.display = hasUnread ? 'flex' : 'none';
+                }
+            } else {
                 listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>';
             }
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+            listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>';
         }
-
-        function displayNotifications(notifications) {
-            const listContainer = document.getElementById('notificationsList');
-            if (!notifications || notifications.length === 0) {
-                listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
-                return;
-            }
-            listContainer.innerHTML = notifications.map(notification => `
-                <div class="notification-list-item ${!notification.is_read ? 'unread' : ''}" onclick="viewNotification(${notification.id})">
-                    <div class="title">${escapeHtml(notification.title)}</div>
-                    <div class="message">${escapeHtml(notification.message)}</div>
-                    <div class="time">${formatNotificationTime(notification.created_at)}</div>
-                    <button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${notification.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        function showNotificationMessage(title, message, type = 'info') {
-            const container = document.getElementById('notificationsContainer');
-            if (!container) return;
-            // إضافة تأثير اهتزاز للأيقونة عند وصول إشعار جديد
-    const notificationBtn = document.querySelector('.notification-badge');
-    if (notificationBtn) {
-        notificationBtn.classList.add('has-unread');
-        // إزالة الكلاس بعد انتهاء الاهتزاز
-        setTimeout(() => {
-            // لا نزيل الكلاس إذا كان لا يزال هناك إشعارات غير مقروءة
-            const badge = document.getElementById('unreadBadge');
-            if (badge && badge.style.display === 'none') {
-                notificationBtn.classList.remove('has-unread');
-            }
-        }, 600);
     }
-            const notification = document.createElement('div');
-            notification.className = `notification-item ${type}`;
-            notification.innerHTML = `<div class="notification-title">${escapeHtml(title)}</div><div class="notification-message">${escapeHtml(message)}</div><div class="notification-time">الآن</div>`;
-            notification.onclick = () => { notification.remove(); toggleNotificationsPanel(); };
-            container.appendChild(notification);
-            updateUnreadBadge();
-            setTimeout(() => { if (notification && notification.remove) notification.remove(); }, 5000);
+
+    function displayNotifications(notifications) {
+        const listContainer = document.getElementById('notificationsList');
+        if (!notifications || notifications.length === 0) {
+            listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
+            return;
+        }
+        listContainer.innerHTML = notifications.map(notification => `
+            <div class="notification-list-item ${!notification.is_read ? 'unread' : ''}" onclick="viewNotification(${notification.id})">
+                <div class="title">${escapeHtml(notification.title)}</div>
+                <div class="message">${escapeHtml(notification.message)}</div>
+                <div class="time">${formatNotificationTime(notification.created_at)}</div>
+                <button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${notification.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    async function viewNotification(notificationId) {
+        try {
+            const result = await window.handleNotificationClick(notificationId);
+            if (!result.success) {
+                await window.markNotificationAsRead(notificationId);
+                await updateUnreadBadge();
+                await loadNotifications();
+                showMessage('تم تحديث الإشعار', 'success');
+            }
+        } catch (error) { 
+            console.error('Error handling notification:', error);
+            showMessage('حدث خطأ في فتح الإشعار', 'error');
+        }
+    }
+
+    async function deleteNotificationItem(notificationId) {
+        try {
+            await window.deleteNotification(notificationId);
+            await loadNotifications();
+            await updateUnreadBadge();
+        } catch (error) {
+            console.error('Error deleting notification:', error);
+            showMessage('حدث خطأ في حذف الإشعار', 'error');
+        }
+    }
+
+    async function markAllAsRead() {
+        try {
+            await window.markAllNotificationsAsRead(currentUser?.id);
+            await loadNotifications();
+            await updateUnreadBadge();
+            showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success');
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+            showMessage('حدث خطأ في تحديث الإشعارات', 'error');
+        }
+    }
+
+    function formatNotificationTime(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        if (diffMins < 1) return 'الآن';
+        if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
+        if (diffHours < 24) return `منذ ${diffHours} ساعة`;
+        if (diffDays < 7) return `منذ ${diffDays} يوم`;
+        return date.toLocaleDateString('ar-SA');
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    let notificationInterval = null;
+
+    function startNotificationPolling() {
+        if (notificationInterval) clearInterval(notificationInterval);
+        notificationInterval = setInterval(async () => {
+            if (currentUser && document.hasFocus()) {
+                const result = await window.getUnreadNotificationsCount(currentUser.id);
+                if (result.success && result.count > 0) updateUnreadBadge();
+            }
+        }, 30000);
+    }
+
+    function stopNotificationPolling() {
+        if (notificationInterval) { clearInterval(notificationInterval); notificationInterval = null; }
+    }
+
+    // ==================== دوال تنظيف الإشعارات لجميع المستخدمين ====================
+
+        // فتح مودال تأكيد التنظيف
+        function openCleanupConfirmModal() {
+            document.getElementById('cleanupConfirmModal').classList.add('active');
         }
 
-        async function viewNotification(notificationId) {
+        // إغلاق مودال تأكيد التنظيف
+        function closeCleanupConfirmModal() {
+            document.getElementById('cleanupConfirmModal').classList.remove('active');
+        }
+
+        // تنفيذ التنظيف بعد التأكيد
+        async function confirmCleanup() {
+            closeCleanupConfirmModal();
+            
+            const cleanupBtn = document.getElementById('cleanupBtn');
+            const originalHtml = cleanupBtn.innerHTML;
+            cleanupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التنظيف...';
+            cleanupBtn.disabled = true;
+            
+            try {
+                showMessage('🔍 جاري البحث عن الإشعارات القديمة...', 'info');
+                
+                const fifteenDaysAgo = new Date();
+                fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+                
+                // جلب الإشعارات القديمة
+                const { data: oldNotifications, error: fetchError } = await window.supabaseClient
+                    .from('notifications')
+                    .select('id, user_id')
+                    .lt('created_at', fifteenDaysAgo.toISOString());
+                
+                if (fetchError) throw fetchError;
+                
+                if (!oldNotifications || oldNotifications.length === 0) {
+                    showMessage('📭 لا توجد إشعارات قديمة (أكثر من 15 يوم) في النظام', 'info');
+                    cleanupBtn.innerHTML = originalHtml;
+                    cleanupBtn.disabled = false;
+                    return;
+                }
+                
+                const uniqueUsers = [...new Set(oldNotifications.map(n => n.user_id))];
+                const deletedCount = oldNotifications.length;
+                
+                showMessage(`📊 تم العثور على ${deletedCount} إشعار قديم لـ ${uniqueUsers.length} مستخدم. جاري الحذف...`, 'info');
+                
+                // حذف الإشعارات القديمة
+                const { error: deleteError } = await window.supabaseClient
+                    .from('notifications')
+                    .delete()
+                    .lt('created_at', fifteenDaysAgo.toISOString());
+                
+                if (deleteError) throw deleteError;
+                
+                // تحديث وقت آخر تنظيف لكل مستخدم
+                for (const userId of uniqueUsers) {
+                    localStorage.setItem(`lastCleanup_${userId}`, Date.now().toString());
+                }
+                
+                // تحديث الواجهة
+                await updateUnreadBadge();
+                if (document.getElementById('notificationsPanel')?.classList.contains('open')) {
+                    await loadNotifications();
+                }
+                
+                showMessage(`✅ تم حذف ${deletedCount} إشعار قديم لـ ${uniqueUsers.length} مستخدم`, 'success');
+                
+            } catch (error) {
+                console.error('Error cleaning up:', error);
+                showMessage('❌ حدث خطأ في تنظيف الإشعارات: ' + error.message, 'error');
+            } finally {
+                cleanupBtn.innerHTML = originalHtml;
+                cleanupBtn.disabled = false;
+            }
+        }
+
+        // ==================================== دالة عرض الإحصائيات في المودال =======================================================
+
+async function showCleanupStatsModal() {
+    const modal = document.getElementById('statsModal');
+    const content = document.getElementById('statsContent');
+    modal.classList.add('active');
+    content.innerHTML = '<div style="text-align: center;"><div class="loader"></div><p>جاري تحميل الإحصائيات...</p></div>';
+    
     try {
-        // استخدام الدالة الموحدة من supabase.js
-        const result = await window.handleNotificationClick(notificationId);
+        const fifteenDaysAgo = new Date();
+        fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
         
-        if (!result.success) {
-            // fallback: تحديث حالة القراءة فقط
-            await window.markNotificationAsRead(notificationId);
-            await updateUnreadBadge();
-            await loadNotifications();
-            showMessage('تم تحديث الإشعار', 'success');
+        // جلب الإشعارات القديمة
+        const { data: oldNotifications, error: oldError, count: oldCount } = await window.supabaseClient
+            .from('notifications')
+            .select('user_id', { count: 'exact' })
+            .lt('created_at', fifteenDaysAgo.toISOString());
+        
+        if (oldError) throw oldError;
+        
+        // جلب أقدم إشعار
+        const { data: oldestNotif, error: oldestError } = await window.supabaseClient
+            .from('notifications')
+            .select('created_at')
+            .order('created_at', { ascending: true })
+            .limit(1);
+        
+        if (oldestError) throw oldestError;
+        
+        // جلب أحدث إشعار
+        const { data: latestNotif, error: latestError } = await window.supabaseClient
+            .from('notifications')
+            .select('created_at')
+            .order('created_at', { ascending: false })
+            .limit(1);
+        
+        if (latestError) throw latestError;
+        
+        // جلب إجمالي الإشعارات
+        const { count: totalCount, error: totalError } = await window.supabaseClient
+            .from('notifications')
+            .select('*', { count: 'exact', head: true });
+        
+        if (totalError) throw totalError;
+        
+        // جلب الإشعارات غير المقروءة
+        const { count: unreadCount, error: unreadError } = await window.supabaseClient
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('is_read', false);
+        
+        if (unreadError) throw unreadError;
+        
+        const uniqueUsers = oldNotifications ? [...new Set(oldNotifications.map(n => n.user_id))].length : 0;
+        const totalOld = oldCount || 0;
+        
+        // حساب تواريخ الإشعارات
+        let oldestDate = 'لا يوجد';
+        let oldestDays = 0;
+        let latestDate = 'لا يوجد';
+        
+        if (oldestNotif && oldestNotif.length > 0) {
+            const date = new Date(oldestNotif[0].created_at);
+            oldestDate = date.toLocaleDateString('ar-SA');
+            const now = new Date();
+            oldestDays = Math.ceil((now - date) / (1000 * 60 * 60 * 24));
         }
         
-    } catch (error) { 
-        console.error('Error handling notification:', error);
-        showMessage('حدث خطأ في فتح الإشعار', 'error');
+        if (latestNotif && latestNotif.length > 0) {
+            const date = new Date(latestNotif[0].created_at);
+            latestDate = date.toLocaleDateString('ar-SA');
+        }
+        
+        // بناء محتوى المودال
+        content.innerHTML = `
+            <div style="direction: rtl;">
+                <div style="background: #f8fafd; border-radius: 16px; padding: 1rem; margin-bottom: 1rem;">
+                    <table style="width: 100%;">
+                        <tr style="border-bottom: 1px solid #eef2f7;">
+                            <td style="padding: 0.75rem 0;"><i class="fas fa-envelope" style="color: #1e3c72; width: 30px;"></i> إجمالي الإشعارات:</td>
+                            <td style="padding: 0.75rem 0; text-align: left;"><strong>${totalCount || 0}</strong></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #eef2f7;">
+                            <td style="padding: 0.75rem 0;"><i class="fas fa-eye" style="color: #2e9b54; width: 30px;"></i> غير مقروء:</td>
+                            <td style="padding: 0.75rem 0; text-align: left;"><strong style="color: #e34f76;">${unreadCount || 0}</strong></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #eef2f7;">
+                            <td style="padding: 0.75rem 0;"><i class="fas fa-calendar-alt" style="color: #f59e0b; width: 30px;"></i> أقدم إشعار:</td>
+                            <td style="padding: 0.75rem 0; text-align: left;"><strong>${oldestDate}</strong> ${oldestDays > 0 ? `(منذ ${oldestDays} يوم)` : ''}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #eef2f7;">
+                            <td style="padding: 0.75rem 0;"><i class="fas fa-calendar-check" style="color: #2e9b54; width: 30px;"></i> أحدث إشعار:</td>
+                            <td style="padding: 0.75rem 0; text-align: left;"><strong>${latestDate}</strong></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background: ${totalOld > 0 ? '#fff2f5' : '#eef9f0'}; border-radius: 16px; padding: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                        <i class="fas ${totalOld > 0 ? 'fa-exclamation-triangle' : 'fa-check-circle'}" style="color: ${totalOld > 0 ? '#e34f76' : '#2e9b54'}; font-size: 1.2rem;"></i>
+                        <h4 style="margin: 0; color: ${totalOld > 0 ? '#e34f76' : '#2e9b54'};">${totalOld > 0 ? 'إشعارات قديمة' : 'جميع الإشعارات حديثة'}</h4>
+                    </div>
+                    ${totalOld > 0 ? `
+                        <p style="margin: 0.5rem 0; color: #4e6580;">
+                            <strong>${totalOld}</strong> إشعار أقدم من 15 يوم
+                        </p>
+                        <p style="margin: 0.5rem 0; color: #4e6580;">
+                            <strong>${uniqueUsers}</strong> مستخدم لديهم إشعارات قديمة
+                        </p>
+                        <button onclick="closeStatsModal(); openCleanupConfirmModal();" class="btn-primary" style="margin-top: 1rem; background: linear-gradient(135deg, #e34f76, #c13b5c); width: 100%;">
+                            <i class="fas fa-trash-alt"></i> تنظيف الإشعارات القديمة
+                        </button>
+                    ` : `
+                        <p style="margin: 0.5rem 0; color: #4e6580;">
+                            ✅ جميع الإشعارات ${totalCount > 0 ? 'أحدث من 15 يوم' : 'لا توجد إشعارات في النظام'}
+                        </p>
+                    `}
+                </div>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error getting stats:', error);
+        content.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e34f76; margin-bottom: 1rem;"></i>
+                <p style="color: #4e6580;">حدث خطأ في جلب الإحصائيات</p>
+                <p style="color: #e34f76; font-size: 0.85rem;">${error.message}</p>
+            </div>
+        `;
     }
 }
 
-        async function deleteNotificationItem(notificationId) {
-            try {
-                await window.deleteNotification(notificationId);
-                await loadNotifications();
-                await updateUnreadBadge();
-            } catch (error) {
-                console.error('Error deleting notification:', error);
-                showNotificationMessage('حدث خطأ', 'لم نتمكن من حذف الإشعار', 'error');
-            }
-        }
-
-        async function markAllAsRead() {
-            try {
-                await window.markAllNotificationsAsRead(currentUser?.id);
-                await loadNotifications();
-                await updateUnreadBadge();
-                showNotificationMessage('تم التحديث', 'تم تعيين جميع الإشعارات كمقروءة', 'success');
-            } catch (error) {
-                console.error('Error marking all as read:', error);
-                showNotificationMessage('حدث خطأ', 'لم نتمكن من تحديث الإشعارات', 'error');
-            }
-        }
-
-        function formatNotificationTime(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-            if (diffMins < 1) return 'الآن';
-            if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
-            if (diffHours < 24) return `منذ ${diffHours} ساعة`;
-            if (diffDays < 7) return `منذ ${diffDays} يوم`;
-            return date.toLocaleDateString('ar-SA');
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        let notificationInterval = null;
-
-        function startNotificationPolling() {
-            if (notificationInterval) clearInterval(notificationInterval);
-            notificationInterval = setInterval(async () => {
-                if (currentUser && document.hasFocus()) {
-                    const result = await window.getUnreadNotificationsCount(currentUser.id);
-                    if (result.success && result.count > 0) updateUnreadBadge();
-                }
-            }, 30000);
-        }
-
-        function stopNotificationPolling() {
-            if (notificationInterval) { clearInterval(notificationInterval); notificationInterval = null; }
-        }
-    </script>
-    <script>
-// ===================== تحسين أزرار البحث والمسح والتصدير =====================
-(function() {
-    function setButtonLoading(btn, isLoading, loadingText) {
-        if (!btn) return;
-        if (isLoading) {
-            // حفظ المحتوى الأصلي
-            if (!btn.getAttribute('data-original')) {
-                btn.setAttribute('data-original', btn.innerHTML);
-            }
-            btn.disabled = true;
-            btn.style.opacity = '0.6';
-            btn.style.cursor = 'wait';
-            // الحفاظ على الأيقونة وإضافة spinning
-            const icon = btn.querySelector('i');
-            const iconClass = icon ? icon.className : 'fas fa-spinner';
-            btn.innerHTML = `<i class="${iconClass} fa-spin"></i> ${loadingText}`;
-        } else {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
-            const original = btn.getAttribute('data-original');
-            if (original) {
-                btn.innerHTML = original;
-            }
-        }
-    }
-
-    // البحث عن الأزرار بعد تحميل الصفحة
-    setTimeout(() => {
-        const btns = document.querySelectorAll('.filters-bar button');
-        let searchBtn = null, clearBtn = null, exportBtn = null;
-        
-        btns.forEach(btn => {
-            const text = btn.innerText || btn.textContent;
-            if (text.includes('بحث') && !searchBtn) searchBtn = btn;
-            else if (text.includes('مسح') && !clearBtn) clearBtn = btn;
-            else if (text.includes('تصدير') && !exportBtn) exportBtn = btn;
-        });
-        
-        // تعديل زر البحث
-        if (searchBtn && !searchBtn.hasAttribute('data-fixed')) {
-            searchBtn.setAttribute('data-fixed', 'true');
-            const oldOnclick = searchBtn.onclick;
-            searchBtn.onclick = function(e) {
-                if (searchBtn.disabled) return;
-                setButtonLoading(searchBtn, true, 'جاري البحث...');
-                
-                // تنفيذ البحث الأصلي
-                if (typeof filterReports === 'function') {
-                    filterReports();
-                } else if (oldOnclick) {
-                    oldOnclick.call(searchBtn, e);
-                }
-                
-                // تأخير إعادة الزر لمدة 1 ثانية حتى يراها المستخدم
-                setTimeout(() => setButtonLoading(searchBtn, false), 1000);
-            };
-        }
-        
-        // تعديل زر المسح
-        if (clearBtn && !clearBtn.hasAttribute('data-fixed')) {
-            clearBtn.setAttribute('data-fixed', 'true');
-            const oldOnclick = clearBtn.onclick;
-            clearBtn.onclick = function(e) {
-                if (clearBtn.disabled) return;
-                setButtonLoading(clearBtn, true, 'جاري المسح...');
-                
-                if (typeof clearFilters === 'function') {
-                    clearFilters();
-                } else if (oldOnclick) {
-                    oldOnclick.call(clearBtn, e);
-                }
-                
-                // تأخير إعادة الزر لمدة 1 ثانية
-                setTimeout(() => setButtonLoading(clearBtn, false), 1000);
-            };
-        }
-        
-        // تعديل زر التصدير
-        if (exportBtn && !exportBtn.hasAttribute('data-fixed')) {
-            exportBtn.setAttribute('data-fixed', 'true');
-            const oldOnclick = exportBtn.onclick;
-            exportBtn.onclick = function(e) {
-                if (exportBtn.disabled) return;
-                setButtonLoading(exportBtn, true, 'جاري التصدير...');
-                
-                if (typeof exportToExcel === 'function') {
-                    exportToExcel();
-                } else if (oldOnclick) {
-                    oldOnclick.call(exportBtn, e);
-                }
-                
-                // تأخير إعادة الزر لمدة 1.5 ثانية للتصدير
-                setTimeout(() => setButtonLoading(exportBtn, false), 1500);
-            };
-        }
-    }, 500);
-})();
+function closeStatsModal() {
+    document.getElementById('statsModal').classList.remove('active');
+}
+               
 </script>
 </body>
 </html>

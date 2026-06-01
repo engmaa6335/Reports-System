@@ -29,7 +29,7 @@
         .sidebar-nav { flex: 1; padding: 1rem; }
         .sidebar-nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: #4e6580; text-decoration: none; border-radius: 12px; margin-bottom: 0.25rem; transition: all 0.2s; }
         .sidebar-nav a:hover { background: #e8f0fe; color: #1e3c72; }
-        .sidebar-nav a.active { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; }
+        .sidebar-nav a.active { background: linear-gradient(135deg, #1e3c72, #153155); color: white; }
         .sidebar-footer { padding: 1rem; border-top: 1px solid #eef2f7; }
         .user-info { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
         .user-avatar { width: 45px; height: 45px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
@@ -140,8 +140,19 @@
         .panel-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999997 !important; display: none; }
         .panel-overlay.open { display: block; }
         .badge-count { position: absolute; top: -8px; right: -8px; background: #e34f76; color: white; font-size: 0.65rem; font-weight: 600; min-width: 18px; height: 18px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
-        .notifications-trigger button { background: none; border: none; width: 100%; text-align: right; padding: 0.75rem 1rem; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; color: #4e6580; position: relative; }
+        .notifications-trigger { margin: 0.5rem 1rem; }
+        .notifications-trigger button {
+            background: none; border: none; width: 100%; text-align: center;
+            padding: 0.75rem 1rem; border-radius: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+            color: #4e6580; position: relative; font-size: 0.9rem;
+        }
         .notifications-trigger button:hover { background: #f0f4fa; color: #1e3c72; }
+        .badge-count {
+            position: absolute; top: -8px; right: 20px; background: #e34f76; color: white;
+            font-size: 0.65rem; font-weight: 600; min-width: 18px; height: 18px;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 0 4px;
+        }
 
         #deleteSummaryModal .modal-content { max-width: 400px; text-align: center; }
         

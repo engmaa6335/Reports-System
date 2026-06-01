@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>التقارير التجميعية - نظام التقارير التربوية</title>
     <link rel="icon" type="image/png" sizes="32x32" href="lib/favicon-32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="lib/favicon-16.png">
@@ -21,6 +21,74 @@
     <script src="js/supabase.js"></script>
     
     <style>
+        /* ======= تنسيق القائمة الجانبية المتجاوبة مثل overview ======= */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; overflow-x: hidden; }
+
+        .sidebar {
+            position: fixed; right: 0; top: 0; width: 280px; height: 100%;
+            background: white; border-left: 1px solid #eef2f7; transition: right 0.3s ease;
+            z-index: 1000; display: flex; flex-direction: column;
+        }
+        @media (max-width: 768px) {
+            .sidebar { right: -280px; }
+            .sidebar.open { right: 0; box-shadow: -5px 0 25px rgba(0,0,0,0.15); }
+            .main-content { margin-right: 0 !important; }
+            .toggle-sidebar { display: flex !important; }
+        }
+        
+        .toggle-sidebar {
+            display: none;
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #1e3c72;
+            transition: all 0.2s;
+        }
+        .toggle-sidebar:hover { background: #f0f4fa; transform: scale(1.05); }
+        
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            transition: all 0.3s;
+        }
+       
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #eef2f7; text-align: center; }
+        .sidebar-logo { width: 50px; height: 50px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem; }
+        .sidebar-header h2 { font-size: 1.1rem; color: #1e3c72; margin-bottom: 0.25rem; }
+        .user-role { font-size: 0.75rem; color: #8ba0bc; }
+        .sidebar-nav { flex: 1; padding: 1rem; }
+        .sidebar-nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: #4e6580; text-decoration: none; border-radius: 12px; margin-bottom: 0.25rem; transition: all 0.2s; }
+        .sidebar-nav a:hover { background: #e8f0fe; color: #1e3c72; }
+        .sidebar-nav a.active { background: linear-gradient(135deg, #1e3c72, #153155); color: white; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid #eef2f7; }
+        .user-info { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+        .user-avatar { width: 45px; height: 45px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+        .user-name { font-size: 0.9rem; font-weight: 600; color: #1e3c72; }
+        .user-district { font-size: 0.7rem; color: #8ba0bc; }
+        .logout-btn { width: 100%; padding: 0.75rem; background: none; border: 1px solid #e34f76; color: #e34f76; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .logout-btn:hover { background: #fff2f5; }
+        
+        .main-content { margin-right: 280px; min-height: 100vh; padding: 1.5rem; transition: margin-right 0.3s ease; }
+        
+        /* باقي التنسيقات الأصلية */
         .notifications-container { position: fixed; top: 20px; left: 20px; z-index: 9999; max-width: 350px; }
         .notification-item { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-right: 4px solid #1e3c72; animation: slideIn 0.3s ease; cursor: pointer; }
         .notification-item.success { border-right-color: #2e9b54; }
@@ -57,6 +125,24 @@
             overflow-y: auto;
         }
         .modal-large { max-width: 1300px; width: 95%; }
+        
+        /* أنماط مودال التنبيه */
+        .alert-modal-content { max-width: 550px; text-align: center; }
+        .alert-icon { width: 80px; height: 80px; background: linear-gradient(135deg, #eef2ff, #e0e8f5); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+        .alert-icon i { font-size: 2.5rem; color: #1e3c72; }
+        .alert-icon.info i { color: #1e3c72; }
+        .alert-title { font-size: 1.3rem; font-weight: 700; color: #1e3c72; margin-bottom: 0.75rem; }
+        .alert-message { color: #4e6580; font-size: 0.95rem; line-height: 1.7; margin-bottom: 1rem; text-align: center; }
+        .alert-steps { background: #f8fafd; border-radius: 16px; padding: 1rem; margin: 1rem 0; text-align: right; }
+        .alert-steps p { color: #1e3c72; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .alert-steps ol { margin: 0; padding-right: 1.5rem; color: #4e6580; font-size: 0.85rem; line-height: 1.8; }
+        .alert-steps li { margin-bottom: 0.5rem; }
+        .alert-steps li i { margin-left: 0.5rem; color: #2e9b54; }
+        .green-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: #eef9f0; color: #2e9b54; padding: 0.3rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 500; }
+        .alert-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .alert-buttons button { flex: 1; padding: 0.85rem; border-radius: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-got-it { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; }
+        .btn-got-it:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30,60,114,0.3); }
         
         .action-link.edit { color: #f59e0b !important; }
         .action-link.delete { color: #e34f76 !important; }
@@ -219,13 +305,13 @@
         
         #pageSizeSelect{ padding: 10px;border-radius: 10px;border: 1px solid #e2e8f0;;color: #3c4c5f;}
         .notifications-trigger button {
-            background: none; border: none; width: 100%; text-align: right; padding: 0.75rem 1rem;
-            border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;
-            color: #4e6580; transition: all 0.2s;
+            background: none; border: none; width: 100%; text-align: center; padding: 0.75rem 1rem;
+            border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+            color: #4e6580; transition: all 0.2s; position: relative;
         }
         .notification-badge { position: relative; }
         .badge-count {
-            position: absolute; top: -8px; right: -8px; background: #e34f76; color: white;
+            position: absolute; top: -8px; right: 20px; background: #e34f76; color: white;
             font-size: 0.65rem; font-weight: 600; min-width: 18px; height: 18px; border-radius: 10px;
             display: flex; align-items: center; justify-content: center; padding: 0 4px;
         }
@@ -316,118 +402,141 @@
         .flatpickr-input[readonly] { background-color: white; cursor: pointer; }
         
         .form-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .filters-bar { background: white; padding: 1rem; border-radius: 20px; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
+        .filter-group { flex: 1; min-width: 150px; }
+        .filter-group label { display: block; font-size: 0.75rem; margin-bottom: 0.25rem; color: #4e6580; }
+        .filter-group input, .filter-group select { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 10px; }
+        .btn-primary { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; border: none; padding: 0.5rem 1rem; border-radius: 10px; cursor: pointer; }
+        .btn-secondary { background: #eef2f7; color: #4e6580; border: none; padding: 0.5rem 1rem; border-radius: 10px; cursor: pointer; }
+        .table-container { background: white; border-radius: 20px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .modern-table { width: 100%; border-collapse: collapse; }
+        .modern-table th, .modern-table td { padding: 12px 16px; text-align: right; border-bottom: 1px solid #eef2f7; }
+        .badge { padding: 0.25rem 0.75rem; border-radius: 30px; font-size: 0.75rem; font-weight: 600; }
+        .badge-primary { background: #e8f0fe; color: #1e3c72; }
+        .badge-success { background: #eef9f0; color: #2e9b54; }
+        .action-link { text-decoration: none; margin: 0 0.25rem; font-size: 1rem; }
         
         @media (max-width: 768px) {
             .activity-row, .activities-header { grid-template-columns: 1fr; gap: 0.5rem; }
             .notifications-panel { width: 100%; left: -100%; }
             .pagination-btn { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+            .filters-bar { flex-direction: column; }
         }
     </style>
 </head>
 <body>
-<div class="app-container">
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
-            <h2>نظام التقارير التربوية</h2>
-            <p class="user-role" id="userRoleDisplay">...</p>
+
+<!-- زر فتح القائمة للجوال -->
+<button class="toggle-sidebar" id="toggleSidebarBtn" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- تغطية الخلفية عند فتح القائمة -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- القائمة الجانبية -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
+        <h2>نظام التقارير التربوية</h2>
+        <p class="user-role" id="userRoleDisplay">...</p>
+    </div>
+    
+    <div class="notifications-trigger" style="margin: 0.5rem 1rem;">
+        <button onclick="toggleNotificationsPanel()" class="notification-badge">
+            <i class="fas fa-bell" style="font-size: 1.1rem;"></i>
+            <span>الإشعارات</span>
+            <span id="unreadBadge" class="badge-count" style="display: none;">0</span>
+        </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
+        <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
+        <a href="summary-reports.html" class="active"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
+        <a href="analytics.html" id="navAnalytics" style="display: none;"><i class="fas fa-chart-bar"></i> التحليلات</a>
+        <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
+        <div id="adminLinks" style="display: none;">
+            <a href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+            <a href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
         </div>
-        
-        <div class="notifications-trigger" style="margin: 0.5rem 1rem;">
-            <button onclick="toggleNotificationsPanel()" class="notification-badge">
-                <i class="fas fa-bell" style="font-size: 1.1rem;"></i>
-                <span>الإشعارات</span>
-                <span id="unreadBadge" class="badge-count" style="display: none;">0</span>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <div class="user-info">
+            <div class="user-avatar"><i class="fas fa-user"></i></div>
+            <div>
+                <h4 class="user-name" id="userNameDisplay">...</h4>
+                <p class="user-district" id="userDistrictDisplay">...</p>
+            </div>
+        </div>
+        <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 class="section-title" style="margin-bottom: 0.5rem;"><i class="fas fa-chart-line"></i> التقارير التجميعية</h1>
+            <p style="color: #4e6580;">إدارة التقارير النصف شهرية للمختصين التربويين - إجمالي <span id="totalReportsHint">0</span> تقرير</p>
+        </div>
+        <div>
+            <button onclick="openAddReportModal()" class="btn-primary" id="addReportBtn" style="display: none;">
+                <i class="fas fa-plus"></i> إضافة تقرير تجميعي جديد
             </button>
         </div>
-        
-        <nav class="sidebar-nav">
-            <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
-            <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
-            <a href="summary-reports.html" class="active"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
-            <a href="analytics.html" id="navAnalytics" style="display: none;"><i class="fas fa-chart-bar"></i> التحليلات</a>
-            <div id="adminLinks" style="display: none;">
-                <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
-                <a href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
-                <a href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
-            </div>
-        </nav>
-        
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <div class="user-avatar"><i class="fas fa-user"></i></div>
-                <div class="user-details">
-                    <h4 class="user-name" id="userNameDisplay">...</h4>
-                    <p class="user-district" id="userDistrictDisplay">...</p>
-                </div>
-            </div>
-            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
-        </div>
-    </aside>
+    </div>
 
-    <main class="main-content">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-            <div>
-                <h1 class="section-title" style="margin-bottom: 0.5rem;"><i class="fas fa-chart-line"></i> التقارير التجميعية</h1>
-                <p style="color: #4e6580;">إدارة التقارير النصف شهرية للمختصين التربويين - إجمالي <span id="totalReportsHint">0</span> تقرير</p>
-            </div>
-            <div>
-                <button onclick="openAddReportModal()" class="btn-primary" id="addReportBtn" style="display: none;">
-                    <i class="fas fa-plus"></i> إضافة تقرير تجميعي جديد
-                </button>
-            </div>
+    <div class="filters-bar">
+        <div class="filter-group"><label><i class="fas fa-search"></i> بحث (مختص / منطقة)</label><input type="text" id="searchInput" class="form-input" placeholder="مختص / منطقة"></div>
+        <div class="filter-group"><label><i class="fas fa-filter"></i> نوع التقرير</label><select id="reportTypeFilter" class="form-input"><option value="">الكل</option><option value="in_person">وجاهي</option><option value="remote">عن بعد</option></select></div>
+        <div class="filter-group"><label><i class="fas fa-calendar"></i> من تاريخ</label><input type="text" id="dateFrom" class="form-input filter-date-picker" placeholder="dd/mm/yyyy" readonly></div>
+        <div class="filter-group"><label><i class="fas fa-calendar"></i> إلى تاريخ</label><input type="text" id="dateTo" class="form-input filter-date-picker" placeholder="dd/mm/yyyy" readonly></div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button onclick="applyFilters()" class="btn-primary"><i class="fas fa-search"></i> بحث</button>
+            <button onclick="clearFilters()" class="btn-secondary"><i class="fas fa-eraser"></i> مسح</button>
+            <button onclick="exportToExcel()" class="btn-secondary" style="background: #2e9b54; color: white;"><i class="fas fa-file-excel"></i> تصدير إكسل</button>
         </div>
+    </div>
 
-        <div class="filters-bar">
-            <div class="filter-group"><label><i class="fas fa-search"></i> بحث</label><input type="text" id="searchInput" class="form-input" placeholder="مختص / منطقة"></div>
-            <div class="filter-group"><label><i class="fas fa-filter"></i> نوع التقرير</label><select id="reportTypeFilter" class="form-input"><option value="">الكل</option><option value="in_person">وجاهي</option><option value="remote">عن بعد</option></select></div>
-            <div class="filter-group"><label><i class="fas fa-calendar"></i> من تاريخ</label><input type="text" id="dateFrom" class="form-input filter-date-picker" placeholder="dd/mm/yyyy" readonly></div>
-            <div class="filter-group"><label><i class="fas fa-calendar"></i> إلى تاريخ</label><input type="text" id="dateTo" class="form-input filter-date-picker" placeholder="dd/mm/yyyy" readonly></div>
-            <div style="display: flex; gap: 0.5rem;">
-                <button onclick="applyFilters()" class="btn-primary"><i class="fas fa-search"></i> بحث</button>
-                <button onclick="clearFilters()" class="btn-secondary"><i class="fas fa-eraser"></i> مسح</button>
-                <button onclick="exportToExcel()" class="btn-secondary" style="background: #2e9b54; color: white;"><i class="fas fa-file-excel"></i> تصدير إكسل</button>
-            </div>
+    <div class="reports-control-bar">
+        <div class="reports-info">
+            <i class="fas fa-chart-line"></i> إجمالي التقارير: <strong id="totalCountDisplay">0</strong>
         </div>
-
-        <div class="reports-control-bar">
-            <div class="reports-info">
-                <i class="fas fa-chart-line"></i> إجمالي التقارير: <strong id="totalCountDisplay">0</strong>
-            </div>
-            <div class="page-size-selector">
-                <span style="color:#1e3c72;">عرض:</span>
-                <select id="pageSizeSelect">
-                    <option value="10">10</option>
-                    <option value="25" selected>25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-                <span style="color:#1e3c72;">تقرير لكل صفحة</span>
-            </div>
+        <div class="page-size-selector">
+            <span style="color:#1e3c72;">عرض:</span>
+            <select id="pageSizeSelect">
+                <option value="10">10</option>
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <span style="color:#1e3c72;">تقرير لكل صفحة</span>
         </div>
+    </div>
 
-        <div id="loadingProgress" class="loading-progress" style="display: none;">
-            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
-            <div class="loading-stats" id="loadingStats"></div>
+    <div id="loadingProgress" class="loading-progress" style="display: none;">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <div class="loading-stats" id="loadingStats"></div>
+    </div>
+
+    <div class="table-container">
+        <div style="overflow-x: auto;">
+            <table class="modern-table">
+                <thead>
+                    <tr><th>#</th><th>تاريخ الإنشاء</th><th>النوع</th><th>الفترة</th><th>المنطقة</th><th>المختص</th><th>عدد الزيارات</th><th>الإجراءات</th></tr>
+                </thead>
+                <tbody id="reportsTableBody">
+                    <tr><td colspan="8" style="text-align: center; padding: 3rem;"><div class="loader"></div><p>جاري تحميل التقارير...</p></td></tr>
+                </tbody>
+            </table>
         </div>
+        <div id="paginationContainer" class="pagination-container"></div>
+        <div style="margin-top: 1rem; color: #4e6580; text-align: center;" id="resultsCount"></div>
+    </div>
+</main>
 
-        <div class="table-container">
-            <div style="overflow-x: auto;">
-                <table class="modern-table">
-                    <thead>
-                        <tr><th>#</th><th>تاريخ الإنشاء</th><th>النوع</th><th>الفترة</th><th>المنطقة</th><th>المختص</th><th>عدد الزيارات</th><th>الإجراءات</th></tr>
-                    </thead>
-                    <tbody id="reportsTableBody">
-                        <tr><td colspan="8" style="text-align: center; padding: 3rem;"><div class="loader"></div><p>جاري تحميل التقارير...</p></td></tr>
-                    </tbody>
-                </table>
-            </div>
-            <div id="paginationContainer" class="pagination-container"></div>
-            <div style="margin-top: 1rem; color: #4e6580; text-align: center;" id="resultsCount"></div>
-        </div>
-    </main>
-</div>
-
+<!-- مودال إضافة/تعديل التقرير التجميعي -->
 <div id="summaryReportModal" class="modal">
     <div class="modal-content modal-large">
         <div class="modal-header">
@@ -528,6 +637,7 @@
     </div>
 </div>
 
+<!-- مودال عرض التقرير -->
 <div id="viewModal" class="modal">
     <div class="modal-content" style="max-width: 1200px; max-height: 85vh; overflow-y: auto;">
         <div class="modal-header"><h2>تفاصيل التقرير التجميعي</h2><button class="modal-close" onclick="closeViewModal()"><i class="fas fa-times"></i></button></div>
@@ -540,6 +650,7 @@
     </div>
 </div>
 
+<!-- مودال البريد الإلكتروني -->
 <div id="emailModal" class="modal">
     <div class="modal-content email-modal-content">
         <div class="modal-header"><h2><i class="fas fa-envelope"></i> إرسال التقرير عبر البريد الإلكتروني</h2><button class="modal-close" onclick="closeEmailModal()"><i class="fas fa-times"></i></button></div>
@@ -554,6 +665,40 @@
     </div>
 </div>
 
+<!-- مودال التنبيه العام (مثل reports.html) -->
+<div id="sendEmailAlertModal" class="modal">
+    <div class="modal-content alert-modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-info-circle"></i> تذكير هام</h2>
+            <button class="modal-close" onclick="closeSendEmailAlertModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="padding: 1.5rem;">
+            <div class="alert-icon info">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+            <div class="alert-title" id="alertTitle">✅ تم حفظ التقرير بنجاح</div>
+            <div class="alert-message" id="alertMessage">
+                لا تنسى إرسال التقرير بالبريد الإلكتروني إلى الأشخاص المعنيين.
+            </div>
+            
+            <div class="alert-steps">
+                <p><i class="fas fa-lightbulb"></i> خطوات إرسال التقرير:</p>
+                <ol>
+                    <li><i class="fas fa-eye"></i> اضغط على زر <strong>"المعاينة" (👁️)</strong> بجانب التقرير في الجدول</li>
+                    <li><i class="fas fa-envelope green-badge"><span style="margin-right:0.5rem;">زر أخضر</span></i> داخل نافذة المعاينة، اضغط على زر <strong class="green-badge" style="background:#2e9b54;color:white;padding:0.2rem 0.6rem;">إرسال التقرير بالبريد الإلكتروني</strong></li>
+                    <li><i class="fas fa-paper-plane"></i> سيتم فتح نافذة Outlook مع تعبئة بيانات المستلمين تلقائياً</li>
+                    <li><i class="fas fa-paperclip"></i> قم بتحميل ملف PDF للتقرير وإرفاقه بالبريد</li>
+                </ol>
+            </div>
+            
+            <div class="alert-buttons">
+                <button onclick="closeSendEmailAlertModal()" class="btn-got-it"><i class="fas fa-check"></i> حسناً</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تأكيد الحذف -->
 <div id="deleteModal" class="modal">
     <div class="modal-content" style="max-width: 400px;">
         <div style="text-align:center;">
@@ -565,6 +710,7 @@
     </div>
 </div>
 
+<!-- مودال تأكيد البريد الإلكتروني -->
 <div id="emailConfirmModal" class="confirm-modal-overlay">
     <div class="confirm-modal">
         <div class="confirm-modal-header">
@@ -605,6 +751,22 @@ let isLoadingVisits = false;
 let currentVisitsData = [];
 let periodFromPicker = null, periodToPicker = null, filterDateFromPicker = null, filterDateToPicker = null;
 let activityDatePickers = [];
+let currentReportHtmlBlob = null;
+
+// ==================== دوال القائمة الجانبية ====================
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('active');
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+}
 
 // ==================== دوال المساعدة ====================
 function getRoleName(role) { 
@@ -629,6 +791,7 @@ function canEditSummaryReport(user, report) {
     return user.role==='user' && report.specialist_id == user.id; 
 }
 function canDeleteSummaryReport(user, report) { return user && report && ['admin','support'].includes(user.role); }
+function canEmailSummaryReport(user) { return user && ['user', 'support'].includes(user.role); }
 
 function formatDateToYMD(date) {
     if (!date) return null;
@@ -649,13 +812,11 @@ function setPickerDate(picker, dateValue) {
     if(picker && dateValue) picker.setDate(new Date(dateValue)); 
 }
 
-// الحصول على تاريخ اليوم بصيغة YYYY-MM-DD
 function getTodayYMD() {
     const today = new Date();
     return formatDateToYMD(today);
 }
 
-// دالة لربط DatePickers مع منع التواريخ المستقبلية وضبط العلاقة بين "من" و "إلى"
 function initFilterDatePickers() {
     if(filterDateFromPicker) filterDateFromPicker.destroy();
     if(filterDateToPicker) filterDateToPicker.destroy();
@@ -663,43 +824,39 @@ function initFilterDatePickers() {
     const today = new Date();
     today.setHours(23, 59, 59, 999);
     
-    // DatePicker لـ "من تاريخ"
     filterDateFromPicker = flatpickr("#dateFrom", { 
         locale: "ar", 
         dateFormat: "d/m/Y", 
         altInput: true, 
         altFormat: "d/m/Y", 
         placeholder: "dd/mm/yyyy", 
-        maxDate: today, // منع اختيار تاريخ مستقبلي
+        maxDate: today,
         onChange: function(selectedDates, dateStr, instance) {
-            // تحديث الحد الأدنى لتاريخ "إلى" ليكون أكبر من أو يساوي تاريخ "من"
             if(filterDateToPicker && selectedDates[0]) {
                 const fromDate = selectedDates[0];
                 const minDateForTo = new Date(fromDate);
                 minDateForTo.setDate(fromDate.getDate());
                 filterDateToPicker.set('minDate', minDateForTo);
             }
-            applyFilters(); // تطبيق الفلترة بعد التغيير
+            applyFilters();
         }
     });
     
-    // DatePicker لـ "إلى تاريخ"
     filterDateToPicker = flatpickr("#dateTo", { 
         locale: "ar", 
         dateFormat: "d/m/Y", 
         altInput: true, 
         altFormat: "d/m/Y", 
         placeholder: "dd/mm/yyyy", 
-        maxDate: today, // منع اختيار تاريخ مستقبلي
+        maxDate: today,
         onChange: function(selectedDates, dateStr, instance) {
-            // تحديث الحد الأقصى لتاريخ "من" ليكون أقل من أو يساوي تاريخ "إلى"
             if(filterDateFromPicker && selectedDates[0]) {
                 const toDate = selectedDates[0];
                 const maxDateForFrom = new Date(toDate);
                 maxDateForFrom.setDate(toDate.getDate());
                 filterDateFromPicker.set('maxDate', maxDateForFrom);
             }
-            applyFilters(); // تطبيق الفلترة بعد التغيير
+            applyFilters();
         }
     });
 }
@@ -717,7 +874,7 @@ function initModalDatePickers() {
         altInput: true, 
         altFormat: "d/m/Y", 
         placeholder: "dd/mm/yyyy", 
-        maxDate: today, // منع اختيار تاريخ مستقبلي
+        maxDate: today,
         onChange: function(selectedDates, dateStr, instance) {
             if(periodToPicker && selectedDates[0]) {
                 const fromDate = selectedDates[0];
@@ -735,7 +892,7 @@ function initModalDatePickers() {
         altInput: true, 
         altFormat: "d/m/Y", 
         placeholder: "dd/mm/yyyy", 
-        maxDate: today, // منع اختيار تاريخ مستقبلي
+        maxDate: today,
         onChange: function(selectedDates, dateStr, instance) {
             if(periodFromPicker && selectedDates[0]) {
                 const toDate = selectedDates[0];
@@ -757,7 +914,7 @@ function initActivityDatePicker(el) {
         altInput: true, 
         altFormat: "d/m/Y", 
         placeholder: "dd/mm/yyyy", 
-        maxDate: today, // منع اختيار تاريخ مستقبلي
+        maxDate: today,
         allowInput: false 
     }); 
 }
@@ -806,6 +963,18 @@ function closeModalWithScroll(modalId) {
         modal.classList.remove('active'); 
         document.body.style.overflow = ''; 
     } 
+}
+
+// ==================== دوال مودال التنبيه ====================
+function showAlertModal(reportData) {
+    const alertModal = document.getElementById('sendEmailAlertModal');
+    if (alertModal) {
+        openModalWithScroll('sendEmailAlertModal');
+    }
+}
+
+function closeSendEmailAlertModal() {
+    closeModalWithScroll('sendEmailAlertModal');
 }
 
 // ==================== تحميل جميع التقارير إلى الكاش ====================
@@ -867,7 +1036,7 @@ function displayCurrentPage() {
     const pageReports = filteredReportsCache.slice(startIndex, endIndex);
     const tbody = document.getElementById('reportsTableBody');
     if (!pageReports || pageReports.length === 0) {
-        tbody.innerHTML = '<td><td colspan="8" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>';
         document.getElementById('resultsCount').innerHTML = 'عدد النتائج: 0';
         document.getElementById('paginationContainer').innerHTML = '';
         return;
@@ -918,24 +1087,46 @@ function goToPage(page) {
     document.querySelector('.table-container')?.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-// ==================== التصفية من الكاش ====================
+// ==================== التصفية من الكاش (البحث الذكي) ====================
 function applyFilters() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
+    const searchInput = document.getElementById('searchInput').value.trim();
     const type = document.getElementById('reportTypeFilter').value;
     let fromDate = getDateFromPicker(filterDateFromPicker);
     let toDate = getDateFromPicker(filterDateToPicker);
+
+    const searchWords = searchInput.length > 0 ? searchInput.split(/\s+/) : [];
+
     let filtered = allReportsCache.filter(r => {
         if (type && r.report_type !== type) return false;
-        if (fromDate) { const reportDate = r.created_at ? r.created_at.split('T')[0] : null; if (reportDate && reportDate < fromDate) return false; }
-        if (toDate) { const reportDate = r.created_at ? r.created_at.split('T')[0] : null; if (reportDate && reportDate > toDate) return false; }
-        if (search) { const districtName = (r.districts?.name || '').toLowerCase(); const specialistName = (r.users?.name || '').toLowerCase(); if (!districtName.includes(search) && !specialistName.includes(search)) return false; }
+        if (fromDate) {
+            const reportDate = r.created_at ? r.created_at.split('T')[0] : null;
+            if (reportDate && reportDate < fromDate) return false;
+        }
+        if (toDate) {
+            const reportDate = r.created_at ? r.created_at.split('T')[0] : null;
+            if (reportDate && reportDate > toDate) return false;
+        }
+        
+        if (searchWords.length > 0) {
+            const specialistName = (r.users?.name || '').toLowerCase();
+            const districtName = (r.districts?.name || '').toLowerCase();
+            
+            const allWordsMatch = searchWords.every(word => {
+                const lowerWord = word.toLowerCase();
+                return specialistName.includes(lowerWord) || districtName.includes(lowerWord);
+            });
+            
+            if (!allWordsMatch) return false;
+        }
+        
         return true;
     });
+    
     filteredReportsCache = filtered;
     totalFilteredCount = filtered.length;
     currentPage = 1;
     displayCurrentPage();
-    showMessage(`تم العثور على ${filtered.length.toLocaleString()} تقرير مطابق`, filtered.length>0?'success':'info');
+    showMessage(`تم العثور على ${filtered.length.toLocaleString()} تقرير مطابق`, filtered.length > 0 ? 'success' : 'info');
 }
 
 function clearFilters() {
@@ -943,12 +1134,12 @@ function clearFilters() {
     document.getElementById('reportTypeFilter').value = '';
     if(filterDateFromPicker) {
         filterDateFromPicker.clear();
-        filterDateFromPicker.set('maxDate', new Date()); // إعادة تعيين الحد الأقصى لليوم الحالي
+        filterDateFromPicker.set('maxDate', new Date());
     }
     if(filterDateToPicker) {
         filterDateToPicker.clear();
-        filterDateToPicker.set('maxDate', new Date()); // إعادة تعيين الحد الأقصى لليوم الحالي
-        filterDateToPicker.set('minDate', null); // إزالة الحد الأدنى
+        filterDateToPicker.set('maxDate', new Date());
+        filterDateToPicker.set('minDate', null);
     }
     filteredReportsCache = [...allReportsCache];
     totalFilteredCount = filteredReportsCache.length;
@@ -995,14 +1186,14 @@ async function loadVisitsData() {
     if (periodFromPicker && periodFromPicker.selectedDates && periodFromPicker.selectedDates[0]) { periodFrom = formatDateToYMD(periodFromPicker.selectedDates[0]); }
     if (periodToPicker && periodToPicker.selectedDates && periodToPicker.selectedDates[0]) { periodTo = formatDateToYMD(periodToPicker.selectedDates[0]); }
     if (!reportType || !specialistId || !districtId || !periodFrom || !periodTo) {
-        document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #4e6580;"><i class="fas fa-info-circle"></i> الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية</td></tr>';
+        document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #4e6580;"><i class="fas fa-info-circle"></i> الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية<\/td><\/tr>';
         document.getElementById('totalVisits').value = '';
         currentVisitsData = [];
         return;
     }
     if (isLoadingVisits) return;
     isLoadingVisits = true;
-    document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><div class="loader-small"></div> جاري تحميل الزيارات...</td></tr>';
+    document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><div class="loader-small"></div> جاري تحميل الزيارات...<\/td><\/tr>';
     try {
         const { data: schoolsInDistrict, error: schoolsError } = await window.supabaseClient.from('schools').select('id, name').eq('district_id', districtId);
         if (schoolsError) throw schoolsError;
@@ -1010,7 +1201,7 @@ async function loadVisitsData() {
         const schoolsMapTemp = {};
         schoolsInDistrict?.forEach(s => { schoolsMapTemp[s.id] = s.name; });
         if (schoolIds.length === 0) {
-            document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-school"></i> لا توجد مدارس في هذه المنطقة</td></tr>';
+            document.getElementById('visitsTableBody').innerHTML = '<table><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-school"></i> لا توجد مدارس في هذه المنطقة<\/td><\/tr>';
             document.getElementById('totalVisits').value = 0;
             currentVisitsData = [];
             isLoadingVisits = false;
@@ -1027,7 +1218,7 @@ async function loadVisitsData() {
         currentVisitsData = visits;
         document.getElementById('totalVisits').value = visits.length;
         if (visits.length === 0) {
-            document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-calendar-times"></i> لا توجد زيارات في هذه الفترة</td></tr>';
+            document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-calendar-times"></i> لا توجد زيارات في هذه الفترة<\/td><\/tr>';
         } else {
             let html = '';
             visits.forEach((visit, index) => {
@@ -1040,7 +1231,7 @@ async function loadVisitsData() {
         }
     } catch (error) {
         console.error('Error loading visits:', error);
-        document.getElementById('visitsTableBody').innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #e34f76;"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل الزيارات: ${error.message}</td></tr>`;
+        document.getElementById('visitsTableBody').innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #e34f76;"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل الزيارات: ${error.message}<\/td><\/tr>`;
         currentVisitsData = [];
     } finally {
         isLoadingVisits = false;
@@ -1103,7 +1294,6 @@ async function viewReport(id) {
     const periodFrom = new Date(report.period_from).toLocaleDateString('ar-SA');
     const periodTo = new Date(report.period_to).toLocaleDateString('ar-SA');
     
-    // بناء جدول الزيارات
     let visitsHtml = '';
     if (visits.length > 0) {
         visits.forEach((v, i) => {
@@ -1123,13 +1313,12 @@ async function viewReport(id) {
                 <td style="padding:10px; border:1px solid #dee2e6;">${teacherName}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${creativeField}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${v.recommendations || ''}</td>
-             </tr>`;
+              </tr>`;
         });
     } else {
         visitsHtml = '<tr><td colspan="9" style="padding:30px;text-align:center;">لا توجد زيارات</td></tr>';
     }
     
-    // بناء جدول الأنشطة
     let activitiesHtml = '';
     if (activities.length > 0) {
         activities.forEach((a, i) => {
@@ -1139,7 +1328,7 @@ async function viewReport(id) {
                 <td style="padding:10px; border:1px solid #dee2e6;">${a.name || ''}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${a.topic || ''}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${a.target || ''}</td>
-             </tr>`;
+              </tr>`;
         });
     } else {
         activitiesHtml = '<tr><td colspan="5" style="padding:30px;text-align:center;">لا توجد أنشطة إشرافية</td></tr>';
@@ -1159,17 +1348,7 @@ async function viewReport(id) {
             <div style="overflow-x:auto;margin-bottom:25px;border-radius:12px;border:1px solid #e2e8f0;">
                 <table class="preview-table" style="width:100%; border-collapse:collapse;">
                     <thead>
-                        <tr>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">#</th>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">التاريخ</th>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">المدرسة</th>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">الصف</th>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">الشعبة</th>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">المبحث</th>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">اسم المعلم</th>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">أفكار إبداعية / جوانب إيجابية</th>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">التوصيات</th>
-                        </tr>
+                        <tr><th style="padding:12px 10px; border:1px solid #dee2e6;">#</th><th style="padding:12px 10px; border:1px solid #dee2e6;">التاريخ</th><th style="padding:12px 10px; border:1px solid #dee2e6;">المدرسة</th><th style="padding:12px 10px; border:1px solid #dee2e6;">الصف</th><th style="padding:12px 10px; border:1px solid #dee2e6;">الشعبة</th><th style="padding:12px 10px; border:1px solid #dee2e6;">المبحث</th><th style="padding:12px 10px; border:1px solid #dee2e6;">اسم المعلم</th><th style="padding:12px 10px; border:1px solid #dee2e6;">أفكار إبداعية / جوانب إيجابية</th><th style="padding:12px 10px; border:1px solid #dee2e6;">التوصيات</th>
                     </thead>
                     <tbody>${visitsHtml}</tbody>
                 </table>
@@ -1177,15 +1356,7 @@ async function viewReport(id) {
             <h3 style="color:#1e3c72;margin:25px 0 15px 0;border-bottom:2px solid #1e3c72;padding-bottom:8px;">ثانياً: أنشطة إشرافية أخرى</h3>
             <div style="overflow-x:auto;margin-bottom:25px;border-radius:12px;border:1px solid #e2e8f0;">
                 <table class="preview-table" style="width:100%; border-collapse:collapse;">
-                    <thead>
-                        <tr>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">#</th>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">التاريخ</th>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">النشاط</th>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">الموضوع</th>
-                            <th style="padding:12px 10px; border:1px solid #dee2e6;">الفئة المستهدفة</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th style="padding:12px 10px; border:1px solid #dee2e6;">#</th><th style="padding:12px 10px; border:1px solid #dee2e6;">التاريخ</th><th style="padding:12px 10px; border:1px solid #dee2e6;">النشاط</th><th style="padding:12px 10px; border:1px solid #dee2e6;">الموضوع</th><th style="padding:12px 10px; border:1px solid #dee2e6;">الفئة المستهدفة</th></tr></thead>
                     <tbody>${activitiesHtml}</tbody>
                 </table>
             </div>
@@ -1193,7 +1364,7 @@ async function viewReport(id) {
     `;
     document.getElementById('reportDetails').innerHTML = html;
     const emailBtn = document.getElementById('emailSummaryBtn');
-    if(emailBtn) emailBtn.style.display = (currentUser.role==='user'||currentUser.role==='support') ? 'inline-flex' : 'none';
+    if(emailBtn) emailBtn.style.display = canEmailSummaryReport(currentUser) ? 'inline-flex' : 'none';
     openModalWithScroll('viewModal');
 }
 
@@ -1249,7 +1420,7 @@ async function editReport(id) {
                 <td style="padding:8px">${teacherName}</td>
                 <td style="padding:8px">${creativeField}</td>
                 <td style="padding:8px">${v.recommendations || ''}</td>
-            </tr>`;
+              </tr>`;
         });
         document.getElementById('visitsTableBody').innerHTML = visitsHtml;
         document.getElementById('totalVisits').value = visits.length;
@@ -1343,6 +1514,11 @@ document.getElementById('summaryReportForm').addEventListener('submit', async (e
         currentPage = 1;
         displayCurrentPage();
         showMessage(isEdit ? 'تم تحديث التقرير بنجاح' : 'تم حفظ التقرير بنجاح', 'success');
+        
+        // عرض مودال التنبيه عند إضافة تقرير جديد (وليس تعديل)
+        if (!isEdit) {
+            showAlertModal(reportData);
+        }
     } catch(error) { console.error(error); showMessage('حدث خطأ في حفظ التقرير: ' + error.message, 'error'); }
     finally { isSaving = false; saveBtn.innerHTML = originalHtml; saveBtn.disabled = false; }
 });
@@ -1358,28 +1534,169 @@ async function confirmDelete() {
 }
 
 // ==================== البريد الإلكتروني ====================
-async function openOutlookForSummaryReport() {
-    if(!currentViewReport) { showMessage('لا يوجد تقرير للإرسال','error'); return; }
-    const district = districtsList.find(d => d.id == currentViewReport.district_id);
-    const specialistName = currentViewReport.users?.name || 'مختص';
-    const subjectPrefix = currentViewReport.report_type === 'in_person' ? 'TLS_BiWeekly' : 'RL_BiWeekly';
-    const subject = `${subjectPrefix} - التقرير الدوري للمختص ${specialistName}`;
+function generateSummaryReportHTML() {
+    if (!currentViewReport) return '';
+    const specialistName = currentViewReport.users?.name || '-';
+    const districtName = currentViewReport.districts?.name || '-';
     const periodFrom = new Date(currentViewReport.period_from).toLocaleDateString('ar-SA');
     const periodTo = new Date(currentViewReport.period_to).toLocaleDateString('ar-SA');
-    const sendDate = new Date().toLocaleDateString('ar-SA');
-    const sendTime = new Date().toLocaleTimeString('ar-SA');
-    const body = `قام المختص التربوي (${specialistName}) بإرسال تقرير نصف شهري\n\nتفاصيل التقرير:\n- الفترة الزمنية: ${periodFrom} - ${periodTo}\n- تاريخ إرسال التقرير: ${sendDate}\n- وقت إرسال التقرير: ${sendTime}`;
-    const toEmails = district?.mangerEmail ? [district.mangerEmail] : [];
-    const ccEmails = ['i.Najjar@UNRWA.ORG', 'Ma.Zaid@unrwa-edu.org'];
-    if(district?.supportEmail && district.supportEmail !== district?.mangerEmail) ccEmails.unshift(district.supportEmail);
-    document.getElementById('emailTo').value = toEmails.join('; ') || '(لم يتم العثور على بريد إلكتروني)';
-    document.getElementById('emailCc').value = ccEmails.join('; ');
-    document.getElementById('emailSubject').value = subject;
-    document.getElementById('emailBody').value = body;
-    openModalWithScroll('emailModal');
+    const specialistSpecialization = (specialistsList.find(s => s.id == currentViewReport.specialist_id)?.specialization) || '';
+    
+    let visits = [], activities = [];
+    try { visits = JSON.parse(currentViewReport.visits_data || '[]'); } catch(e) { visits = []; }
+    try { activities = JSON.parse(currentViewReport.supervisory_activities || '[]'); } catch(e) { activities = []; }
+    
+    let visitsHtml = '';
+    if (visits.length > 0) {
+        visits.forEach((v, i) => {
+            visitsHtml += `<table>
+                <td style="border:1px solid #000;padding:8px;">${i+1}</td>
+                <td style="border:1px solid #000;padding:8px;">${v.visit_date || v.date || ''}</td>
+                <td style="border:1px solid #000;padding:8px;">${v.school_name || v.school || ''}</td>
+                <td style="border:1px solid #000;padding:8px;">${v.class_name || v.class || ''}</td>
+                <td style="border:1px solid #000;padding:8px;">${v.section || ''}</td>
+                <td style="border:1px solid #000;padding:8px;">${v.subject || ''}</td>
+                <td style="border:1px solid #000;padding:8px;">${v.teacher_name || v.teacher || ''}</td>
+                <td style="border:1px solid #000;padding:8px;">${(v.positive_aspects || v.creative_ideas || '')}</td>
+                <td style="border:1px solid #000;padding:8px;">${v.recommendations || ''}</td>
+            </tr>`;
+        });
+    } else {
+        visitsHtml = '<tr><td colspan="9" style="text-align:center;padding:30px;">لا توجد زيارات</td></tr>';
+    }
+    
+    let activitiesHtml = '';
+    if (activities.length > 0) {
+        activities.forEach((a, i) => {
+            activitiesHtml += `<tr>
+                <td style="border:1px solid #000;padding:8px;">${i+1}</td>
+                <td style="border:1px solid #000;padding:8px;">${a.date || ''}</td>
+                <td style="border:1px solid #000;padding:8px;">${a.name || ''}</td>
+                <td style="border:1px solid #000;padding:8px;">${a.topic || ''}</td>
+                <td style="border:1px solid #000;padding:8px;">${a.target || ''}</td>
+            </tr>`;
+        });
+    } else {
+        activitiesHtml = '<tr><td colspan="5" style="text-align:center;padding:30px;">لا توجد أنشطة إشرافية</td></tr>';
+    }
+    
+    const userName = currentUser?.name || 'مستخدم';
+    const currentDate = new Date().toLocaleDateString('ar-SA');
+    const currentTime = new Date().toLocaleTimeString('ar-SA');
+    
+    return `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>التقرير التجميعي</title><style>
+        body{font-family:'Segoe UI','Cairo',Arial,sans-serif;padding:12mm 15mm;direction:rtl}
+        h2{text-align:center;color:#1e3c72;margin:0 0 20px 0}
+        h3{color:#1e3c72;margin:20px 0 12px 0;border-bottom:2px solid #1e3c72;padding-bottom:5px}
+        .info-grid{display:flex;flex-wrap:wrap;gap:12px;background:#f8fafd;padding:15px;border-radius:12px;margin-bottom:20px}
+        .preview-table{width:100%;border-collapse:collapse;margin-bottom:20px}
+        .preview-table th,.preview-table td{border:1px solid #000;padding:8px 6px;text-align:center}
+        .preview-table th{background:#1e3c72;color:white}
+        .footer{margin-top:25px;border-top:1px solid #ccc;padding-top:10px;text-align:center;font-size:11px;color:#666}
+        @media print{body{padding:0}}
+    </style></head><body>
+    <h2>التقرير النصف شهري للمختص التربوي</h2>
+    <div class="info-grid">
+        <div style="flex:1"><strong>المختص التربوي:</strong> ${specialistName}</div>
+        <div style="flex:1"><strong>التخصص:</strong> ${specialistSpecialization || 'غير محدد'}</div>
+        <div style="flex:1"><strong>المنطقة:</strong> ${districtName}</div>
+        <div style="flex:1"><strong>الفترة:</strong> ${periodFrom} - ${periodTo}</div>
+    </div>
+    <h3>أولاً: الزيارات</h3>
+    <table class="preview-table">
+        <thead><tr><th>#</th><th>التاريخ</th><th>المدرسة</th><th>الصف</th><th>الشعبة</th><th>المبحث</th><th>اسم المعلم</th><th>أفكار إبداعية</th><th>التوصيات</th></tr></thead>
+        <tbody>${visitsHtml}</tbody>
+    </table>
+    <h3>ثانياً: أنشطة إشرافية أخرى</h3>
+    <table class="preview-table">
+        <thead><tr><th>#</th><th>التاريخ</th><th>النشاط</th><th>الموضوع</th><th>الفئة المستهدفة</th></tr></thead>
+        <tbody>${activitiesHtml}</tbody>
+    </table>
+    <div class="footer">تم إنشاء التقرير بواسطة: ${userName} | تاريخ الطباعة: ${currentDate} - ${currentTime}</div>
+    </body></html>`;
 }
 
-function closeEmailModal() { closeModalWithScroll('emailModal'); }
+async function openOutlookForSummaryReport() {
+    if (!currentViewReport) {
+        showMessage('لا يوجد تقرير للإرسال', 'error');
+        return;
+    }
+    
+    const emailBtn = document.getElementById('emailSummaryBtn');
+    if (emailBtn) emailBtn.disabled = true;
+    
+    try {
+        const specialistName = currentViewReport.users?.name || 'المختص';
+        const prefix = currentViewReport.report_type === 'in_person' ? 'TLS_BiWeekly' : 'RL_BiWeekly';
+        const subject = `${prefix} - التقرير الدوري للمختص ${specialistName}`;
+        
+        const periodFrom = new Date(currentViewReport.period_from).toLocaleDateString('ar-SA');
+        const periodTo = new Date(currentViewReport.period_to).toLocaleDateString('ar-SA');
+        const sendDate = new Date().toLocaleDateString('ar-SA');
+        const sendTime = new Date().toLocaleTimeString('ar-SA');
+        
+        const body = `قام المختص التربوي (${specialistName}) بإرسال تقرير نصف شهري\n\nتفاصيل التقرير:\n- الفترة الزمنية: ${periodFrom} - ${periodTo}\n- تاريخ إرسال التقرير: ${sendDate}\n- وقت إرسال التقرير: ${sendTime}`;
+        
+        const district = districtsList.find(d => d.id == currentViewReport.district_id);
+        const toEmails = district?.mangerEmail ? [district.mangerEmail] : [];
+        const ccEmails = ['i.Najjar@UNRWA.ORG', 'Ma.Zaid@unrwa-edu.org'];
+        if (district?.supportEmail && district.supportEmail !== district?.mangerEmail) {
+            ccEmails.unshift(district.supportEmail);
+        }
+        
+        document.getElementById('emailTo').value = toEmails.join('; ') || '(لم يتم العثور على بريد إلكتروني)';
+        document.getElementById('emailCc').value = ccEmails.join('; ');
+        document.getElementById('emailSubject').value = subject;
+        document.getElementById('emailBody').value = body;
+        
+        currentReportHtmlBlob = new Blob([generateSummaryReportHTML()], { type: 'text/html' });
+        
+        openModalWithScroll('emailModal');
+        
+    } catch (error) {
+        console.error('Error preparing email:', error);
+        showMessage('حدث خطأ في تجهيز البريد', 'error');
+    } finally {
+        if (emailBtn) emailBtn.disabled = false;
+    }
+}
+
+function closeEmailModal() {
+    closeModalWithScroll('emailModal');
+    currentReportHtmlBlob = null;
+}
+
+function exportReportToPDF() {
+    if (!currentViewReport) {
+        showMessage('لا يوجد تقرير للتصدير', 'error');
+        return;
+    }
+    
+    const prefix = currentViewReport.report_type === 'in_person' ? 'TLS_BiWeekly' : 'RL_BiWeekly';
+    const specialistName = currentViewReport.users?.name || 'مختص';
+    const clean = (t = '') => t.trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '');
+    const fileName = `${prefix} - ${clean(specialistName)}.pdf`;
+    
+    const html = generateSummaryReportHTML();
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        showMessage('الرجاء السماح للنوافذ المنبثقة', 'error');
+        return;
+    }
+    
+    printWindow.document.write(html);
+    printWindow.document.title = fileName.replace('.pdf', '');
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.onafterprint = () => printWindow.close();
+    }, 500);
+    
+    showMessage('تم فتح نافذة الطباعة، يمكنك حفظ الملف', 'success');
+}
 
 function openOutlookWithConfirmation() {
     const confirmModal = document.getElementById('emailConfirmModal');
@@ -1388,44 +1705,44 @@ function openOutlookWithConfirmation() {
     const noBtn = document.getElementById('confirmNoBtn');
     const newYesBtn = yesBtn.cloneNode(true);
     yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
-    newYesBtn.onclick = function() { confirmModal.classList.remove('active'); executeOpenOutlook(); };
+    newYesBtn.onclick = function() { 
+        confirmModal.classList.remove('active'); 
+        executeOpenOutlook(); 
+    };
     const newNoBtn = noBtn.cloneNode(true);
     noBtn.parentNode.replaceChild(newNoBtn, noBtn);
-    newNoBtn.onclick = function() { confirmModal.classList.remove('active'); showMessage('الرجاء تحميل التقرير PDF قبل إرسال البريد', 'info'); exportReportToPDF(); };
-    confirmModal.onclick = function(e) { if (e.target === confirmModal) confirmModal.classList.remove('active'); };
+    newNoBtn.onclick = function() { 
+        confirmModal.classList.remove('active'); 
+        showMessage('الرجاء تحميل التقرير PDF قبل إرسال البريد', 'info'); 
+        exportReportToPDF(); 
+    };
+    confirmModal.onclick = function(e) { 
+        if (e.target === confirmModal) confirmModal.classList.remove('active'); 
+    };
 }
 
 function executeOpenOutlook() {
-    const toList = (document.getElementById('emailTo').value || '').split(/[;,]/).map(v => v.trim()).filter(v => v !== '(لم يتم العثور على بريد إلكتروني)');
-    const ccList = (document.getElementById('emailCc').value || '').split(/[;,]/).map(v => v.trim()).filter(Boolean);
+    const toList = (document.getElementById('emailTo').value || '')
+        .split(/[;,]/)
+        .map(v => v.trim())
+        .filter(v => v !== '(لم يتم العثور على بريد إلكتروني)');
+    
+    const ccList = (document.getElementById('emailCc').value || '')
+        .split(/[;,]/)
+        .map(v => v.trim())
+        .filter(Boolean);
+    
     const recipients = [...new Set([...toList, ...ccList])].join(',');
     const subject = (document.getElementById('emailSubject').value || '').trim();
     const body = (document.getElementById('emailBody').value || '').trim();
-    const url = 'https://outlook.cloud.microsoft.com/mail/0/deeplink/compose?' + 'to=' + encodeURIComponent(recipients) + '&subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    const url = 'https://outlook.cloud.microsoft/mail/0/deeplink/compose?' + 
+        'to=' + encodeURIComponent(recipients) + 
+        '&subject=' + encodeURIComponent(subject) + 
+        '&body=' + encodeURIComponent(body);
+    
     window.open(url, '_blank');
     closeEmailModal();
     showMessage('تم فتح Outlook، يرجى إرفاق ملف PDF للتقرير يدوياً', 'success');
-}
-
-// ==================== تصدير PDF ====================
-function exportReportToPDF() {
-    if(!currentViewReport) { showMessage('لا يوجد تقرير للتصدير','error'); return; }
-    const prefix = currentViewReport.report_type === 'in_person' ? 'TLS_BiWeekly' : 'RL_BiWeekly';
-    const specialistName = currentViewReport.users?.name || 'مختص';
-    const clean = (t = '') => t.trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '');
-    const fileName = `${prefix} - ${clean(specialistName)}.pdf`;
-    const userName = currentUser?.name || 'مستخدم';
-    const currentDate = new Date().toLocaleDateString('ar-SA');
-    const currentTime = new Date().toLocaleTimeString('ar-SA');
-    const reportContent = document.getElementById('reportDetails').innerHTML;
-    const html = `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>التقرير التجميعي</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI','Cairo',Arial,sans-serif;background:white;padding:12mm 15mm;direction:rtl}h2{text-align:center;color:#1e3c72;margin:0 0 20px 0}h3{color:#1e3c72;margin:20px 0 12px 0;border-bottom:2px solid #1e3c72;padding-bottom:5px}.info-grid{display:flex;flex-wrap:wrap;gap:12px;background:#f8fafd;padding:15px;border-radius:12px;margin-bottom:20px}.preview-table{width:100%;border-collapse:collapse;margin-bottom:20px}.preview-table th,.preview-table td{border:1px solid #000;padding:8px 6px;text-align:center}.preview-table th{background:#1e3c72;color:white}.footer{margin-top:25px;border-top:1px solid #ccc;padding-top:10px;text-align:center;font-size:11px;color:#666}@media print{body{padding:0}}</style></head><body><div><h2>التقرير النصف شهري للمختص التربوي</h2>${reportContent}<div class="footer">تم إنشاء هذا التقرير بواسطة: ${userName} | تاريخ الطباعة: ${currentDate} - ${currentTime}</div></div></body></html>`;
-    const printWindow = window.open('', '_blank');
-    if(!printWindow) { showMessage('الرجاء السماح للنوافذ المنبثقة','error'); return; }
-    printWindow.document.write(html);
-    printWindow.document.title = fileName.replace('.pdf', '');
-    printWindow.document.close();
-    printWindow.onload = () => { printWindow.print(); printWindow.onafterprint = () => printWindow.close(); };
-    showMessage('تم فتح نافذة الطباعة، يمكنك حفظ الملف', 'success');
 }
 
 function exportToExcel() {
@@ -1522,6 +1839,18 @@ window.addEventListener('load', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const reportIdToView = urlParams.get('view');
     if(reportIdToView) { setTimeout(() => viewReport(reportIdToView), 500); window.history.replaceState({}, document.title, window.location.pathname); }
+    
+    // إغلاق القائمة عند النقر خارجها
+    document.addEventListener('click', function(event) {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebarBtn');
+        const overlay = document.getElementById('sidebarOverlay');
+        if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+            if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                closeSidebar();
+            }
+        }
+    });
 });
 </script>
 </body>

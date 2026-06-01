@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>لوحة التحكم - نظام التقارير التربوية</title>
     <link rel="icon" type="image/png" sizes="32x32" href="lib/favicon-32.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,13 +14,219 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7fb;
+            overflow-x: hidden;
+        }
+
+        /* ======= تنسيق القائمة الجانبية المتجاوبة مثل overview ======= */
+        .sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 280px;
+            height: 100%;
+            background: white;
+            border-left: 1px solid #eef2f7;
+            transition: right 0.3s ease-in-out;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* في وضع الجوال: القائمة مخفية تماماً */
+        @media (max-width: 768px) {
+            .sidebar {
+                right: -280px;
+            }
+            .sidebar.open {
+                right: 0;
+                box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+            }
+            .main-content {
+                margin-right: 0 !important;
+            }
+            .toggle-sidebar {
+                display: flex !important;
+            }
+        }
+
+        /* زر فتح القائمة للجوال */
+        .toggle-sidebar {
+            display: none;
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #1e3c72;
+            transition: all 0.2s;
+        }
+
+        .toggle-sidebar:hover {
+            background: #f0f4fa;
+            transform: scale(1.05);
+        }
+
+        /* تغطية الخلفية عند فتح القائمة في الجوال */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            transition: all 0.3s;
+        }
+
+        /*.sidebar-overlay.active {
+            display: block;
+        }*/
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eef2f7;
+            text-align: center;
+        }
+
+        .sidebar-logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.1rem;
+            color: #1e3c72;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #8ba0bc;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #4e6580;
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s;
+        }
+
+        .sidebar-nav a:hover {
+            background: #e8f0fe;
+            color: #1e3c72;
+        }
+
+        .sidebar-nav a.active {
+            background: linear-gradient(135deg, #1e3c72, #153155);
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid #eef2f7;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .user-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        .user-district {
+            font-size: 0.7rem;
+            color: #8ba0bc;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: none;
+            border: 1px solid #e34f76;
+            color: #e34f76;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background: #fff2f5;
+        }
+
+        .main-content {
+            margin-right: 280px;
+            min-height: 100vh;
+            padding: 1.5rem;
+            transition: margin-right 0.3s ease;
+        }
+
+        /* باقي التنسيقات الأصلية للوحة التحكم (بدون أي تغيير) */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
-        
+
         .loader {
             border: 3px solid #eef2f7;
             border-top: 3px solid #1e3c72;
@@ -30,7 +236,7 @@
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
-        
+
         .loader-small {
             border: 2px solid #eef2f7;
             border-top: 2px solid #1e3c72;
@@ -42,10 +248,15 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-        
+
         .reports-count {
             font-size: 0.85rem;
             color: #4e6580;
@@ -57,26 +268,31 @@
             border: none;
             color: #4e6580;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.5rem;
+            padding: 0.4rem 0;
             border-radius: 8px;
             transition: all 0.2s;
             width: 100%;
             margin-top: 0.5rem;
         }
-        
+
         .change-password-btn:hover {
             background: #f0f4fa;
             color: #1e3c72;
         }
-        
-        .password-modal { max-width: 450px; }
-        
-        .password-field { position: relative; margin-bottom: 1.5rem; }
-        
+
+        .password-modal {
+            max-width: 450px;
+        }
+
+        .password-field {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
         .password-field input {
             width: 100%;
             padding: 0.8rem 1rem;
@@ -85,13 +301,13 @@
             font-family: 'Inter', sans-serif;
             font-size: 0.95rem;
         }
-        
+
         .password-field input:focus {
             outline: none;
             border-color: #1e3c72;
             box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
         }
-        
+
         .password-field .toggle-password {
             position: absolute;
             left: 1rem;
@@ -100,36 +316,60 @@
             cursor: pointer;
             color: #6a7f9e;
         }
-        
-        .password-strength { font-size: 0.75rem; margin-top: 0.3rem; }
-        .password-strength.weak { color: #e34f76; }
-        .password-strength.medium { color: #f59e0b; }
-        .password-strength.strong { color: #2e9b54; }
-        
-        .modal-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
-        
+
+        .password-strength {
+            font-size: 0.75rem;
+            margin-top: 0.3rem;
+        }
+
+        .password-strength.weak {
+            color: #e34f76;
+        }
+
+        .password-strength.medium {
+            color: #f59e0b;
+        }
+
+        .password-strength.strong {
+            color: #2e9b54;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
         .notifications-trigger button {
             background: none;
             border: none;
             width: 100%;
-            text-align: right;
+            text-align: center;
             padding: 0.75rem 1rem;
             border-radius: 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 0.75rem;
             color: #4e6580;
+            position: relative;
+            font-size: 0.9rem;
         }
+
         .notifications-trigger button:hover {
             background: #f0f4fa;
             color: #1e3c72;
         }
-        .notification-badge { position: relative; }
+
+        .notification-badge {
+            position: relative;
+        }
+
         .badge-count {
             position: absolute;
             top: -8px;
-            right: -8px;
+            right: 20px;
             background: #e34f76;
             color: white;
             font-size: 0.65rem;
@@ -142,7 +382,7 @@
             justify-content: center;
             padding: 0 4px;
         }
-        
+
         .notifications-container {
             position: fixed;
             top: 20px;
@@ -150,23 +390,38 @@
             z-index: 9999;
             max-width: 350px;
         }
+
         .notification-item {
             background: white;
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             border-right: 4px solid #1e3c72;
             animation: slideIn 0.3s ease;
             cursor: pointer;
         }
-        .notification-item.success { border-right-color: #2e9b54; }
-        .notification-item.error { border-right-color: #e34f76; }
-        @keyframes slideIn {
-            from { transform: translateX(-100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+
+        .notification-item.success {
+            border-right-color: #2e9b54;
         }
-        
+
+        .notification-item.error {
+            border-right-color: #e34f76;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
         .notifications-panel {
             position: fixed;
             top: 0;
@@ -174,13 +429,17 @@
             width: 380px;
             height: 100vh;
             background: white;
-            box-shadow: -5px 0 25px rgba(0,0,0,0.1);
+            box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
             z-index: 10000;
             transition: left 0.3s ease;
             display: flex;
             flex-direction: column;
         }
-        .notifications-panel.open { left: 0; }
+
+        .notifications-panel.open {
+            left: 0;
+        }
+
         .notifications-panel-header {
             padding: 1.25rem;
             border-bottom: 1px solid #eef2f7;
@@ -189,11 +448,13 @@
             align-items: center;
             background: #f8fafd;
         }
+
         .notifications-list {
             flex: 1;
             overflow-y: auto;
             padding: 1rem;
         }
+
         .notification-list-item {
             background: #f8fafd;
             border-radius: 12px;
@@ -203,11 +464,13 @@
             border-right: 3px solid transparent;
             position: relative;
         }
+
         .notification-list-item.unread {
             background: white;
             border-right-color: #1e3c72;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
+
         .delete-notification {
             position: absolute;
             left: 1rem;
@@ -219,19 +482,32 @@
             cursor: pointer;
             opacity: 0;
         }
-        .notification-list-item:hover .delete-notification { opacity: 1; }
-        .empty-notifications { text-align: center; padding: 3rem; color: #4e6580; }
+
+        .notification-list-item:hover .delete-notification {
+            opacity: 1;
+        }
+
+        .empty-notifications {
+            text-align: center;
+            padding: 3rem;
+            color: #4e6580;
+        }
+
         .panel-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 9999;
             display: none;
         }
-        .panel-overlay.open { display: block; }
+
+        .panel-overlay.open {
+            display: block;
+        }
+
         .mark-all-read {
             background: none;
             border: none;
@@ -242,9 +518,21 @@
             align-items: center;
             gap: 0.3rem;
         }
-        .close-panel { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #4e6580; }
-        
-        .stat-number { font-size: 1.8rem; font-weight: 700; color: #1e3c72; }
+
+        .close-panel {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #4e6580;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e3c72;
+        }
+
         .data-verification {
             font-size: 0.75rem;
             color: #2e9b54;
@@ -254,7 +542,7 @@
             background: #e8f5e9;
             border-radius: 8px;
         }
-        
+
         .stat-card {
             background: white;
             border-radius: 16px;
@@ -262,8 +550,9 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
+
         .stat-icon {
             width: 55px;
             height: 55px;
@@ -275,19 +564,46 @@
             color: white;
             font-size: 1.5rem;
         }
-        .stat-info h3 { font-size: 0.85rem; font-weight: 500; color: #4e6580; }
-        
+
+        .stat-info h3 {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #4e6580;
+        }
+
         .table-container {
             background: white;
             border-radius: 20px;
             padding: 1.25rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             margin-bottom: 1.5rem;
         }
-        .section-title { font-size: 1.25rem; font-weight: 600; color: #1e3c72; margin-bottom: 1rem; }
-        .btn-primary { background: #1e3c72; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 10px; cursor: pointer; }
-        .btn-secondary { background: #eef2f7; color: #4e6580; border: none; padding: 0.6rem 1.2rem; border-radius: 10px; cursor: pointer; }
-        
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e3c72;
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary {
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: #eef2f7;
+            color: #4e6580;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -295,12 +611,16 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 10000;
             align-items: center;
             justify-content: center;
         }
-        .modal.active { display: flex; }
+
+        .modal.active {
+            display: flex;
+        }
+
         .modal-content {
             background: white;
             border-radius: 24px;
@@ -308,22 +628,7 @@
             max-width: 500px;
             width: 90%;
         }
-        
-        .sidebar { width: 280px; background: white; border-left: 1px solid #eef2f7; display: flex; flex-direction: column; }
-        .main-content { flex: 1; padding: 1.5rem; overflow-y: auto; background: #f5f7fb; }
-        .app-container { display: flex; min-height: 100vh; }
-        .sidebar-nav { flex: 1; padding: 1rem; }
-        .sidebar-nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: #4e6580; text-decoration: none; border-radius: 12px; }
-        .sidebar-nav a:hover { background: #e8f0fe; color: #1e3c72; }
-        .logout-btn { width: 100%; padding: 0.75rem; background: none; border: 1px solid #e34f76; color: #e34f76; border-radius: 12px; cursor: pointer; }
-        .modern-table { width: 100%; border-collapse: collapse; }
-        .modern-table th, .modern-table td { padding: 12px 16px; text-align: right; border-bottom: 1px solid #eef2f7; }
-        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #eef2f7; }
-        .sidebar-footer { padding: 1rem; border-top: 1px solid #eef2f7; }
-        .user-info { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
-        .user-avatar { width: 45px; height: 45px; background: #1e3c72; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
-        
-        /* تنسيق شريط التقدم */
+
         .progress-bar-bg {
             background: #eef2f7;
             border-radius: 30px;
@@ -331,6 +636,7 @@
             overflow: hidden;
             margin: 1rem 0;
         }
+
         .progress-bar-fill {
             background: linear-gradient(90deg, #1e3c72, #2e9b54);
             width: 0%;
@@ -338,175 +644,197 @@
             border-radius: 30px;
             transition: width 0.3s ease;
         }
+
         .loading-stats {
             font-size: 0.8rem;
             color: #4e6580;
             text-align: center;
             margin-top: 0.5rem;
         }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 12px 16px;
+            text-align: right;
+            border-bottom: 1px solid #eef2f7;
+        }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
-                <h2>نظام التقارير التربوية</h2>
-                <p class="user-role" id="userRoleDisplay">...</p>
+
+    <!-- زر فتح القائمة للجوال -->
+    <button class="toggle-sidebar" id="toggleSidebarBtn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- تغطية الخلفية عند فتح القائمة -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- القائمة الجانبية -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
+            <h2>نظام التقارير التربوية</h2>
+            <p class="user-role" id="userRoleDisplay">...</p>
+        </div>
+
+        <div class="notifications-trigger" style="margin: 0.5rem 1rem;">
+            <button onclick="toggleNotificationsPanel()" class="notification-badge">
+                <i class="fas fa-bell" style="font-size: 1.1rem;"></i>
+                <span>الإشعارات</span>
+                <span id="unreadBadge" class="badge-count" style="display: none;">0</span>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav" id="sidebarNav">
+            <a href="dashboard.html" class="active"><i class="fas fa-home"></i> الرئيسية</a>
+            <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
+            <a href="summary-reports.html" id="navSummaryReports"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
+            <a href="analytics.html" id="navAnalytics"><i class="fas fa-chart-bar"></i> التحليلات</a>
+            <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
+            <div id="adminLinks" style="display: none;">
+                <a href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+                <a href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
             </div>
+        </nav>
 
-            <div class="notifications-trigger" style="margin: 0.5rem 1rem;">
-                <button onclick="toggleNotificationsPanel()" class="notification-badge">
-                    <i class="fas fa-bell" style="font-size: 1.1rem;"></i>
-                    <span>الإشعارات</span>
-                    <span id="unreadBadge" class="badge-count" style="display: none;">0</span>
-                </button>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+                <div>
+                    <h4 class="user-name" id="userNameDisplay">...</h4>
+                    <p class="user-district" id="userDistrictDisplay">...</p>
+                    <button onclick="openChangePasswordModal()" class="change-password-btn" title="تغيير كلمة المرور">
+                        <i class="fas fa-key"></i> تغيير كلمة المرور
+                    </button>
+                </div>
             </div>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+        </div>
+    </aside>
 
-            <nav class="sidebar-nav" id="sidebarNav">
-                <a href="dashboard.html" class="active" id="navDashboard"><i class="fas fa-home"></i> الرئيسية</a>
-                <a href="reports.html" id="navReports"><i class="fas fa-file-alt"></i> التقارير</a>
-                <a href="summary-reports.html" id="navSummaryReports" style="display: none;"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
-                <a href="analytics.html" id="navAnalytics" style="display: none;"><i class="fas fa-chart-bar"></i> التحليلات</a>
-                <div id="adminLinks" style="display: none;">
-                    <a href="overview.html" ><i class="fas fa-robot"></i> ملخص التقارير</a>
-                    <a href="districts-management.html" id="districtsManagementLink"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
-                    <a href="users-management.html" id="usersManagementLink"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
-                </div>
-            </nav>
+    <main class="main-content">
+        <div style="margin-bottom: 2rem;">
+            <h1 class="section-title"><i class="fas fa-home"></i> لوحة التحكم</h1>
+            <p style="color: #4e6580;">آخر تحديث: <span id="lastUpdate"></span></p>
+        </div>
 
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar" id="userAvatar"><i class="fas fa-user"></i></div>
-                    <div class="user-details">
-                        <h4 class="user-name" id="userNameDisplay">...</h4>
-                        <p class="user-district" id="userDistrictDisplay">...</p>
-                        <button onclick="openChangePasswordModal()" class="change-password-btn" title="تغيير كلمة المرور">
-                            <i class="fas fa-key"></i> تغيير كلمة المرور
-                        </button>
-                    </div>
-                </div>
-                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+        <!-- شريط تقدم التحميل -->
+        <div id="loadingProgress" style="display: none; margin-bottom: 1rem;">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressFill"></div>
             </div>
-        </aside>
+            <div class="loading-stats" id="loadingStats"></div>
+        </div>
 
-        <main class="main-content">
-            <div style="margin-bottom: 2rem;">
-                <h1 class="section-title"><i class="fas fa-home"></i> لوحة التحكم</h1>
-                <p style="color: #4e6580;">آخر تحديث: <span id="lastUpdate"></span></p>
-            </div>
-
-            <!-- شريط تقدم التحميل -->
-            <div id="loadingProgress" style="display: none; margin-bottom: 1rem;">
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" id="progressFill"></div>
-                </div>
-                <div class="loading-stats" id="loadingStats"></div>
-            </div>
-
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #e34f76, #c13b5c);"><i class="fas fa-file-alt"></i></div>
-                    <div class="stat-info">
-                        <h3>إجمالي التقارير</h3>
-                        <div class="stat-number" id="totalReports">0</div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-school"></i></div>
-                    <div class="stat-info">
-                        <h3>تقارير وجاهي</h3>
-                        <div class="stat-number" id="inPersonReports">0</div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg,#2e9b54, #1e7b3a);"><i class="fas fa-laptop"></i></div>
-                    <div class="stat-info">
-                        <h3>تقارير عن بعد</h3>
-                        <div class="stat-number" id="remoteReports">0</div>
-                    </div>
-                </div>
-
-                <div class="stat-card" id="schoolsVisitedInPersonCard">
-                    <div class="stat-icon"><i class="fas fa-building"></i></div>
-                    <div class="stat-info">
-                        <h3>المدارس التي تمت زيارتها (وجاهي)</h3>
-                        <div class="stat-number" id="schoolsVisitedInPerson">0</div>
-                    </div>
-                </div>
-
-                <div class="stat-card" id="schoolsVisitedRemoteCard">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #2e9b54, #1e7b3a);"><i class="fas fa-building"></i></div>
-                    <div class="stat-info">
-                        <h3>المدارس التي تمت زيارتها (عن بعد)</h3>
-                        <div class="stat-number" id="schoolsVisitedRemote">0</div>
-                    </div>
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #e34f76, #c13b5c);"><i class="fas fa-file-alt"></i></div>
+                <div class="stat-info">
+                    <h3>إجمالي التقارير</h3>
+                    <div class="stat-number" id="totalReports">0</div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                <div class="table-container">
-                    <h3 class="section-title" style="font-size: 1.1rem; margin-bottom: 1rem;"><i class="fas fa-chart-pie"></i> توزيع التقارير حسب النوع</h3>
-                    <canvas id="reportsChart" style="max-height: 300px;"></canvas>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-school"></i></div>
+                <div class="stat-info">
+                    <h3>تقارير وجاهي</h3>
+                    <div class="stat-number" id="inPersonReports">0</div>
                 </div>
+            </div>
 
-                <div class="table-container">
-                    <h3 class="section-title" style="font-size: 1.1rem; margin-bottom: 1rem;"><i class="fas fa-chart-line"></i> التقارير خلال آخر 6 أشهر</h3>
-                    <canvas id="monthlyChart" style="max-height: 300px;"></canvas>
-                    <div id="chartVerification" class="data-verification"></div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg,#2e9b54, #1e7b3a);"><i class="fas fa-laptop"></i></div>
+                <div class="stat-info">
+                    <h3>تقارير عن بعد</h3>
+                    <div class="stat-number" id="remoteReports">0</div>
                 </div>
+            </div>
+
+            <div class="stat-card" id="schoolsVisitedInPersonCard">
+                <div class="stat-icon"><i class="fas fa-building"></i></div>
+                <div class="stat-info">
+                    <h3>المدارس التي تمت زيارتها (وجاهي)</h3>
+                    <div class="stat-number" id="schoolsVisitedInPerson">0</div>
+                </div>
+            </div>
+
+            <div class="stat-card" id="schoolsVisitedRemoteCard">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #2e9b54, #1e7b3a);"><i class="fas fa-building"></i></div>
+                <div class="stat-info">
+                    <h3>المدارس التي تمت زيارتها (عن بعد)</h3>
+                    <div class="stat-number" id="schoolsVisitedRemote">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="table-container">
+                <h3 class="section-title" style="font-size: 1.1rem; margin-bottom: 1rem;"><i class="fas fa-chart-pie"></i> توزيع التقارير حسب النوع</h3>
+                <canvas id="reportsChart" style="max-height: 300px;"></canvas>
             </div>
 
             <div class="table-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h3 class="section-title" style="margin-bottom: 0;"><i class="fas fa-clock"></i> آخر التقارير المضافة</h3>
-                    <a href="reports.html" style="color: #1e3c72; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">عرض الكل <i class="fas fa-arrow-left"></i></a>
-                </div>
-
-                <div style="overflow-x: auto;">
-                    <table class="modern-table">
-                        <thead>
-                            <tr><th>#</th><th>التاريخ</th><th>المدرسة</th><th>المعلم</th><th>المبحث</th><th>النوع</th></tr>
-                        </thead>
-                        <tbody id="recentReports">
-                            <tr><td colspan="6" style="text-align: center; padding: 2rem;"><div class="loader"></div></td</tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="reports-count" id="reportsCount"></div>
+                <h3 class="section-title" style="font-size: 1.1rem; margin-bottom: 1rem;"><i class="fas fa-chart-line"></i> التقارير خلال آخر 6 أشهر</h3>
+                <canvas id="monthlyChart" style="max-height: 300px;"></canvas>
+                <div id="chartVerification" class="data-verification"></div>
             </div>
-        </main>
-    </div>
+        </div>
 
+        <div class="table-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 class="section-title" style="margin-bottom: 0;"><i class="fas fa-clock"></i> آخر التقارير المضافة</h3>
+                <a href="reports.html" style="color: #1e3c72; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">عرض الكل <i class="fas fa-arrow-left"></i></a>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="modern-table">
+                    <thead>
+                        <tr><th>#</th><th>التاريخ</th><th>المدرسة</th><th>المعلم</th><th>المبحث</th><th>النوع</th></tr>
+                    </thead>
+                    <tbody id="recentReports">
+                        <tr><td colspan="6" style="text-align: center; padding: 2rem;"><div class="loader"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="reports-count" id="reportsCount"></div>
+        </div>
+    </main>
+
+    <!-- باقي النوافذ المنبثقة -->
     <div id="changePasswordModal" class="modal">
         <div class="modal-content password-modal">
             <div class="modal-header">
                 <h2>تغيير كلمة المرور</h2>
                 <button class="modal-close" onclick="closeChangePasswordModal()"><i class="fas fa-times"></i></button>
             </div>
-            
+
             <form id="changePasswordForm">
                 <div class="password-field">
                     <label class="form-label">كلمة المرور الحالية *</label>
                     <input type="password" id="currentPassword" class="form-input" placeholder="أدخل كلمة المرور الحالية" required>
                     <i class="fas fa-eye toggle-password" onclick="toggleCurrentPassword()"></i>
                 </div>
-                
+
                 <div class="password-field">
                     <label class="form-label">كلمة المرور الجديدة *</label>
                     <input type="password" id="newPassword" class="form-input" placeholder="أدخل كلمة المرور الجديدة" required onkeyup="checkPasswordStrength()">
                     <i class="fas fa-eye toggle-password" onclick="toggleNewPassword()"></i>
                     <div id="passwordStrength" class="password-strength"></div>
                 </div>
-                
+
                 <div class="password-field">
                     <label class="form-label">تأكيد كلمة المرور الجديدة *</label>
                     <input type="password" id="confirmPassword" class="form-input" placeholder="أعد إدخال كلمة المرور الجديدة" required>
                     <i class="fas fa-eye toggle-password" onclick="toggleConfirmPassword()"></i>
                 </div>
-                
+
                 <div class="modal-actions">
                     <button type="submit" id="changePasswordBtn" class="btn-primary" style="flex: 2;"><i class="fas fa-save"></i> تغيير كلمة المرور</button>
                     <button type="button" onclick="closeChangePasswordModal()" class="btn-secondary" style="flex: 1;"><i class="fas fa-times"></i> إلغاء</button>
@@ -540,8 +868,7 @@
         let currentUser = null;
         let chartsInstances = {};
         let isChangingPassword = false;
-        
-        // Cache للإحصائيات
+
         let dashboardCache = {
             inPersonCount: 0,
             remoteCount: 0,
@@ -553,7 +880,29 @@
             cacheDuration: 60000
         };
 
-        // ==================== دوال الصلاحيات ====================
+        // دوال فتح وإغلاق القائمة للجوال
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+        }
+
+        // إغلاق القائمة عند الضغط على رابط داخلها (لتحسين تجربة المستخدم)
+        function closeSidebarAndNavigate(url) {
+            closeSidebar();
+            setTimeout(() => {
+                window.location.href = url;
+            }, 150);
+        }
+
         function getRoleName(role) {
             const roles = { 'admin': 'مدير النظام', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'spuser': 'مدير مدرسة', 'user': 'مختص تربوي' };
             return roles[role] || role;
@@ -575,12 +924,12 @@
             const summaryReportsLink = document.getElementById('navSummaryReports');
             const schoolsVisitedInPersonCard = document.getElementById('schoolsVisitedInPersonCard');
             const schoolsVisitedRemoteCard = document.getElementById('schoolsVisitedRemoteCard');
-            
+
             const showAdminLinks = (user.role === 'admin' || user.role === 'support');
             if (adminLinks) adminLinks.style.display = showAdminLinks ? 'block' : 'none';
             if (analyticsLink) analyticsLink.style.display = (user.role === 'admin' || user.role === 'support' || user.role === 'manger') ? 'flex' : 'none';
             if (summaryReportsLink) summaryReportsLink.style.display = (user.role !== 'spuser') ? 'flex' : 'none';
-            
+
             const showSchoolsCards = (user.role !== 'spuser');
             if (schoolsVisitedInPersonCard) schoolsVisitedInPersonCard.style.display = showSchoolsCards ? 'flex' : 'none';
             if (schoolsVisitedRemoteCard) schoolsVisitedRemoteCard.style.display = showSchoolsCards ? 'flex' : 'none';
@@ -610,628 +959,258 @@
             return null;
         }
 
-        // ==================== دالة تحويل التاريخ الموحدة ====================
         function parseDate(dateStr) {
             if (!dateStr) return null;
-            
             let year, month, day;
             let cleaned = String(dateStr).trim();
-            
             let match = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-            if (match) {
-                year = parseInt(match[1]);
-                month = parseInt(match[2]);
-                day = parseInt(match[3]);
-                if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-                    return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` };
-                }
-            }
-            
+            if (match) { year = parseInt(match[1]); month = parseInt(match[2]); day = parseInt(match[3]); if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` }; }
             match = cleaned.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/);
-            if (match) {
-                year = parseInt(match[1]);
-                month = parseInt(match[2]);
-                day = parseInt(match[3]);
-                if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-                    return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` };
-                }
-            }
-            
+            if (match) { year = parseInt(match[1]); month = parseInt(match[2]); day = parseInt(match[3]); if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` }; }
             match = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-            if (match) {
-                day = parseInt(match[1]);
-                month = parseInt(match[2]);
-                year = parseInt(match[3]);
-                if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-                    return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` };
-                }
-            }
-            
+            if (match) { day = parseInt(match[1]); month = parseInt(match[2]); year = parseInt(match[3]); if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` }; }
             const date = new Date(cleaned);
-            if (!isNaN(date.getTime()) && date.getFullYear() > 1900) {
-                year = date.getFullYear();
-                month = date.getMonth() + 1;
-                day = date.getDate();
-                return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` };
-            }
-            
+            if (!isNaN(date.getTime()) && date.getFullYear() > 1900) { year = date.getFullYear(); month = date.getMonth() + 1; day = date.getDate(); return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` }; }
             return null;
         }
 
-        // ==================== دالة جلب جميع البيانات باستخدام الترحيل ====================
         async function fetchAllDataWithPagination(tableName, queryBuilder = null, onProgress = null) {
             let allData = [];
             let from = 0;
             const pageSize = 1000;
             let hasMore = true;
-            
             while (hasMore) {
-                let query = window.supabaseClient
-                    .from(tableName)
-                    .select('*')
-                    .range(from, from + pageSize - 1);
-                
-                if (queryBuilder) {
-                    query = queryBuilder(query);
-                }
-                
+                let query = window.supabaseClient.from(tableName).select('*').range(from, from + pageSize - 1);
+                if (queryBuilder) query = queryBuilder(query);
                 const { data, error } = await query;
-                
-                if (error) {
-                    console.error(`Error fetching ${tableName}:`, error);
-                    break;
-                }
-                
+                if (error) break;
                 if (data && data.length > 0) {
                     allData = [...allData, ...data];
                     from += pageSize;
-                    
-                    if (onProgress) {
-                        onProgress(allData.length, data.length);
-                    }
-                    
-                    if (data.length < pageSize) {
-                        hasMore = false;
-                    }
+                    if (onProgress) onProgress(allData.length, data.length);
+                    if (data.length < pageSize) hasMore = false;
                 } else {
                     hasMore = false;
                 }
             }
-            
             return allData;
         }
 
-        // ==================== جلب جميع البيانات بشكل كامل ====================
         async function fetchAllDashboardData(user) {
             const progressDiv = document.getElementById('loadingProgress');
             const progressFill = document.getElementById('progressFill');
             const loadingStats = document.getElementById('loadingStats');
-            
             progressDiv.style.display = 'block';
-            
             try {
-                // بناء الفلاتر
                 let schoolIds = null;
-                
                 if (user.role === 'manger' && user.district_id) {
                     const { data: schools } = await window.supabaseClient.from('schools').select('id').eq('district_id', user.district_id);
                     schoolIds = schools?.map(s => s.id) || [];
                     if (schoolIds.length === 0) {
                         progressDiv.style.display = 'none';
-                        return {
-                            inPersonReports: [],
-                            remoteReports: [],
-                            inPersonCount: 0,
-                            remoteCount: 0,
-                            uniqueInPersonSchools: 0,
-                            uniqueRemoteSchools: 0,
-                            recentReports: [],
-                            monthlyData: { labels: [], counts: [], total: 0 }
-                        };
+                        return { inPersonCount: 0, remoteCount: 0, uniqueInPersonSchools: 0, uniqueRemoteSchools: 0, recentReports: [], monthlyData: { labels: [], counts: [], total: 0 } };
                     }
                 } else if (user.role === 'spuser' && user.school_id) {
                     schoolIds = [user.school_id];
                 }
-                
-                // دوال تتبع التقدم
-                let inPersonProgress = 0;
-                let remoteProgress = 0;
-                
+
+                let inPersonQuery = null, remoteQuery = null;
+                if (schoolIds && schoolIds.length > 0) {
+                    inPersonQuery = (q) => q.in('school_id', schoolIds);
+                    remoteQuery = (q) => q.in('school_id', schoolIds);
+                } else if (user.role === 'user') {
+                    inPersonQuery = (q) => q.eq('specialist_id', user.id);
+                    remoteQuery = (q) => q.eq('specialist_id', user.id);
+                }
+
+                let inPersonProgress = 0, remoteProgress = 0;
                 const updateProgress = () => {
                     const totalProgress = (inPersonProgress + remoteProgress) / 2;
                     progressFill.style.width = `${totalProgress}%`;
-                    loadingStats.innerHTML = `جاري تحميل البيانات... ${Math.round(totalProgress)}% (وجاهي: ${Math.round(inPersonProgress)}%, عن بعد: ${Math.round(remoteProgress)}%)`;
+                    loadingStats.innerHTML = `جاري تحميل البيانات... ${Math.round(totalProgress)}%`;
                 };
-                
-                // جلب التقارير الوجاهية
-                let inPersonQuery = null;
-                if (schoolIds && schoolIds.length > 0) {
-                    inPersonQuery = (q) => q.in('school_id', schoolIds);
-                } else if (user.role === 'user') {
-                    inPersonQuery = (q) => q.eq('specialist_id', user.id);
-                }
-                
-                const inPersonPromise = fetchAllDataWithPagination('in_person_reports', inPersonQuery, (total, lastBatch) => {
-                    inPersonProgress = Math.min(100, (total / (total + 1000)) * 100);
-                    updateProgress();
-                });
-                
-                // جلب التقارير عن بعد
-                let remoteQuery = null;
-                if (schoolIds && schoolIds.length > 0) {
-                    remoteQuery = (q) => q.in('school_id', schoolIds);
-                } else if (user.role === 'user') {
-                    remoteQuery = (q) => q.eq('specialist_id', user.id);
-                }
-                
-                const remotePromise = fetchAllDataWithPagination('remote_reports', remoteQuery, (total, lastBatch) => {
-                    remoteProgress = Math.min(100, (total / (total + 1000)) * 100);
-                    updateProgress();
-                });
-                
+                const inPersonPromise = fetchAllDataWithPagination('in_person_reports', inPersonQuery, (t) => { inPersonProgress = Math.min(100, (t / (t + 1000)) * 100); updateProgress(); });
+                const remotePromise = fetchAllDataWithPagination('remote_reports', remoteQuery, (t) => { remoteProgress = Math.min(100, (t / (t + 1000)) * 100); updateProgress(); });
                 const [inPersonReports, remoteReports] = await Promise.all([inPersonPromise, remotePromise]);
-                
                 progressFill.style.width = '100%';
-                loadingStats.innerHTML = '✅ تم تحميل جميع البيانات بنجاح!';
-                setTimeout(() => { progressDiv.style.display = 'none'; }, 1000);
-                
-                // جلب أسماء المدارس للتقارير (لأن select أعلاه لم يجلبها)
-                const allSchoolIds = new Set([
-                    ...inPersonReports.map(r => r.school_id),
-                    ...remoteReports.map(r => r.school_id)
-                ].filter(id => id));
-                
+                loadingStats.innerHTML = '✅ تم تحميل البيانات!';
+                setTimeout(() => progressDiv.style.display = 'none', 1000);
+
+                const allSchoolIds = new Set([...inPersonReports.map(r => r.school_id), ...remoteReports.map(r => r.school_id)].filter(id => id));
                 let schoolsMap = new Map();
-                if (allSchoolIds.size > 0) {
-                    const { data: schools } = await window.supabaseClient
-                        .from('schools')
-                        .select('id, name')
-                        .in('id', Array.from(allSchoolIds));
-                    if (schools) {
-                        schools.forEach(s => schoolsMap.set(s.id, s));
-                    }
+                if (allSchoolIds.size) {
+                    const { data: schools } = await window.supabaseClient.from('schools').select('id, name').in('id', Array.from(allSchoolIds));
+                    if (schools) schools.forEach(s => schoolsMap.set(s.id, s));
                 }
-                
-                // إضافة بيانات المدرسة لكل تقرير
-                const inPersonWithSchools = inPersonReports.map(r => ({
-                    ...r,
-                    schools: schoolsMap.get(r.school_id) || { name: 'غير محدد' }
-                }));
-                
-                const remoteWithSchools = remoteReports.map(r => ({
-                    ...r,
-                    schools: schoolsMap.get(r.school_id) || { name: 'غير محدد' }
-                }));
-                
-                // الإحصائيات
-                const inPersonCount = inPersonWithSchools.length;
-                const remoteCount = remoteWithSchools.length;
+                const inPersonWithSchools = inPersonReports.map(r => ({ ...r, schools: schoolsMap.get(r.school_id) || { name: 'غير محدد' } }));
+                const remoteWithSchools = remoteReports.map(r => ({ ...r, schools: schoolsMap.get(r.school_id) || { name: 'غير محدد' } }));
+                const inPersonCount = inPersonWithSchools.length, remoteCount = remoteWithSchools.length;
                 const uniqueInPersonSchools = new Set(inPersonWithSchools.map(r => r.school_id).filter(id => id)).size;
                 const uniqueRemoteSchools = new Set(remoteWithSchools.map(r => r.school_id).filter(id => id)).size;
-                
-                // آخر 5 تقارير
-                const allReportsWithType = [
-                    ...inPersonWithSchools.map(r => ({ ...r, report_type: 'in_person' })),
-                    ...remoteWithSchools.map(r => ({ ...r, report_type: 'remote' }))
-                ];
-                const recentReports = allReportsWithType
-                    .sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date))
-                    .slice(0, 5);
-                
-                // البيانات الشهرية لآخر 6 أشهر
+                const allReportsWithType = [...inPersonWithSchools.map(r => ({ ...r, report_type: 'in_person' })), ...remoteWithSchools.map(r => ({ ...r, report_type: 'remote' }))];
+                const recentReports = allReportsWithType.sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date)).slice(0, 5);
                 const today = new Date();
                 const currentYear = today.getFullYear();
                 const currentMonth = today.getMonth() + 1;
-                
-                const monthsList = [];
-                const monthsMap = new Map();
+                const monthsList = [], monthsMap = new Map();
                 const monthNames = ['يناير', 'فبراير', 'مارس', 'إبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-                
                 for (let i = 5; i >= 0; i--) {
-                    let year = currentYear;
-                    let month = currentMonth - i;
-                    if (month <= 0) {
-                        month += 12;
-                        year--;
-                    }
+                    let year = currentYear, month = currentMonth - i;
+                    if (month <= 0) { month += 12; year--; }
                     const monthKey = `${year}-${String(month).padStart(2, '0')}`;
                     monthsList.push(monthKey);
-                    monthsMap.set(monthKey, { count: 0, label: `${monthNames[month-1]} ${year}` });
+                    monthsMap.set(monthKey, { count: 0, label: `${monthNames[month - 1]} ${year}` });
                 }
-                
                 for (const report of allReportsWithType) {
                     const parsed = parseDate(report.visit_date);
-                    if (parsed && monthsMap.has(parsed.monthKey)) {
-                        monthsMap.get(parsed.monthKey).count++;
-                    }
+                    if (parsed && monthsMap.has(parsed.monthKey)) monthsMap.get(parsed.monthKey).count++;
                 }
-                
                 const labels = monthsList.map(m => monthsMap.get(m).label);
                 const counts = monthsList.map(m => monthsMap.get(m).count);
                 const monthlyTotal = counts.reduce((a, b) => a + b, 0);
-                
-                // عرض رسالة التأكيد
                 const verificationDiv = document.getElementById('chartVerification');
-                if (verificationDiv) {
-                    verificationDiv.innerHTML = `✅ ${monthlyTotal} تقرير في آخر 6 أشهر (إجمالي الكل: ${inPersonCount + remoteCount} تقرير)`;
-                }
-                
-                console.log(`📊 دقة البيانات: ${inPersonCount} وجاهي + ${remoteCount} عن بعد = ${inPersonCount + remoteCount} إجمالي`);
-                
-                return {
-                    inPersonCount,
-                    remoteCount,
-                    uniqueInPersonSchools,
-                    uniqueRemoteSchools,
-                    recentReports,
-                    monthlyData: { labels, counts, total: monthlyTotal }
-                };
-                
-            } catch (error) {
-                console.error('❌ Error fetching data:', error);
+                if (verificationDiv) verificationDiv.innerHTML = `✅ ${monthlyTotal} تقرير في آخر 6 أشهر (إجمالي الكل: ${inPersonCount + remoteCount} تقرير)`;
+                return { inPersonCount, remoteCount, uniqueInPersonSchools, uniqueRemoteSchools, recentReports, monthlyData: { labels, counts, total: monthlyTotal } };
+            } catch (e) {
+                console.error(e);
                 progressDiv.style.display = 'none';
-                return {
-                    inPersonCount: 0,
-                    remoteCount: 0,
-                    uniqueInPersonSchools: 0,
-                    uniqueRemoteSchools: 0,
-                    recentReports: [],
-                    monthlyData: { labels: [], counts: [], total: 0 }
-                };
+                return { inPersonCount: 0, remoteCount: 0, uniqueInPersonSchools: 0, uniqueRemoteSchools: 0, recentReports: [], monthlyData: { labels: [], counts: [], total: 0 } };
             }
         }
 
-        // ==================== عرض آخر التقارير ====================
         function displayRecentReportsTable(reports) {
             const tbody = document.getElementById('recentReports');
             const reportsCount = document.getElementById('reportsCount');
-            
             if (!reports || reports.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #4e6580;"><i class="fas fa-folder-open" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><p>لا توجد تقارير</p></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير</p></td></tr>';
                 if (reportsCount) reportsCount.textContent = '';
                 return;
             }
-
-            tbody.innerHTML = reports.map((report, index) => {
+            tbody.innerHTML = reports.map((report, idx) => {
                 const schoolName = report.schools?.name || 'غير محدد';
                 const teacherName = report.teacher_name || 'غير محدد';
                 const subject = report.subject || 'غير محدد';
                 let date = '-';
                 if (report.visit_date) {
-                    const parsed = parseDate(report.visit_date);
-                    if (parsed) date = `${parsed.day}/${parsed.month}/${parsed.year}`;
+                    const p = parseDate(report.visit_date);
+                    if (p) date = `${p.day}/${p.month}/${p.year}`;
                 }
                 const reportType = report.report_type === 'in_person' ? 'وجاهي' : 'عن بعد';
                 const bgColor = report.report_type === 'in_person' ? '#e8f0fe' : '#eef9f0';
                 const textColor = report.report_type === 'in_person' ? '#1e3c72' : '#2e9b54';
-                
-                return `
-                    <tr>
-                        <td style="padding: 12px 16px;">${index + 1}</td>
-                        <td style="padding: 12px 16px;">${date}</td>
-                        <td style="padding: 12px 16px;">${escapeHtml(schoolName)}</td>
-                        <td style="padding: 12px 16px;">${escapeHtml(teacherName)}</td>
-                        <td style="padding: 12px 16px;">${escapeHtml(subject)}</td>
-                        <td style="padding: 12px 16px;">
-                            <span style="display: inline-block; padding: 0.3rem 1rem; border-radius: 30px; font-size: 0.8rem; font-weight: 600; background: ${bgColor}; color: ${textColor};">
-                                ${reportType}
-                            </span>
-                        </td>
-                    </tr>
-                `;
+                return `<tr><td>${idx + 1}</td><td>${date}</td><td>${escapeHtml(schoolName)}</td><td>${escapeHtml(teacherName)}</td><td>${escapeHtml(subject)}</td><td><span style="padding:0.3rem 1rem;border-radius:30px;background:${bgColor};color:${textColor};">${reportType}</span></td></tr>`;
             }).join('');
-            
             if (reportsCount) reportsCount.textContent = `آخر ${reports.length} تقارير`;
         }
 
-        // ==================== إنشاء الرسوم البيانية ====================
         function createCharts(inPersonCount, remoteCount, monthlyLabels, monthlyCounts) {
             if (chartsInstances.reportsChart) chartsInstances.reportsChart.destroy();
             if (chartsInstances.monthlyChart) chartsInstances.monthlyChart.destroy();
-            
             const total = inPersonCount + remoteCount;
-            
             const reportsChartCtx = document.getElementById('reportsChart')?.getContext('2d');
-            if (reportsChartCtx) {
-                chartsInstances.reportsChart = new Chart(reportsChartCtx, {
-                    type: 'doughnut',
-                    data: { 
-                        labels: ['تقارير وجاهي', 'تقارير عن بعد'], 
-                        datasets: [{ data: [inPersonCount, remoteCount], backgroundColor: ['#1e3c72', '#2e9b54'], borderWidth: 0 }] 
-                    },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: true, 
-                        plugins: { 
-                            legend: { position: 'bottom' },
-                            tooltip: { 
-                                callbacks: { 
-                                    label: (ctx) => {
-                                        const pct = total > 0 ? Math.round(ctx.raw / total * 100) : 0;
-                                        return `${ctx.label}: ${ctx.raw} تقرير (${pct}%)`;
-                                    }
-                                } 
-                            }
-                        } 
-                    }
-                });
-            }
-            
+            if (reportsChartCtx) chartsInstances.reportsChart = new Chart(reportsChartCtx, { type: 'doughnut', data: { labels: ['تقارير وجاهي', 'تقارير عن بعد'], datasets: [{ data: [inPersonCount, remoteCount], backgroundColor: ['#1e3c72', '#2e9b54'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: (ctx) => { const pct = total > 0 ? Math.round(ctx.raw / total * 100) : 0; return `${ctx.label}: ${ctx.raw} تقرير (${pct}%)`; } } } } } });
             const monthlyChartCtx = document.getElementById('monthlyChart')?.getContext('2d');
-            if (monthlyChartCtx && monthlyLabels.length > 0) {
-                chartsInstances.monthlyChart = new Chart(monthlyChartCtx, {
-                    type: 'bar',
-                    data: { 
-                        labels: monthlyLabels, 
-                        datasets: [{ 
-                            label: 'عدد التقارير', 
-                            data: monthlyCounts, 
-                            backgroundColor: '#1e3c72',
-                            borderRadius: 8,
-                            borderWidth: 0
-                        }] 
-                    },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: true, 
-                        plugins: { 
-                            legend: { display: false },
-                            tooltip: { callbacks: { label: (ctx) => `${ctx.raw} تقرير` } }
-                        }, 
-                        scales: { 
-                            y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } },
-                            x: { ticks: { maxRotation: 45, minRotation: 45, font: { size: 11 } } }
-                        } 
-                    }
-                });
-            }
+            if (monthlyChartCtx && monthlyLabels.length) chartsInstances.monthlyChart = new Chart(monthlyChartCtx, { type: 'bar', data: { labels: monthlyLabels, datasets: [{ label: 'عدد التقارير', data: monthlyCounts, backgroundColor: '#1e3c72', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${ctx.raw} تقرير` } } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }, x: { ticks: { maxRotation: 45, minRotation: 45 } } } } });
         }
 
-        // ==================== تحميل لوحة التحكم ====================
         async function loadDashboardData(user, forceRefresh = false) {
             const now = Date.now();
-            
-            if (!forceRefresh && dashboardCache.lastFetchTime && (now - dashboardCache.lastFetchTime) < dashboardCache.cacheDuration && dashboardCache.recentReports.length > 0) {
-                console.log('📦 استخدام البيانات المخزنة مؤقتاً');
+            if (!forceRefresh && dashboardCache.lastFetchTime && (now - dashboardCache.lastFetchTime) < dashboardCache.cacheDuration && dashboardCache.recentReports.length) {
                 document.getElementById('totalReports').textContent = dashboardCache.inPersonCount + dashboardCache.remoteCount;
                 document.getElementById('inPersonReports').textContent = dashboardCache.inPersonCount;
                 document.getElementById('remoteReports').textContent = dashboardCache.remoteCount;
                 document.getElementById('schoolsVisitedInPerson').textContent = dashboardCache.uniqueInPersonSchools;
                 document.getElementById('schoolsVisitedRemote').textContent = dashboardCache.uniqueRemoteSchools;
                 displayRecentReportsTable(dashboardCache.recentReports);
-                if (dashboardCache.monthlyData) {
-                    createCharts(dashboardCache.inPersonCount, dashboardCache.remoteCount, dashboardCache.monthlyData.labels, dashboardCache.monthlyData.counts);
-                }
+                if (dashboardCache.monthlyData) createCharts(dashboardCache.inPersonCount, dashboardCache.remoteCount, dashboardCache.monthlyData.labels, dashboardCache.monthlyData.counts);
                 return;
             }
-            
-            console.log('🔄 جلب بيانات جديدة (باستخدام الترحيل الكامل)...');
-            
-            document.getElementById('recentReports').innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;"><div class="loader"></div><p>جاري تحميل جميع البيانات...</p></td></tr>';
-            
-            try {
-                const data = await fetchAllDashboardData(user);
-                
-                dashboardCache = {
-                    inPersonCount: data.inPersonCount,
-                    remoteCount: data.remoteCount,
-                    uniqueInPersonSchools: data.uniqueInPersonSchools,
-                    uniqueRemoteSchools: data.uniqueRemoteSchools,
-                    recentReports: data.recentReports,
-                    monthlyData: data.monthlyData,
-                    lastFetchTime: now,
-                    cacheDuration: 60000
-                };
-                
-                document.getElementById('totalReports').textContent = data.inPersonCount + data.remoteCount;
-                document.getElementById('inPersonReports').textContent = data.inPersonCount;
-                document.getElementById('remoteReports').textContent = data.remoteCount;
-                document.getElementById('schoolsVisitedInPerson').textContent = data.uniqueInPersonSchools;
-                document.getElementById('schoolsVisitedRemote').textContent = data.uniqueRemoteSchools;
-                
-                displayRecentReportsTable(data.recentReports);
-                createCharts(data.inPersonCount, data.remoteCount, data.monthlyData.labels, data.monthlyData.counts);
-                
-                console.log(`✅ تم تحميل لوحة التحكم: ${data.inPersonCount + data.remoteCount} تقرير (${data.inPersonCount} وجاهي، ${data.remoteCount} عن بعد)`);
-                
-            } catch (error) {
-                console.error('❌ Error:', error);
-                showMessage('حدث خطأ في تحميل البيانات', 'error');
-                document.getElementById('recentReports').innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #e34f76;"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل البيانات</p></td></tr>';
-            }
+            document.getElementById('recentReports').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;"><div class="loader"></div><p>جاري التحميل...</p></td></tr>';
+            const data = await fetchAllDashboardData(user);
+            dashboardCache = { inPersonCount: data.inPersonCount, remoteCount: data.remoteCount, uniqueInPersonSchools: data.uniqueInPersonSchools, uniqueRemoteSchools: data.uniqueRemoteSchools, recentReports: data.recentReports, monthlyData: data.monthlyData, lastFetchTime: now, cacheDuration: 60000 };
+            document.getElementById('totalReports').textContent = data.inPersonCount + data.remoteCount;
+            document.getElementById('inPersonReports').textContent = data.inPersonCount;
+            document.getElementById('remoteReports').textContent = data.remoteCount;
+            document.getElementById('schoolsVisitedInPerson').textContent = data.uniqueInPersonSchools;
+            document.getElementById('schoolsVisitedRemote').textContent = data.uniqueRemoteSchools;
+            displayRecentReportsTable(data.recentReports);
+            createCharts(data.inPersonCount, data.remoteCount, data.monthlyData.labels, data.monthlyData.counts);
         }
 
-        // ==================== دوال كلمة المرور والإشعارات (مختصرة) ====================
-        function openChangePasswordModal() {
-            document.getElementById('changePasswordForm').reset();
-            document.getElementById('changePasswordModal').classList.add('active');
-        }
-        function closeChangePasswordModal() {
-            document.getElementById('changePasswordModal').classList.remove('active');
-        }
-        function toggleCurrentPassword() {
-            const input = document.getElementById('currentPassword');
-            const icon = event.target;
-            if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
-            else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
-        }
-        function toggleNewPassword() {
-            const input = document.getElementById('newPassword');
-            const icon = event.target;
-            if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
-            else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
-        }
-        function toggleConfirmPassword() {
-            const input = document.getElementById('confirmPassword');
-            const icon = event.target;
-            if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
-            else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
-        }
-        function checkPasswordStrength() {
-            const password = document.getElementById('newPassword').value;
-            const strengthDiv = document.getElementById('passwordStrength');
-            let strength = 0;
-            if (password.length >= 8) strength++;
-            if (password.match(/[a-z]/)) strength++;
-            if (password.match(/[A-Z]/)) strength++;
-            if (password.match(/[0-9]/)) strength++;
-            if (password.match(/[^a-zA-Z0-9]/)) strength++;
-            if (password.length === 0) { strengthDiv.innerHTML = ''; return; }
-            if (strength <= 2) { strengthDiv.innerHTML = 'كلمة مرور ضعيفة'; strengthDiv.className = 'password-strength weak'; }
-            else if (strength === 3) { strengthDiv.innerHTML = 'كلمة مرور متوسطة'; strengthDiv.className = 'password-strength medium'; }
-            else { strengthDiv.innerHTML = 'كلمة مرور قوية'; strengthDiv.className = 'password-strength strong'; }
-        }
-        
-        document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (isChangingPassword) { showMessage('جاري التغيير... الرجاء الانتظار', 'info'); return; }
-            const currentPassword = document.getElementById('currentPassword').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            if (!currentPassword || !newPassword || !confirmPassword) { showMessage('الرجاء ملء جميع الحقول', 'error'); return; }
-            if (newPassword !== confirmPassword) { showMessage('كلمة المرور الجديدة وتأكيدها غير متطابقين', 'error'); return; }
-            if (newPassword.length < 6) { showMessage('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل', 'error'); return; }
-            
-            isChangingPassword = true;
-            const submitBtn = document.getElementById('changePasswordBtn');
-            const originalHtml = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التغيير...';
-            submitBtn.disabled = true;
-            
-            try {
-                const { data: user, error } = await window.supabaseClient.from('users').select('password').eq('id', currentUser.id).single();
-                if (error) throw error;
-                if (user.password !== currentPassword) { showMessage('كلمة المرور الحالية غير صحيحة', 'error'); return; }
-                const { error: updateError } = await window.supabaseClient.from('users').update({ password: newPassword }).eq('id', currentUser.id);
-                if (updateError) throw updateError;
-                currentUser.password = newPassword;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                showMessage('تم تغيير كلمة المرور بنجاح', 'success');
-                closeChangePasswordModal();
-            } catch (error) {
-                console.error(error);
-                showMessage('حدث خطأ في تغيير كلمة المرور', 'error');
-            } finally {
-                isChangingPassword = false;
-                submitBtn.innerHTML = originalHtml;
-                submitBtn.disabled = false;
-            }
-        });
-
-        function showMessage(text, type) {
-            const container = document.getElementById('notificationsContainer');
-            if (!container) return;
-            const notification = document.createElement('div');
-            notification.className = `notification-item ${type}`;
-            notification.innerHTML = `<div><i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${text}</div>`;
-            container.appendChild(notification);
-            setTimeout(() => notification.remove(), 4000);
-        }
-        
-        async function updateUnreadBadge() {
-            try {
-                const result = await window.getUnreadNotificationsCount(currentUser?.id);
-                if (result.success) {
-                    const badge = document.getElementById('unreadBadge');
-                    if (badge) {
-                        badge.textContent = result.count > 99 ? '99+' : result.count;
-                        badge.style.display = result.count > 0 ? 'flex' : 'none';
-                    }
-                }
-            } catch (error) { console.error(error); }
-        }
-
-        async function toggleNotificationsPanel() {
-            const panel = document.getElementById('notificationsPanel');
-            const overlay = document.getElementById('panelOverlay');
-            if (panel.classList.contains('open')) { closeNotificationsPanel(); }
-            else { await loadNotifications(); panel.classList.add('open'); overlay.classList.add('open'); }
-        }
-        function closeNotificationsPanel() {
-            document.getElementById('notificationsPanel').classList.remove('open');
-            document.getElementById('panelOverlay').classList.remove('open');
-        }
-        async function loadNotifications() {
-            const listContainer = document.getElementById('notificationsList');
-            listContainer.innerHTML = '<div class="empty-notifications"><div class="loader-small"></div><p>جاري تحميل الإشعارات...</p></div>';
-            try {
-                const result = await window.getRecentNotifications(currentUser?.id, 50);
-                if (result.success) {
-                    const notifications = result.data;
-                    if (!notifications || notifications.length === 0) {
-                        listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
-                    } else {
-                        listContainer.innerHTML = notifications.map(n => `
-                            <div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="viewNotification(${n.id})">
-                                <div><strong>${escapeHtml(n.title)}</strong></div>
-                                <div style="font-size:0.8rem;color:#666;">${escapeHtml(n.message)}</div>
-                                <div style="font-size:0.7rem;color:#999;margin-top:0.25rem;">${formatNotificationTime(n.created_at)}</div>
-                                <button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${n.id})"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `).join('');
-                    }
-                    await updateUnreadBadge();
-                    const hasUnread = notifications.some(n => !n.is_read);
-                    document.getElementById('markAllReadBtn').style.display = hasUnread ? 'flex' : 'none';
-                }
-            } catch (error) { console.error(error); }
-        }
-        async function viewNotification(notificationId) {
-            try { await window.markNotificationAsRead(notificationId); await updateUnreadBadge(); await loadNotifications(); } 
-            catch (error) { console.error(error); }
-        }
-        async function deleteNotificationItem(notificationId) {
-            try { await window.deleteNotification(notificationId); await loadNotifications(); await updateUnreadBadge(); } 
-            catch (error) { console.error(error); }
-        }
-        async function markAllAsRead() {
-            try { await window.markAllNotificationsAsRead(currentUser?.id); await loadNotifications(); await updateUnreadBadge(); showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success'); } 
-            catch (error) { console.error(error); }
-        }
-        function formatNotificationTime(dateString) {
-            const date = new Date(dateString);
-            const diffMins = Math.floor((new Date() - date) / 60000);
-            if (diffMins < 1) return 'الآن';
-            if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
-            if (diffMins < 1440) return `منذ ${Math.floor(diffMins / 60)} ساعة`;
-            return `منذ ${Math.floor(diffMins / 1440)} يوم`;
-        }
-        function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
-
+        // دوال كلمة المرور والإشعارات (بدون تغيير)
+        function openChangePasswordModal() { document.getElementById('changePasswordModal').classList.add('active'); }
+        function closeChangePasswordModal() { document.getElementById('changePasswordModal').classList.remove('active'); }
+        function toggleCurrentPassword() { const input = document.getElementById('currentPassword'); const icon = event.target; if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); } else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); } }
+        function toggleNewPassword() { const input = document.getElementById('newPassword'); const icon = event.target; if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); } else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); } }
+        function toggleConfirmPassword() { const input = document.getElementById('confirmPassword'); const icon = event.target; if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); } else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); } }
+        function checkPasswordStrength() { const pwd = document.getElementById('newPassword').value; const div = document.getElementById('passwordStrength'); let s = 0; if (pwd.length >= 8) s++; if (pwd.match(/[a-z]/)) s++; if (pwd.match(/[A-Z]/)) s++; if (pwd.match(/[0-9]/)) s++; if (pwd.match(/[^a-zA-Z0-9]/)) s++; if (pwd.length === 0) { div.innerHTML = ''; return; } if (s <= 2) { div.innerHTML = 'كلمة مرور ضعيفة'; div.className = 'password-strength weak'; } else if (s === 3) { div.innerHTML = 'كلمة مرور متوسطة'; div.className = 'password-strength medium'; } else { div.innerHTML = 'كلمة مرور قوية'; div.className = 'password-strength strong'; } }
+        document.getElementById('changePasswordForm').addEventListener('submit', async (e) => { e.preventDefault(); if (isChangingPassword) return; const current = document.getElementById('currentPassword').value; const newPwd = document.getElementById('newPassword').value; const confirm = document.getElementById('confirmPassword').value; if (!current || !newPwd || !confirm) { showMessage('الرجاء ملء جميع الحقول', 'error'); return; } if (newPwd !== confirm) { showMessage('كلمة المرور غير متطابقة', 'error'); return; } if (newPwd.length < 6) { showMessage('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل', 'error'); return; } isChangingPassword = true; const btn = document.getElementById('changePasswordBtn'); const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...'; btn.disabled = true; try { const { data: user, error } = await window.supabaseClient.from('users').select('password').eq('id', currentUser.id).single(); if (error) throw error; if (user.password !== current) { showMessage('كلمة المرور الحالية غير صحيحة', 'error'); return; } await window.supabaseClient.from('users').update({ password: newPwd }).eq('id', currentUser.id); currentUser.password = newPwd; localStorage.setItem('currentUser', JSON.stringify(currentUser)); showMessage('تم تغيير كلمة المرور بنجاح', 'success'); closeChangePasswordModal(); } catch (err) { showMessage('حدث خطأ', 'error'); } finally { isChangingPassword = false; btn.innerHTML = orig; btn.disabled = false; } });
+        function showMessage(text, type) { const c = document.getElementById('notificationsContainer'); if (!c) return; const n = document.createElement('div'); n.className = `notification-item ${type}`; n.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${text}`; c.appendChild(n); setTimeout(() => n.remove(), 4000); }
+        async function updateUnreadBadge() { if (!window.getUnreadNotificationsCount || !currentUser) return; const r = await window.getUnreadNotificationsCount(currentUser.id); if (r.success) { const b = document.getElementById('unreadBadge'); if (b) { b.textContent = r.count > 99 ? '99+' : r.count; b.style.display = r.count > 0 ? 'flex' : 'none'; } } }
+        async function toggleNotificationsPanel() { const p = document.getElementById('notificationsPanel'); const o = document.getElementById('panelOverlay'); if (p.classList.contains('open')) { closeNotificationsPanel(); } else { await loadNotifications(); p.classList.add('open'); o.classList.add('open'); } }
+        function closeNotificationsPanel() { document.getElementById('notificationsPanel')?.classList.remove('open'); document.getElementById('panelOverlay')?.classList.remove('open'); }
+        async function loadNotifications() { const list = document.getElementById('notificationsList'); if (!list || !window.getRecentNotifications || !currentUser) return; list.innerHTML = '<div class="empty-notifications"><div class="loader-small"></div><p>جاري التحميل...</p></div>'; const r = await window.getRecentNotifications(currentUser.id, 50); if (r.success) { const notes = r.data; if (!notes?.length) { list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>'; } else { list.innerHTML = notes.map(n => `<div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationClick(${n.id})"><div><strong>${escapeHtml(n.title)}</strong></div><div>${escapeHtml(n.message)}</div><div style="font-size:0.7rem;">${formatTime(n.created_at)}</div><button class="delete-notification" onclick="event.stopPropagation(); deleteNotification(${n.id})"><i class="fas fa-trash"></i></button></div>`).join(''); } await updateUnreadBadge(); const hasUnread = notes.some(n => !n.is_read); document.getElementById('markAllReadBtn').style.display = hasUnread ? 'flex' : 'none'; } }
+        async function handleNotificationClick(id) { if (window.handleNotificationClick) await window.handleNotificationClick(id); closeNotificationsPanel(); await loadNotifications(); }
+        async function deleteNotification(id) { if (window.deleteNotification) await window.deleteNotification(id); await loadNotifications(); await updateUnreadBadge(); showMessage('تم الحذف', 'success'); }
+        async function markAllAsRead() { if (window.markAllNotificationsAsRead && currentUser) await window.markAllNotificationsAsRead(currentUser.id); await loadNotifications(); await updateUnreadBadge(); showMessage('تم تعيين الكل كمقروء', 'success'); }
+        function formatTime(ds) { const d = new Date(ds); const m = Math.floor((new Date() - d) / 60000); if (m < 1) return 'الآن'; if (m < 60) return `منذ ${m} دقيقة`; if (m < 1440) return `منذ ${Math.floor(m / 60)} ساعة`; return `منذ ${Math.floor(m / 1440)} يوم`; }
+        function escapeHtml(t) { if (!t) return ''; const div = document.createElement('div'); div.textContent = t; return div.innerHTML; }
+        function startNotificationPolling() { if (notificationInterval) clearInterval(notificationInterval); notificationInterval = setInterval(() => { if (currentUser && document.hasFocus()) updateUnreadBadge(); }, 30000); }
         let notificationInterval = null;
-        function startNotificationPolling() {
-            if (notificationInterval) clearInterval(notificationInterval);
-            notificationInterval = setInterval(async () => {
-                if (currentUser && document.hasFocus()) {
-                    const result = await window.getUnreadNotificationsCount(currentUser.id);
-                    if (result.success && result.count > 0) updateUnreadBadge();
-                }
-            }, 30000);
-        }
+        async function logout() { if (notificationInterval) clearInterval(notificationInterval); localStorage.removeItem('currentUser'); try { await window.supabaseClient.auth.signOut(); } catch (e) { } window.location.href = 'login.html'; }
 
-        async function logout() {
-            if (notificationInterval) clearInterval(notificationInterval);
-            localStorage.removeItem('currentUser');
-            try { await window.supabaseClient.auth.signOut(); } catch(e) {}
-            window.location.href = 'login.html';
-        }
-
-        // ==================== التهيئة ====================
         window.addEventListener('load', async () => {
             currentUser = await getCurrentUserFast();
-            if (!currentUser) { window.location.href = 'login.html'; return; }
             
+            // التحقق من وجود المستخدم أولاً
+            if (!currentUser) { 
+                window.location.href = 'login.html'; 
+                return; 
+            }
+            
+            // بعد التأكد من وجود المستخدم، قم بتنظيف الإشعارات
+            if (currentUser && currentUser.id) {
+                window.initUserSessionCleanup(true).then(cleanupResult => {
+                    if (cleanupResult.success) {
+                        if (cleanupResult.skipped) {
+                            console.log(`⏭️ ${cleanupResult.message}`);
+                        } else if (cleanupResult.deletedCount > 0) {
+                            console.log(`🧹 تم حذف ${cleanupResult.deletedCount} إشعار قديم`);
+                            if (typeof updateUnreadBadge === 'function') {
+                                updateUnreadBadge();
+                            }
+                            if (typeof showMessage === 'function') {
+                                showMessage(`✅ تم حذف ${cleanupResult.deletedCount} إشعار قديم`, 'info');
+                            }
+                        }
+                    }
+                }).catch(err => console.error('خطأ في تنظيف الإشعارات:', err));
+            }
+
+            // بدء نظام الحفاظ على النشاط
+            window.startAutoKeepAlive();
+            
+            // باقي الكود
             document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username;
             document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
-            const districtDisplay = document.getElementById('userDistrictDisplay');
-            if (districtDisplay) districtDisplay.textContent = getUserSubtitle(currentUser);
-            
+            document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(currentUser);
             updateUIBasedOnRole(currentUser);
             document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-SA');
-            
             await loadDashboardData(currentUser);
             await updateUnreadBadge();
             startNotificationPolling();
+
+            // إضافة مستمع لإغلاق القائمة عند النقر خارجها
+            document.addEventListener('click', function (event) {
+                const sidebar = document.getElementById('sidebar');
+                const toggleBtn = document.getElementById('toggleSidebarBtn');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                    if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                        closeSidebar();
+                    }
+                }
+            });
         });
     </script>
 </body>

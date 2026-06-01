@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>التقارير - نظام التقارير التربوية</title>
     <link rel="icon" type="image/png" sizes="32x32" href="lib/favicon-32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="lib/favicon-16.png">
@@ -30,13 +30,223 @@
         .notification-item.info { border-right-color: #1e3c72; }
         @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
+        /* ===== القائمة الجانبية المتجاوبة ===== */
+        .sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 280px;
+            height: 100%;
+            background: white;
+            border-left: 1px solid #eef2f7;
+            transition: right 0.3s ease-in-out;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                right: -280px;
+            }
+            .sidebar.open {
+                right: 0;
+                box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+            }
+            .main-content {
+                margin-right: 0 !important;
+            }
+            .toggle-sidebar {
+                display: flex !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .filters-bar {
+                flex-direction: column;
+            }
+            .filter-group {
+                width: 100%;
+            }
+            .reports-control-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .page-size-selector {
+                justify-content: center;
+            }
+            .modal-content {
+                margin: 0.5rem !important;
+                width: 95%;
+            }
+        }
+
+        .toggle-sidebar {
+            display: none;
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #1e3c72;
+            transition: all 0.2s;
+        }
+
+        .toggle-sidebar:hover {
+            background: #f0f4fa;
+            transform: scale(1.05);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            transition: all 0.3s;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eef2f7;
+            text-align: center;
+        }
+
+        .sidebar-logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.1rem;
+            color: #1e3c72;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #8ba0bc;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #4e6580;
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s;
+        }
+
+        .sidebar-nav a:hover {
+            background: #e8f0fe;
+            color: #1e3c72;
+        }
+
+        .sidebar-nav a.active {
+            background: linear-gradient(135deg, #1e3c72, #153155);
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid #eef2f7;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .user-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        .user-district {
+            font-size: 0.7rem;
+            color: #8ba0bc;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: none;
+            border: 1px solid #e34f76;
+            color: #e34f76;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background: #fff2f5;
+        }
+
+        .main-content {
+            margin-right: 280px;
+            min-height: 100vh;
+            padding: 1.5rem;
+            transition: margin-right 0.3s ease;
+        }
+
+        /* باقي الأنماط */
         .skill-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; background: #f8fafd; border-radius: 8px; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem; }
         .skill-name { font-weight: 500; color: #0b1f35; flex: 1; min-width: 200px; }
         .skill-rating { display: flex; gap: 1rem; }
         .skill-rating label { display: flex; align-items: center; gap: 0.3rem; cursor: pointer; }
         .skill-rating input[type="radio"] { width: 16px; height: 16px; cursor: pointer; }
         
-        /* ===== تحسين المودال ليظهر في أعلى الصفحة ===== */
         .modal {
             position: fixed;
             top: 0;
@@ -70,6 +280,114 @@
             overflow-y: auto;
         }
         
+        /* مودال التنبيه العام */
+        .alert-modal-content {
+            max-width: 550px;
+            text-align: center;
+        }
+        .alert-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #eef2ff, #e0e8f5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        .alert-icon i {
+            font-size: 2.5rem;
+            color: #1e3c72;
+        }
+        .alert-icon.info i {
+            color: #1e3c72;
+        }
+        .alert-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e3c72;
+            margin-bottom: 0.75rem;
+        }
+        .alert-message {
+            color: #4e6580;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .alert-steps {
+            background: #f8fafd;
+            border-radius: 16px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: right;
+        }
+        .alert-steps p {
+            color: #1e3c72;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+        .alert-steps ol {
+            margin: 0;
+            padding-right: 1.5rem;
+            color: #4e6580;
+            font-size: 0.85rem;
+            line-height: 1.8;
+        }
+        .alert-steps li {
+            margin-bottom: 0.5rem;
+        }
+        .alert-steps li i {
+            margin-left: 0.5rem;
+            color: #2e9b54;
+        }
+        .green-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #eef9f0;
+            color: #2e9b54;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .green-badge i {
+            font-size: 0.8rem;
+        }
+        .alert-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .alert-buttons button {
+            flex: 1;
+            padding: 0.85rem;
+            border-radius: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-got-it {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+        }
+        .btn-got-it:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30,60,114,0.3);
+        }
+        .btn-view-report {
+            background: #f1f5f9;
+            color: #4e6580;
+            border: 1px solid #e2e8f0;
+        }
+        .btn-view-report:hover {
+            background: #eef2ff;
+            color: #1e3c72;
+        }
+        
         .form-section { background: #f8fafd; border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid #eef2f7; }
         .form-section h3 { color: #1e3c72; font-size: 1.1rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #1e3c72; display: inline-block; }
         .form-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
@@ -81,15 +399,59 @@
         
         .flatpickr-input[readonly] { background-color: white; cursor: pointer !important; }
         .filter-date-picker { cursor: pointer !important; background-color: white; }
-        
-        /* ===== ضمان ظهور التقويم فوق المودال ===== */
         .flatpickr-calendar { z-index: 9999999 !important; }
         .flatpickr-calendar.open { z-index: 9999999 !important; }
-        .flatpickr-innerContainer { z-index: 9999999 !important; }
         
-        .filters-bar { display: flex; flex-wrap: wrap; gap: 1rem; background: #f8fafd; padding: 1.25rem; border-radius: 20px; margin-bottom: 1rem; align-items: flex-end; }
-        .filter-group { flex: 1; min-width: 150px; }
-        .filter-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #1e3c72; margin-bottom: 0.3rem; }
+        .filters-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            background: #f8fafd;
+            padding: 1.25rem;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            align-items: flex-end;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .filter-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1e3c72;
+            margin-bottom: 0.2rem;
+        }
+        .filter-group .form-input {
+            margin-bottom: 0;
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+        .filter-buttons button {
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 992px) {
+            .filters-bar {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .filters-bar {
+                grid-template-columns: 1fr;
+            }
+            .filter-buttons {
+                grid-column: 1 / -1;
+                justify-content: flex-start;
+            }
+        }
         
         .reports-control-bar {
             display: flex;
@@ -115,7 +477,6 @@
             font-weight: 700;
         }
         
-        /* Pagination Styles */
         .pagination-container {
             display: flex;
             justify-content: center;
@@ -227,7 +588,7 @@
         
         .modal-actions { display: flex; gap: 1rem; justify-content: flex-start; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eef2f7; }
         .modal-large { max-width: 1200px; width: 95%; }
-        .modal-header { position: sticky; top: 0; background: white; z-index: 10; border-bottom: 1px solid #eef2f7; padding: 1rem 1.5rem; border-radius: 28px 28px 0 0; }
+        .modal-header { position: sticky; top: 0; background: white; z-index: 10; border-bottom: 1px solid #eef2f7; padding: 1rem 1.5rem; border-radius: 28px 28px 0 0; display: flex; justify-content: space-between; align-items: center; }
         .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #8ba0bc; transition: all 0.2s; }
         .modal-close:hover { color: #e34f76; }
         
@@ -274,86 +635,6 @@
         .btn-outlook { background: linear-gradient(135deg, #0078D4, #005a9e); color: white; border-radius: 15px; border: 2px solid rgba(255,255,255,0.3); padding: 10px; cursor: pointer; }
         .btn-outlook:hover { background: linear-gradient(135deg, #005a9e, #003d73); }
         
-        @media (max-width: 768px) { 
-            .skill-item { flex-direction: column; align-items: flex-start; } 
-            .form-row { grid-template-columns: 1fr; } 
-            .filters-bar { flex-direction: column; } 
-            .notifications-panel { width: 100%; left: -100%; }
-            .pagination-container { gap: 0.3rem; }
-            .pagination-btn { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
-            .modal { padding: 0.5rem; align-items: flex-start !important; }
-            .modal-content { margin: 0.5rem auto !important; max-height: 95vh; }
-            .modal-header { padding: 0.75rem 1rem; }
-            .modal-header h2 { font-size: 1.2rem; }
-        }
-        
-        .view-loading { display: flex; align-items: center; justify-content: center; padding: 40px; color: #1e3c72; gap: 10px; }
-        
-        .modal.active { display: flex !important; animation: fadeIn 0.15s ease; }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        #reportDetails { transition: none; }
-        .print-report-container { will-change: transform; }
-        
-        .download-note {
-            font-size: 14px;
-            color: #fff;
-            background: #e34f76;
-            margin-top: 15px;
-            text-align: center;
-            animation: fadeLoop 3s infinite;
-            padding: 15px;
-            font-weight: bold;
-            border-radius: 15px;
-        }
-
-        @keyframes fadeLoop {
-            0% { opacity: 0; }
-            25% { opacity: 1; }
-            75% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-
-        .confirm-modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-            z-index: 100000; display: flex; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden; transition: all 0.3s ease;
-            
-        }
-        .confirm-modal-overlay.active { opacity: 1; visibility: visible; z-index: 1000000000; }
-        .confirm-modal {
-            background: white; border-radius: 24px; width: 90%; max-width: 420px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            transform: scale(0.9); transition: transform 0.3s ease; overflow: hidden;
-           
-        }
-        .confirm-modal-overlay.active .confirm-modal { transform: scale(1); }
-        .confirm-modal-header { padding: 1.5rem 1.5rem 0 1.5rem; text-align: center; }
-        .confirm-modal-icon {
-            width: 70px; height: 70px;
-            background: linear-gradient(135deg, #fff2f0, #ffe8e5);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 1rem;
-        }
-        .confirm-modal-icon i { font-size: 2.5rem; color: #e34f76; }
-        .confirm-modal-header h3 { font-size: 1.4rem; color: #1e3c72; margin-bottom: 0.5rem; }
-        .confirm-modal-header p { color: #4e6580; font-size: 0.95rem; line-height: 1.5; }
-        .confirm-modal-content { padding: 1rem 1.5rem; text-align: center; }
-        .confirm-modal-options { display: flex; gap: 1rem; margin-top: 1rem; }
-        .confirm-modal-options button {
-            flex: 1; padding: 0.85rem; border: none; border-radius: 16px;
-            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
-        }
-        .btn-confirm-yes { background: linear-gradient(135deg, #2e9b54, #257a44); color: white; }
-        .btn-confirm-yes:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46,155,84,0.3); }
-        .btn-confirm-no { background: #f1f5f9; color: #4e6580; border: 1px solid #e2e8f0; }
-        .btn-confirm-no:hover { background: #eef2ff; color: #1e3c72; }
-        .confirm-modal-footer { padding: 1rem 1.5rem 1.5rem; text-align: center; border-top: 1px solid #eef2f7; background: #f8fafd; }
-        .confirm-modal-footer small { color: #8ba0bc; font-size: 0.75rem; }
-
-        /* تحسين عرض الجدول */
         .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 16px; }
         .modern-table { min-width: 100%; width: 100%; border-collapse: collapse; font-size: 0.75rem; }
         .modern-table th, .modern-table td { padding: 8px 5px !important; white-space: nowrap; }
@@ -381,12 +662,79 @@
         .table-container::-webkit-scrollbar-thumb { background: #1e3c72; border-radius: 10px; }
         
         body.modal-open { overflow: hidden; }
+
+        .view-loading { display: flex; align-items: center; justify-content: center; padding: 40px; color: #1e3c72; gap: 10px; }
+        
+        .print-report-container { will-change: transform; }
+        
+        .download-note {
+            font-size: 14px;
+            color: #fff;
+            background: #e34f76;
+            margin-top: 15px;
+            text-align: center;
+            animation: fadeLoop 3s infinite;
+            padding: 15px;
+            font-weight: bold;
+            border-radius: 15px;
+        }
+
+        @keyframes fadeLoop {
+            0% { opacity: 0; }
+            25% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .confirm-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            z-index: 100000; display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        .confirm-modal-overlay.active { opacity: 1; visibility: visible; z-index: 1000000000; }
+        .confirm-modal {
+            background: white; border-radius: 24px; width: 90%; max-width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            transform: scale(0.9); transition: transform 0.3s ease; overflow: hidden;
+        }
+        .confirm-modal-overlay.active .confirm-modal { transform: scale(1); }
+        .confirm-modal-header { padding: 1.5rem 1.5rem 0 1.5rem; text-align: center; }
+        .confirm-modal-icon {
+            width: 70px; height: 70px;
+            background: linear-gradient(135deg, #fff2f0, #ffe8e5);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        .confirm-modal-icon i { font-size: 2.5rem; color: #e34f76; }
+        .confirm-modal-header h3 { font-size: 1.4rem; color: #1e3c72; margin-bottom: 0.5rem; }
+        .confirm-modal-header p { color: #4e6580; font-size: 0.95rem; line-height: 1.5; }
+        .confirm-modal-content { padding: 1rem 1.5rem; text-align: center; }
+        .confirm-modal-options { display: flex; gap: 1rem; margin-top: 1rem; }
+        .confirm-modal-options button {
+            flex: 1; padding: 0.85rem; border: none; border-radius: 16px;
+            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-confirm-yes { background: linear-gradient(135deg, #2e9b54, #257a44); color: white; }
+        .btn-confirm-yes:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46,155,84,0.3); }
+        .btn-confirm-no { background: #f1f5f9; color: #4e6580; border: 1px solid #e2e8f0; }
+        .btn-confirm-no:hover { background: #eef2ff; color: #1e3c72; }
+        .confirm-modal-footer { padding: 1rem 1.5rem 1.5rem; text-align: center; border-top: 1px solid #eef2f7; background: #f8fafd; }
+        .confirm-modal-footer small { color: #8ba0bc; font-size: 0.75rem; }
     </style>
 </head>
 <body id="appBody">
 
+<!-- زر فتح القائمة للجوال -->
+<button class="toggle-sidebar" id="toggleSidebarBtn" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- تغطية الخلفية عند فتح القائمة -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
 <div class="app-container">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
             <h2>نظام التقارير التربوية</h2>
@@ -401,7 +749,7 @@
             </button>
         </div>
         
-        <nav class="sidebar-nav">
+        <nav class="sidebar-nav" id="sidebarNav">
             <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
             <a href="reports.html" class="active"><i class="fas fa-file-alt"></i> التقارير</a>
             <a href="summary-reports.html" id="summaryReportsLink" style="display: none;"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
@@ -438,13 +786,48 @@
         </div>
 
         <div class="filters-bar">
-            <div class="filter-group"><label><i class="fas fa-search"></i> بحث</label><input type="text" id="searchInput" class="form-input" placeholder="مختص / مدرسة / معلم / مبحث"></div>
-            <div class="filter-group"><label><i class="fas fa-calendar"></i> من تاريخ</label><input type="text" id="dateFrom" class="form-input filter-date-picker" placeholder="dd/mm/yyyy" readonly></div>
-            <div class="filter-group"><label><i class="fas fa-calendar"></i> إلى تاريخ</label><input type="text" id="dateTo" class="form-input filter-date-picker" placeholder="dd/mm/yyyy" readonly></div>
-            <div class="filter-group"><label><i class="fas fa-filter"></i> نوع التقرير</label><select id="reportTypeFilter" class="form-input"><option value="">الكل</option><option value="in_person">وجاهي</option><option value="remote">عن بعد</option></select></div>
-            <div class="filter-group"><label><i class="fas fa-map-marker-alt"></i> المنطقة</label><select id="districtFilter" class="form-input"><option value="">جميع المناطق</option></select></div>
-            <div class="filter-group"><label><i class="fas fa-chalkboard"></i> الصف</label><select id="classFilter" class="form-input"><option value="">جميع الصفوف</option><option value="1">الأول</option><option value="2">الثاني</option><option value="3">الثالث</option><option value="4">الرابع</option><option value="5">الخامس</option><option value="6">السادس</option><option value="7">السابع</option><option value="8">الثامن</option><option value="9">التاسع</option></select></div>
-            <div style="display: flex; gap: 0.5rem;">
+            <div class="filter-group" style="grid-column: span 2;">
+                <label><i class="fas fa-search"></i> بحث <span style="font-size:0.7rem;color:#8ba0bc;">(مختص، مدرسة، معلم، مبحث)</span></label>
+                <input type="text" id="searchInput" class="form-input" placeholder="ابحث باسم المختص، المدرسة، المعلم، أو المبحث...">
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-calendar"></i> من تاريخ</label>
+                <input type="text" id="dateFrom" class="form-input filter-date-picker" placeholder="dd/mm/yyyy" readonly>
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-calendar"></i> إلى تاريخ</label>
+                <input type="text" id="dateTo" class="form-input filter-date-picker" placeholder="dd/mm/yyyy" readonly>
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-filter"></i> نوع التقرير</label>
+                <select id="reportTypeFilter" class="form-input">
+                    <option value="">الكل</option>
+                    <option value="in_person">وجاهي</option>
+                    <option value="remote">عن بعد</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-map-marker-alt"></i> المنطقة</label>
+                <select id="districtFilter" class="form-input">
+                    <option value="">جميع المناطق</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-chalkboard"></i> الصف</label>
+                <select id="classFilter" class="form-input">
+                    <option value="">جميع الصفوف</option>
+                    <option value="1">الأول</option>
+                    <option value="2">الثاني</option>
+                    <option value="3">الثالث</option>
+                    <option value="4">الرابع</option>
+                    <option value="5">الخامس</option>
+                    <option value="6">السادس</option>
+                    <option value="7">السابع</option>
+                    <option value="8">الثامن</option>
+                    <option value="9">التاسع</option>
+                </select>
+            </div>
+            <div class="filter-buttons">
                 <button onclick="filterReports()" class="btn-primary"><i class="fas fa-search"></i> بحث</button>
                 <button onclick="clearFilters()" class="btn-secondary"><i class="fas fa-eraser"></i> مسح</button>
                 <button onclick="exportToExcel()" class="btn-secondary" style="background: #2e9b54; color: white;"><i class="fas fa-file-excel"></i> تصدير إكسل</button>
@@ -478,10 +861,10 @@
             <div style="overflow-x: auto;">
                 <table class="modern-table" id="reportsTable">
                     <thead>
-                        <tr><th>#</th><th>التاريخ</th><th>النوع</th><th>المنطقة</th><th>المدرسة</th><th>المعلم</th><th>مدير المدرسة</th><th>الصف</th><th>الشعبة</th><th>المبحث</th><th>المختص</th><th>الإجراءات</th></tr>
+                        <tr><th>#</th><th>التاريخ</th><th>النوع</th><th>المنطقة</th><th>المدرسة</th><th>المعلم</th><th>مدير مركز TLS</th><th>الصف</th><th>الشعبة</th><th>المبحث</th><th>المختص</th><th>الإجراءات</th></tr>
                     </thead>
                     <tbody id="reportsTableBody">
-                        <tr><td colspan="12" style="text-align: center; padding: 3rem;"><div class="loader"></div><p>جاري تحميل التقارير...</p></td></tbody>
+                        <tr><td colspan="12" style="text-align: center; padding: 3rem;"><div class="loader"></div><p>جاري تحميل التقارير...</p></td></tr>
                 </table>
             </div>
             
@@ -546,9 +929,235 @@
     </div>
 </div>
 
-<div id="inPersonModal" class="modal"><div class="modal-content" style="max-width: 950px;"><div class="modal-header"><h2>تقرير زيارة وجاهية</h2><button class="modal-close" onclick="closeModal('inPersonModal')"><i class="fas fa-times"></i></button></div><form id="inPersonForm"><input type="hidden" id="inPersonReportId"><div class="form-row"><div class="form-group"><label>تاريخ الزيارة *</label><input type="text" id="inPersonVisitDate" class="form-input date-picker" required readonly></div><div class="form-group"><label>المنطقة التعليمية *</label><select id="inPersonDistrict" class="form-input" required onchange="loadSchoolsByDistrict('inPerson')"><option value="">اختر المنطقة</option></select></div><div class="form-group"><label>المدرسة *</label><select id="inPersonSchoolId" class="form-input" required onchange="loadSchoolPrincipal('inPerson')"><option value="">اختر المنطقة أولاً</option></select></div><div class="form-group"><label>مدير المدرسة *</label><input type="text" id="inPersonPrincipalName" class="form-input" required></div><div class="form-group"><label>اسم المعلم *</label><input type="text" id="inPersonTeacherName" class="form-input" required></div><div class="form-group"><label>الصف *</label><select id="inPersonClass" class="form-input" required><option value="">اختر الصف</option><option value="1">الأول</option><option value="2">الثاني</option><option value="3">الثالث</option><option value="4">الرابع</option><option value="5">الخامس</option><option value="6">السادس</option><option value="7">السابع</option><option value="8">الثامن</option><option value="9">التاسع</option></select></div><div class="form-group"><label>الشعبة *</label><input type="text" id="inPersonSection" class="form-input" required placeholder="مثال: 1"></div><div class="form-group"><label>المبحث *</label><select id="inPersonSubject" class="form-input" required><option value="">اختر المبحث</option><option value="رياضيات">رياضيات</option><option value="علوم">علوم</option><option value="لغة عربية">لغة عربية</option><option value="لغة إنجليزية">لغة إنجليزية</option></select></div><div class="form-group"><label>عنوان الدرس</label><input type="text" id="inPersonLesson" class="form-input" placeholder="عنوان الدرس"></div></div><div class="form-section"><h3>أولاً - الأنشطة التعليمية</h3><div id="inPersonTeachingActivities"></div></div><div class="form-section"><h3>ثانياً - الرفاه النفسي</h3><div id="inPersonWellbeing"></div></div><div class="form-section"><h3>جوانب إيجابية / أفكار إبداعية</h3><textarea id="inPersonPositiveAspects" class="form-input" rows="3"></textarea></div><div class="form-section"><h3>التحديات</h3><textarea id="inPersonChallenges" class="form-input" rows="3"></textarea></div><div class="form-section"><h3>التوصيات</h3><textarea id="inPersonRecommendations" class="form-input" rows="3"></textarea></div><div style="display: flex; gap: 1rem; margin-top: 1.5rem;"><button type="button" onclick="closeModal('inPersonModal')" class="btn-secondary" style="flex: 1;">إلغاء</button><button type="submit" id="inPersonSaveBtn" class="btn-primary" style="flex: 1;">حفظ التقرير</button></div></form></div></div>
+<!-- ===================== مودال التنبيه العام ===================== -->
+<div id="sendEmailAlertModal" class="modal">
+    <div class="modal-content alert-modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-info-circle"></i> تذكير هام</h2>
+            <button class="modal-close" onclick="closeSendEmailAlertModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="padding: 1.5rem;">
+            <div class="alert-icon info">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+            <div class="alert-title" id="alertTitle">✅ تم حفظ التقرير بنجاح</div>
+            <div class="alert-message" id="alertMessage">
+                لا تنسى إرسال التقرير بالبريد الإلكتروني إلى الأشخاص المعنيين.
+            </div>
+            
+            <div class="alert-steps">
+                <p><i class="fas fa-lightbulb"></i> خطوات إرسال التقرير:</p>
+                <ol>
+                    <li><i class="fas fa-eye"></i> اضغط على زر <strong>"المعاينة" (👁️)</strong> بجانب التقرير في الجدول</li>
+                    <li><i class="fas fa-envelope green-badge"><span style="margin-right:0.5rem;">زر أخضر</span></i> داخل نافذة المعاينة، اضغط على زر <strong class="green-badge" style="background:#2e9b54;color:white;padding:0.2rem 0.6rem;">إرسال التقرير بالبريد الإلكتروني</strong></li>
+                    <li><i class="fas fa-paper-plane"></i> سيتم فتح نافذة Outlook مع تعبئة بيانات المستلمين تلقائياً</li>
+                    <li><i class="fas fa-paperclip"></i> قم بتحميل ملف PDF للتقرير وإرفاقه بالبريد</li>
+                </ol>
+            </div>
+            
+            <div class="alert-recipient" id="alertRecipient" style="display: none;">
+                <strong><i class="fas fa-envelope"></i> سيتم الإرسال إلى:</strong>
+                <p id="recipientEmail"></p>
+            </div>
+            
+            <div class="alert-buttons">
+                <button onclick="closeSendEmailAlertModal()" class="btn-got-it"><i class="fas fa-check"></i> حسناً</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-<div id="remoteModal" class="modal"><div class="modal-content" style="max-width: 950px;"><div class="modal-header"><h2>تقرير متابعة التعليم عن بعد</h2><button class="modal-close" onclick="closeModal('remoteModal')"><i class="fas fa-times"></i></button></div><form id="remoteForm"><input type="hidden" id="remoteReportId"><div class="form-row"><div class="form-group"><label>تاريخ الزيارة *</label><input type="text" id="remoteVisitDate" class="form-input date-picker" required readonly></div><div class="form-group"><label>المنطقة التعليمية *</label><select id="remoteDistrict" class="form-input" required onchange="loadSchoolsByDistrict('remote')"><option value="">اختر المنطقة</option></select></div><div class="form-group"><label>المدرسة *</label><select id="remoteSchoolId" class="form-input" required onchange="loadSchoolPrincipal('remote')"><option value="">اختر المنطقة أولاً</option></select></div><div class="form-group"><label>مدير المدرسة</label><input type="text" id="remotePrincipalName" class="form-input" readonly placeholder="يتم جلب الاسم تلقائياً"></div><div class="form-group"><label>اسم المعلم *</label><input type="text" id="remoteTeacherName" class="form-input" required></div><div class="form-group"><label>الصف *</label><select id="remoteClass" class="form-input" required><option value="">اختر الصف</option><option value="1">الأول</option><option value="2">الثاني</option><option value="3">الثالث</option><option value="4">الرابع</option><option value="5">الخامس</option><option value="6">السادس</option><option value="7">السابع</option><option value="8">الثامن</option><option value="9">التاسع</option></select></div><div class="form-group"><label>الشعبة *</label><input type="text" id="remoteSection" class="form-input" required placeholder="مثال: 1"></div><div class="form-group"><label>المبحث</label><select id="remoteSubject" class="form-input"><option value="">اختر المبحث</option><option value="رياضيات">رياضيات</option><option value="علوم">علوم</option><option value="لغة عربية">لغة عربية</option><option value="لغة إنجليزية">لغة إنجليزية</option></select></div></div><div class="form-section"><h3>أولاً - المهام الإدارية (مجتمع الواتس أب)</h3><div id="remoteAdminTasks"></div></div><div class="form-section"><h3>ثانياً - المهام الفنية</h3><div id="remoteTechnicalTasks"></div></div><div class="form-section"><h3>التحديات</h3><textarea id="remoteChallenges" class="form-input" rows="3"></textarea></div><div class="form-section"><h3>أفكار إبداعية</h3><textarea id="remoteCreativeIdeas" class="form-input" rows="3"></textarea></div><div class="form-section"><h3>التوصيات</h3><textarea id="remoteRecommendations" class="form-input" rows="3"></textarea></div><div style="display: flex; gap: 1rem; margin-top: 1.5rem;"><button type="button" onclick="closeModal('remoteModal')" class="btn-secondary" style="flex: 1;">إلغاء</button><button type="submit" id="remoteSaveBtn" class="btn-primary" style="flex: 1;">حفظ التقرير</button></div></form></div></div>
+<!-- ===================== مودال التقرير الوجاهي ===================== -->
+<div id="inPersonModal" class="modal">
+    <div class="modal-content" style="max-width: 950px;">
+        <div class="modal-header">
+            <h2>تقرير زيارة وجاهية</h2>
+            <button class="modal-close" onclick="closeModal('inPersonModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="inPersonForm">
+            <input type="hidden" id="inPersonReportId">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>تاريخ الزيارة *</label>
+                    <input type="text" id="inPersonVisitDate" class="form-input date-picker" required readonly>
+                </div>
+                <div class="form-group">
+                    <label>المنطقة التعليمية *</label>
+                    <select id="inPersonDistrict" class="form-input" required onchange="loadSchoolsByDistrict('inPerson')">
+                        <option value="">اختر المنطقة</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>المدرسة *</label>
+                    <select id="inPersonSchoolId" class="form-input" required>
+                        <option value="">اختر المنطقة أولاً</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>مدير مركز TLS *</label>
+                    <input type="text" id="inPersonPrincipalName" class="form-input" required placeholder="أدخل اسم مدير مركز TLS">
+                </div>
+                <div class="form-group">
+                    <label>البريد الإلكتروني لمدير مركز TLS</label>
+                    <input type="email" id="inPersonPrincipalEmail" class="form-input" placeholder="البريد الإلكتروني (سيتم تخزينه مع التقرير)">
+                </div>
+                <div class="form-group">
+                    <label>اسم المعلم *</label>
+                    <input type="text" id="inPersonTeacherName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label>الصف *</label>
+                    <select id="inPersonClass" class="form-input" required>
+                        <option value="">اختر الصف</option>
+                        <option value="1">الأول</option>
+                        <option value="2">الثاني</option>
+                        <option value="3">الثالث</option>
+                        <option value="4">الرابع</option>
+                        <option value="5">الخامس</option>
+                        <option value="6">السادس</option>
+                        <option value="7">السابع</option>
+                        <option value="8">الثامن</option>
+                        <option value="9">التاسع</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>الشعبة *</label>
+                    <input type="text" id="inPersonSection" class="form-input" required placeholder="مثال: 1">
+                </div>
+                <div class="form-group">
+                    <label>المبحث *</label>
+                    <select id="inPersonSubject" class="form-input" required>
+                        <option value="">اختر المبحث</option>
+                        <option value="رياضيات">رياضيات</option>
+                        <option value="علوم">علوم</option>
+                        <option value="لغة عربية">لغة عربية</option>
+                        <option value="لغة إنجليزية">لغة إنجليزية</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>عنوان الدرس</label>
+                    <input type="text" id="inPersonLesson" class="form-input" placeholder="عنوان الدرس">
+                </div>
+            </div>
+            <div class="form-section">
+                <h3>أولاً - الأنشطة التعليمية</h3>
+                <div id="inPersonTeachingActivities"></div>
+            </div>
+            <div class="form-section">
+                <h3>ثانياً - الرفاه النفسي</h3>
+                <div id="inPersonWellbeing"></div>
+            </div>
+            <div class="form-section">
+                <h3>جوانب إيجابية / أفكار إبداعية</h3>
+                <textarea id="inPersonPositiveAspects" class="form-input" rows="3"></textarea>
+            </div>
+            <div class="form-section">
+                <h3>التحديات</h3>
+                <textarea id="inPersonChallenges" class="form-input" rows="3"></textarea>
+            </div>
+            <div class="form-section">
+                <h3>التوصيات</h3>
+                <textarea id="inPersonRecommendations" class="form-input" rows="3"></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="button" onclick="closeModal('inPersonModal')" class="btn-secondary" style="flex: 1;">إلغاء</button>
+                <button type="submit" id="inPersonSaveBtn" class="btn-primary" style="flex: 1;">حفظ التقرير</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===================== مودال التقرير عن بعد ===================== -->
+<div id="remoteModal" class="modal">
+    <div class="modal-content" style="max-width: 950px;">
+        <div class="modal-header">
+            <h2>تقرير متابعة التعليم عن بعد</h2>
+            <button class="modal-close" onclick="closeModal('remoteModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="remoteForm">
+            <input type="hidden" id="remoteReportId">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>تاريخ الزيارة *</label>
+                    <input type="text" id="remoteVisitDate" class="form-input date-picker" required readonly>
+                </div>
+                <div class="form-group">
+                    <label>المنطقة التعليمية *</label>
+                    <select id="remoteDistrict" class="form-input" required onchange="loadSchoolsByDistrict('remote')">
+                        <option value="">اختر المنطقة</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>المدرسة *</label>
+                    <select id="remoteSchoolId" class="form-input" required onchange="loadSchoolPrincipal('remote')">
+                        <option value="">اختر المنطقة أولاً</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>مدير المدرسة</label>
+                    <input type="text" id="remotePrincipalName" class="form-input" readonly placeholder="يتم جلب الاسم تلقائياً">
+                </div>
+                <div class="form-group">
+                    <label>اسم المعلم *</label>
+                    <input type="text" id="remoteTeacherName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label>الصف *</label>
+                    <select id="remoteClass" class="form-input" required>
+                        <option value="">اختر الصف</option>
+                        <option value="1">الأول</option>
+                        <option value="2">الثاني</option>
+                        <option value="3">الثالث</option>
+                        <option value="4">الرابع</option>
+                        <option value="5">الخامس</option>
+                        <option value="6">السادس</option>
+                        <option value="7">السابع</option>
+                        <option value="8">الثامن</option>
+                        <option value="9">التاسع</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>الشعبة *</label>
+                    <input type="text" id="remoteSection" class="form-input" required placeholder="مثال: 1">
+                </div>
+                <div class="form-group">
+                    <label>المبحث</label>
+                    <select id="remoteSubject" class="form-input">
+                        <option value="">اختر المبحث</option>
+                        <option value="رياضيات">رياضيات</option>
+                        <option value="علوم">علوم</option>
+                        <option value="لغة عربية">لغة عربية</option>
+                        <option value="لغة إنجليزية">لغة إنجليزية</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-section">
+                <h3>أولاً - المهام الإدارية (مجتمع الواتس أب)</h3>
+                <div id="remoteAdminTasks"></div>
+            </div>
+            <div class="form-section">
+                <h3>ثانياً - المهام الفنية</h3>
+                <div id="remoteTechnicalTasks"></div>
+            </div>
+            <div class="form-section">
+                <h3>التحديات</h3>
+                <textarea id="remoteChallenges" class="form-input" rows="3"></textarea>
+            </div>
+            <div class="form-section">
+                <h3>أفكار إبداعية</h3>
+                <textarea id="remoteCreativeIdeas" class="form-input" rows="3"></textarea>
+            </div>
+            <div class="form-section">
+                <h3>التوصيات</h3>
+                <textarea id="remoteRecommendations" class="form-input" rows="3"></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="button" onclick="closeModal('remoteModal')" class="btn-secondary" style="flex: 1;">إلغاء</button>
+                <button type="submit" id="remoteSaveBtn" class="btn-primary" style="flex: 1;">حفظ التقرير</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <div id="deleteModal" class="modal"><div class="modal-content" style="max-width: 400px;"><div style="text-align: center;"><div style="width: 70px; height: 70px; background: #fff2f5; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #e34f76;"></i></div><h3>تأكيد الحذف</h3><p>هل أنت متأكد من حذف هذا التقرير؟</p></div><div style="display: flex; gap: 1rem; margin-top: 1.5rem;"><button onclick="confirmDelete()" class="btn-danger" style="flex: 1;">حذف</button><button onclick="closeDeleteModal()" class="btn-secondary" style="flex: 1;">إلغاء</button></div></div></div>
 
@@ -668,7 +1277,6 @@ function openModalWithScroll(modalId) {
         modal.classList.add('active');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // إعادة تهيئة DatePicker عند فتح النماذج
         setTimeout(() => {
             if (modalId === 'inPersonModal') {
                 if (inPersonDatePicker) {
@@ -785,6 +1393,66 @@ function escapeHtmlText(text) {
     }).replace(/\n/g, '<br>');
 }
 
+// ===================== مودال التنبيه العام =====================
+function showAlertModal(reportData, reportType) {
+    const alertModal = document.getElementById('sendEmailAlertModal');
+    
+    // إخفاء جزء المستلمين لأن المودال عام
+    const recipientDiv = document.getElementById('alertRecipient');
+    if (recipientDiv) recipientDiv.style.display = 'none';
+    
+    openModalWithScroll('sendEmailAlertModal');
+}
+
+function closeSendEmailAlertModal() {
+    closeModalWithScroll('sendEmailAlertModal');
+}
+
+// ===================== البحث الذكي الدقيق =====================
+function normalizeSearchText(text) {
+    if (!text) return '';
+    return text.toString().toLowerCase().trim()
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/[ة]/g, 'ه')
+        .replace(/[ى]/g, 'ي')
+        .replace(/[ؤ]/g, 'و')
+        .replace(/[ئ]/g, 'ي')
+        .replace(/[^ا-يa-z0-9\s]/g, '');
+}
+
+function performSmartSearch(report, searchTerm) {
+    if (!searchTerm || searchTerm.trim() === '') return true;
+    
+    const normalizedTerm = normalizeSearchText(searchTerm);
+    if (normalizedTerm === '') return true;
+    
+    const searchWords = normalizedTerm.split(/\s+/).filter(w => w.length > 0);
+    
+    const searchableFields = [
+        report.users?.name,
+        report.schools?.name,
+        report.teacher_name,
+        report.subject
+    ];
+    
+    const normalizedFields = searchableFields.map(field => normalizeSearchText(field));
+    
+    for (const word of searchWords) {
+        let wordMatched = false;
+        for (const field of normalizedFields) {
+            if (field && field.includes(word)) {
+                wordMatched = true;
+                break;
+            }
+        }
+        if (!wordMatched) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 // ===================== دوال بناء التقرير =====================
 function buildEvaluationTableFast(items, evaluations, title) {
     if (!items || items.length === 0) return '';
@@ -818,7 +1486,7 @@ function buildPrintHTMLFast(report, type) {
         const teachingTable = buildEvaluationTableFast(inPersonTeachingList, report.teaching_evaluation || {}, 'أولاً - الأنشطة التعليمية');
         const wellbeingTable = buildEvaluationTableFast(inPersonWellbeingList, report.wellbeing_evaluation || {}, 'ثانياً - الرفاه النفسي');
         
-        reportContent = `<div class="print-report-container"><div class="print-header"><div><h2>نظام التقارير التربوية</h2><p>دائرة التربية والتعليم</p></div></div><h2>تقرير الزيارة الوجاهية</h2><div class="print-info-grid"><div class="print-info-item"><span class="print-info-label">تاريخ الزيارة:</span> ${visitDate}</div><div class="print-info-item"><span class="print-info-label">المنطقة التعليمية:</span> ${districtName}</div><div class="print-info-item"><span class="print-info-label">المدرسة:</span> ${schoolName}</div><div class="print-info-item"><span class="print-info-label">مدير المدرسة:</span> ${principalName}</div><div class="print-info-item"><span class="print-info-label">المختص التربوي:</span> ${specialistName}</div><div class="print-info-item"><span class="print-info-label">اسم المعلم:</span> ${teacherName}</div><div class="print-info-item"><span class="print-info-label">الصف:</span> ${className}</div><div class="print-info-item"><span class="print-info-label">الشعبة:</span> ${section}</div><div class="print-info-item"><span class="print-info-label">المبحث:</span> ${subject}</div><div class="print-info-item"><span class="print-info-label">عنوان الدرس:</span> ${report.lesson || '-'}</div></div>${teachingTable}${wellbeingTable}<div class="print-text-section"><h3>جوانب إيجابية / أفكار إبداعية</h3><div class="print-text-content">${escapeHtmlText(report.positive_aspects) || 'لا توجد جوانب إيجابية مسجلة'}</div></div><div class="print-text-section"><h3>التحديات</h3><div class="print-text-content">${escapeHtmlText(report.challenges) || 'لا توجد تحديات مسجلة'}</div></div><div class="print-text-section"><h3>التوصيات</h3><div class="print-text-content">${escapeHtmlText(report.recommendations) || 'لا توجد توصيات مسجلة'}</div></div><div class="print-footer">تم إنشاء التقرير بواسطة: ${userName}<br>تاريخ التصدير: ${currentDate} - ${currentTime}</div></div>`;
+        reportContent = `<div class="print-report-container"><div class="print-header"><div><h2>نظام التقارير التربوية</h2><p>دائرة التربية والتعليم</p></div></div><h2>تقرير الزيارة الوجاهية</h2><div class="print-info-grid"><div class="print-info-item"><span class="print-info-label">تاريخ الزيارة:</span> ${visitDate}</div><div class="print-info-item"><span class="print-info-label">المنطقة التعليمية:</span> ${districtName}</div><div class="print-info-item"><span class="print-info-label">المدرسة:</span> ${schoolName}</div><div class="print-info-item"><span class="print-info-label">مدير مركز TLS:</span> ${principalName}</div><div class="print-info-item"><span class="print-info-label">المختص التربوي:</span> ${specialistName}</div><div class="print-info-item"><span class="print-info-label">اسم المعلم:</span> ${teacherName}</div><div class="print-info-item"><span class="print-info-label">الصف:</span> ${className}</div><div class="print-info-item"><span class="print-info-label">الشعبة:</span> ${section}</div><div class="print-info-item"><span class="print-info-label">المبحث:</span> ${subject}</div><div class="print-info-item"><span class="print-info-label">عنوان الدرس:</span> ${report.lesson || '-'}</div></div>${teachingTable}${wellbeingTable}<div class="print-text-section"><h3>جوانب إيجابية / أفكار إبداعية</h3><div class="print-text-content">${escapeHtmlText(report.positive_aspects) || 'لا توجد جوانب إيجابية مسجلة'}</div></div><div class="print-text-section"><h3>التحديات</h3><div class="print-text-content">${escapeHtmlText(report.challenges) || 'لا توجد تحديات مسجلة'}</div></div><div class="print-text-section"><h3>التوصيات</h3><div class="print-text-content">${escapeHtmlText(report.recommendations) || 'لا توجد توصيات مسجلة'}</div></div><div class="print-footer">تم إنشاء التقرير بواسطة: ${userName}<br>تاريخ التصدير: ${currentDate} - ${currentTime}</div></div>`;
     } else {
         const adminTable = buildEvaluationTableFast(remoteAdminList, report.admin_evaluation || {}, 'أولاً - المهام الإدارية');
         const technicalTable = buildEvaluationTableFast(remoteTechnicalList, report.technical_evaluation || {}, 'ثانياً - المهام الفنية');
@@ -870,8 +1538,16 @@ async function openEmailModal() {
         
         const toEmails = [];
         
-        if (currentViewReport.schools?.schoolPrincipalEmail) {
-            toEmails.push(currentViewReport.schools.schoolPrincipalEmail);
+        if (currentViewReport.report_type === 'in_person') {
+            if (currentViewReport.principal_Email) {
+                toEmails.push(currentViewReport.principal_Email);
+            } else if (currentViewReport.schools?.schoolPrincipalEmail) {
+                toEmails.push(currentViewReport.schools.schoolPrincipalEmail);
+            }
+        } else {
+            if (currentViewReport.schools?.schoolPrincipalEmail) {
+                toEmails.push(currentViewReport.schools.schoolPrincipalEmail);
+            }
         }
         
         const schoolDistrictId = currentViewReport.schools?.district_id;
@@ -1001,8 +1677,6 @@ function openOutlookWithAttachment() {
 }
 
 // ===================== دوال التقارير الرئيسية =====================
-
-// دالة تحميل جميع التقارير إلى الكاش (مع التكرار لجلب جميع البيانات)
 async function loadAllReportsToCache() {
     if (isLoadingMore) return;
     isLoadingMore = true;
@@ -1022,7 +1696,6 @@ async function loadAllReportsToCache() {
         progressFill.style.width = '10%';
         loadingStats.innerHTML = 'جاري جلب التقارير الوجاهية (قد يستغرق وقتاً)...';
         
-        // ========== جلب جميع التقارير الوجاهية مع التكرار ==========
         let allInPersonReports = [];
         let inPersonPage = 0;
         const pageSizeFetch = 1000;
@@ -1123,13 +1796,14 @@ async function loadAllReportsToCache() {
         const inPersonData = allInPersonReports.map(r => ({ 
             ...r, report_type: 'in_person', schools: r.schools, users: r.users, 
             district_name: districtsMap[r.schools?.district_id] || '-', 
-            principal_name: r.principal_name || r.schools?.schoolPrincipal || '' 
+            principal_name: r.principal_name || r.schools?.schoolPrincipal || '',
+            principal_Email: r.principal_Email || r.schools?.schoolPrincipalEmail || ''
         }));
         
         const remoteData = allRemoteReports.map(r => ({ 
             ...r, report_type: 'remote', schools: r.schools, users: r.users, 
             district_name: districtsMap[r.schools?.district_id] || '-', 
-            principal_name: r.principal_name || r.schools?.schoolPrincipal || '' 
+            principal_name: r.principal_name || r.schools?.schoolPrincipal || ''
         }));
         
         const allReports = [...inPersonData, ...remoteData].sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date));
@@ -1196,7 +1870,7 @@ function displayCurrentPage() {
             <td style="padding:12px">${report.district_name || '-'}</td>
             <td style="padding:12px">${report.schools?.name || '-'}</td>
             <td style="padding:12px">${report.teacher_name || '-'}</td>
-            <td style="padding:12px">${report.principal_name || '-'}</td>
+            <td style="padding:12px" title="مدير مركز TLS">${report.principal_name || '-'}</td>
             <td style="padding:12px">${getClassNameText(report.class_name)}</td>
             <td style="padding:12px">${report.section || '-'}</td>
             <td style="padding:12px">${report.subject || '-'}</td>
@@ -1260,7 +1934,7 @@ function goToPage(page) {
 }
 
 function filterReports() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
+    const search = document.getElementById('searchInput').value;
     let fromDate = getDateFromPicker(dateFromPicker);
     let toDate = getDateFromPicker(dateToPicker);
     const type = document.getElementById('reportTypeFilter').value;
@@ -1278,10 +1952,11 @@ function filterReports() {
         if (classFilter && r.class_name !== classFilter) return false;
         if (fromDate && r.visit_date < fromDate) return false;
         if (toDate && r.visit_date > toDate) return false;
-        if (search) {
-            const fields = [r.schools?.name, r.teacher_name, r.subject, r.users?.name].filter(Boolean).join(' ').toLowerCase();
-            if (!fields.includes(search)) return false;
+        
+        if (search && search.trim() !== '') {
+            return performSmartSearch(r, search);
         }
+        
         return true;
     });
     
@@ -1346,7 +2021,8 @@ async function fetchSingleReportDirectly(reportId, reportType) {
                 schools: data.schools,
                 users: data.users,
                 district_name: districtsMap[data.schools?.district_id] || '-',
-                principal_name: data.principal_name || data.schools?.schoolPrincipal || ''
+                principal_name: data.principal_name || data.schools?.schoolPrincipal || '',
+                principal_Email: data.principal_Email || data.schools?.schoolPrincipalEmail || ''
             };
         } else {
             const { data, error } = await window.supabaseClient
@@ -1682,23 +2358,30 @@ async function loadSchools() {
 
 async function loadSchoolsByDistrict(type) {
     const districtId = document.getElementById(`${type}District`).value;
-    if (!districtId) { document.getElementById(`${type}SchoolId`).innerHTML = '<option value="">اختر المنطقة أولاً</option>'; return; }
+    if (!districtId) { 
+        document.getElementById(`${type}SchoolId`).innerHTML = '<option value="">اختر المنطقة أولاً</option>'; 
+        return; 
+    }
     const filteredSchools = schoolsData.filter(s => s.district_id == districtId).sort((a,b) => a.name.localeCompare(b.name));
     const options = '<option value="">اختر المدرسة</option>' + filteredSchools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
     document.getElementById(`${type}SchoolId`).innerHTML = options;
 }
 
 async function loadSchoolPrincipal(type) {
-    const schoolId = document.getElementById(`${type}SchoolId`).value;
-    if (!schoolId) return;
-    const school = schoolsData.find(s => s.id == schoolId);
-    if (type === 'inPerson') document.getElementById('inPersonPrincipalName').value = school?.schoolPrincipal || '';
-    else document.getElementById('remotePrincipalName').value = school?.schoolPrincipal || '';
+    if (type === 'remote') {
+        const schoolId = document.getElementById(`remoteSchoolId`).value;
+        if (!schoolId) return;
+        const school = schoolsData.find(s => s.id == schoolId);
+        if (school) {
+            document.getElementById('remotePrincipalName').value = school.schoolPrincipal || '';
+            window.currentRemoteSchoolEmail = school.schoolPrincipalEmail || '';
+        }
+    }
 }
 
 function exportToExcel() {
     const sourceReports = filteredReportsCache.length > 0 ? filteredReportsCache : allReportsCache;
-    const rows = [['التاريخ', 'النوع', 'المنطقة', 'المدرسة', 'المعلم', 'مدير المدرسة', 'الصف', 'الشعبة', 'المبحث', 'المختص']];
+    const rows = [['التاريخ', 'النوع', 'المنطقة', 'المدرسة', 'المعلم', 'مدير مركز TLS', 'الصف', 'الشعبة', 'المبحث', 'المختص']];
     sourceReports.forEach(report => { 
         rows.push([
             new Date(report.visit_date).toLocaleDateString('ar-SA'), 
@@ -1730,6 +2413,8 @@ function openAddReportModal(type) {
         if (inPersonDatePicker) inPersonDatePicker.setDate(new Date());
         document.getElementById('inPersonSchoolId').innerHTML = '<option value="">اختر المنطقة أولاً</option>';
         document.getElementById('inPersonDistrict').value = '';
+        document.getElementById('inPersonPrincipalName').value = '';
+        document.getElementById('inPersonPrincipalEmail').value = '';
         buildEvaluationItems('inPersonTeachingActivities', inPersonTeachingList, 'in_person_teaching');
         buildEvaluationItems('inPersonWellbeing', inPersonWellbeingList, 'in_person_wellbeing');
         openModalWithScroll('inPersonModal');
@@ -1739,6 +2424,7 @@ function openAddReportModal(type) {
         if (remoteDatePicker) remoteDatePicker.setDate(new Date());
         document.getElementById('remoteSchoolId').innerHTML = '<option value="">اختر المنطقة أولاً</option>';
         document.getElementById('remoteDistrict').value = '';
+        window.currentRemoteSchoolEmail = '';
         buildEvaluationItems('remoteAdminTasks', remoteAdminList, 'remote_admin');
         buildEvaluationItems('remoteTechnicalTasks', remoteTechnicalList, 'remote_technical');
         openModalWithScroll('remoteModal');
@@ -1761,6 +2447,7 @@ async function editReport(type, id) {
             setTimeout(() => {
                 document.getElementById('inPersonSchoolId').value = report.school_id;
                 document.getElementById('inPersonPrincipalName').value = report.principal_name || '';
+                document.getElementById('inPersonPrincipalEmail').value = report.principal_Email || '';
             }, 100);
         }
         document.getElementById('inPersonTeacherName').value = report.teacher_name || '';
@@ -1783,7 +2470,14 @@ async function editReport(type, id) {
             await loadSchoolsByDistrict('remote');
             setTimeout(() => {
                 document.getElementById('remoteSchoolId').value = report.school_id;
-                document.getElementById('remotePrincipalName').value = report.principal_name || '';
+                const school = schoolsData.find(s => s.id == report.school_id);
+                if (school) {
+                    document.getElementById('remotePrincipalName').value = school.schoolPrincipal || '';
+                    window.currentRemoteSchoolEmail = school.schoolPrincipalEmail || '';
+                } else {
+                    document.getElementById('remotePrincipalName').value = report.principal_name || '';
+                    window.currentRemoteSchoolEmail = '';
+                }
             }, 150);
         }
         document.getElementById('remoteTeacherName').value = report.teacher_name || '';
@@ -1799,6 +2493,7 @@ async function editReport(type, id) {
     }
 }
 
+// ===================== حفظ التقرير الوجاهي =====================
 document.getElementById('inPersonForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (isInPersonSaving) { showMessage('جاري الحفظ... الرجاء الانتظار', 'info'); return; }
@@ -1806,14 +2501,26 @@ document.getElementById('inPersonForm')?.addEventListener('submit', async (e) =>
     if (!schoolId) { showMessage('الرجاء اختيار المدرسة', 'error'); return; }
     const visitDate = getDateFromPicker(inPersonDatePicker);
     if (!visitDate) { showMessage('الرجاء اختيار تاريخ الزيارة', 'error'); return; }
+    const tlsManagerName = document.getElementById('inPersonPrincipalName').value;
+    if (!tlsManagerName) { showMessage('الرجاء إدخال اسم مدير مركز TLS', 'error'); return; }
+    
+    const principalEmail = document.getElementById('inPersonPrincipalEmail').value || '';
+    
     const data = {
-        visit_date: visitDate, school_id: parseInt(schoolId), teacher_name: document.getElementById('inPersonTeacherName').value,
-        principal_name: document.getElementById('inPersonPrincipalName').value, specialist_id: currentUser.id,
-        class_name: document.getElementById('inPersonClass').value, section: document.getElementById('inPersonSection').value,
-        subject: document.getElementById('inPersonSubject').value, lesson: document.getElementById('inPersonLesson').value,
+        visit_date: visitDate, 
+        school_id: parseInt(schoolId), 
+        teacher_name: document.getElementById('inPersonTeacherName').value,
+        principal_name: tlsManagerName, 
+        principal_Email: principalEmail,
+        specialist_id: currentUser.id,
+        class_name: document.getElementById('inPersonClass').value, 
+        section: document.getElementById('inPersonSection').value,
+        subject: document.getElementById('inPersonSubject').value, 
+        lesson: document.getElementById('inPersonLesson').value,
         teaching_evaluation: collectEvaluationData('in_person_teaching', inPersonTeachingList.length),
         wellbeing_evaluation: collectEvaluationData('in_person_wellbeing', inPersonWellbeingList.length),
-        positive_aspects: document.getElementById('inPersonPositiveAspects').value, challenges: document.getElementById('inPersonChallenges').value,
+        positive_aspects: document.getElementById('inPersonPositiveAspects').value, 
+        challenges: document.getElementById('inPersonChallenges').value,
         recommendations: document.getElementById('inPersonRecommendations').value
     };
     const isEdit = currentEditingId !== null && currentEditingType === 'in_person';
@@ -1832,16 +2539,38 @@ document.getElementById('inPersonForm')?.addEventListener('submit', async (e) =>
             if (result.data && result.data[0]) newReportId = result.data[0].id;
         }
         if (result.error) throw result.error;
-        if (newReportId && currentUser) await window.sendVisitReportNotifications({ ...data, school_id: parseInt(schoolId) }, newReportId, 'in_person', currentUser.name || currentUser.username || 'مختص', isEdit ? 'update' : 'create');
+        
+        const school = schoolsData.find(s => s.id == parseInt(schoolId));
+        
+        const savedReport = {
+            ...data,
+            id: newReportId,
+            report_type: 'in_person',
+            schools: { name: school?.name || '', schoolPrincipalEmail: principalEmail },
+            principal_Email: principalEmail,
+            users: { name: currentUser.name }
+        };
+        
+        if (newReportId && currentUser) {
+            await window.sendVisitReportNotifications({ ...data, school_id: parseInt(schoolId) }, newReportId, 'in_person', currentUser.name || currentUser.username || 'مختص', isEdit ? 'update' : 'create');
+        }
+        
         closeModalWithScroll('inPersonModal');
         await refreshCache();
         showMessage(isEdit ? 'تم تحديث التقرير بنجاح' : 'تم حفظ التقرير بنجاح', 'success');
+        
+        // عرض مودال التنبيه العام
+        if (!isEdit) {
+            showAlertModal(savedReport, 'in_person');
+        }
+        
         currentEditingId = null;
         currentEditingType = null;
     } catch (error) { console.error('Error:', error); showMessage('خطأ: ' + error.message, 'error'); }
     finally { isInPersonSaving = false; saveBtn.innerHTML = originalHtml; saveBtn.disabled = false; }
 });
 
+// ===================== حفظ التقرير عن بعد =====================
 document.getElementById('remoteForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (isRemoteSaving) { showMessage('جاري الحفظ... الرجاء الانتظار', 'info'); return; }
@@ -1849,14 +2578,23 @@ document.getElementById('remoteForm')?.addEventListener('submit', async (e) => {
     if (!schoolId) { showMessage('الرجاء اختيار المدرسة', 'error'); return; }
     const visitDate = getDateFromPicker(remoteDatePicker);
     if (!visitDate) { showMessage('الرجاء اختيار تاريخ الزيارة', 'error'); return; }
+    
+    const school = schoolsData.find(s => s.id == parseInt(schoolId));
+    const principalEmail = school?.schoolPrincipalEmail || window.currentRemoteSchoolEmail || '';
+    
     const data = {
-        visit_date: visitDate, school_id: parseInt(schoolId), teacher_name: document.getElementById('remoteTeacherName').value,
-        principal_name: document.getElementById('remotePrincipalName').value, specialist_id: currentUser.id,
-        class_name: document.getElementById('remoteClass').value, section: document.getElementById('remoteSection').value,
+        visit_date: visitDate, 
+        school_id: parseInt(schoolId), 
+        teacher_name: document.getElementById('remoteTeacherName').value,
+        principal_name: document.getElementById('remotePrincipalName').value, 
+        specialist_id: currentUser.id,
+        class_name: document.getElementById('remoteClass').value, 
+        section: document.getElementById('remoteSection').value,
         subject: document.getElementById('remoteSubject').value || null,
         admin_evaluation: collectEvaluationData('remote_admin', remoteAdminList.length),
         technical_evaluation: collectEvaluationData('remote_technical', remoteTechnicalList.length),
-        challenges: document.getElementById('remoteChallenges').value || null, creative_ideas: document.getElementById('remoteCreativeIdeas').value || null,
+        challenges: document.getElementById('remoteChallenges').value || null, 
+        creative_ideas: document.getElementById('remoteCreativeIdeas').value || null,
         recommendations: document.getElementById('remoteRecommendations').value || null
     };
     const isEdit = currentEditingId !== null && currentEditingType === 'remote';
@@ -1875,10 +2613,28 @@ document.getElementById('remoteForm')?.addEventListener('submit', async (e) => {
             if (result.data && result.data[0]) newReportId = result.data[0].id;
         }
         if (result.error) throw result.error;
-        if (newReportId && currentUser) await window.sendVisitReportNotifications({ ...data, school_id: parseInt(schoolId) }, newReportId, 'remote', currentUser.name || currentUser.username || 'مختص', isEdit ? 'update' : 'create');
+        
+        const savedReport = {
+            ...data,
+            id: newReportId,
+            report_type: 'remote',
+            schools: { name: school?.name || '', schoolPrincipalEmail: principalEmail },
+            users: { name: currentUser.name }
+        };
+        
+        if (newReportId && currentUser) {
+            await window.sendVisitReportNotifications({ ...data, school_id: parseInt(schoolId) }, newReportId, 'remote', currentUser.name || currentUser.username || 'مختص', isEdit ? 'update' : 'create');
+        }
+        
         closeModalWithScroll('remoteModal');
         await refreshCache();
         showMessage(isEdit ? 'تم تحديث التقرير بنجاح' : 'تم حفظ التقرير بنجاح', 'success');
+        
+        // عرض مودال التنبيه العام
+        if (!isEdit) {
+            showAlertModal(savedReport, 'remote');
+        }
+        
         currentEditingId = null;
         currentEditingType = null;
     } catch (error) { console.error('Error:', error); showMessage('خطأ: ' + error.message, 'error'); }
@@ -2023,33 +2779,28 @@ function initDatePickers() {
     const today = new Date();
     today.setHours(23, 59, 59, 999);
     
-    // فلتر التاريخ - من تاريخ
     dateFromPicker = flatpickr("#dateFrom", {
         locale: "ar",
         dateFormat: "d/m/Y",
         maxDate: today,
         onChange: function(selectedDates) {
             if (selectedDates.length > 0) {
-                // تحديث الحد الأدنى لتاريخ النهاية ليكون مساوياً أو أكبر من تاريخ البداية
                 dateToPicker.set('minDate', selectedDates[0]);
             }
         }
     });
     
-    // فلتر التاريخ - إلى تاريخ
     dateToPicker = flatpickr("#dateTo", {
         locale: "ar",
         dateFormat: "d/m/Y",
         maxDate: today,
         onChange: function(selectedDates) {
             if (selectedDates.length > 0) {
-                // تحديث الحد الأقصى لتاريخ البداية ليكون مساوياً أو أقل من تاريخ النهاية
                 dateFromPicker.set('maxDate', selectedDates[0]);
             }
         }
     });
     
-    // تاريخ الزيارة - التقرير الوجاهي
     if (!inPersonDatePicker) {
         inPersonDatePicker = flatpickr("#inPersonVisitDate", {
             locale: "ar",
@@ -2059,7 +2810,6 @@ function initDatePickers() {
         });
     }
     
-    // تاريخ الزيارة - التقرير عن بعد
     if (!remoteDatePicker) {
         remoteDatePicker = flatpickr("#remoteVisitDate", {
             locale: "ar",
@@ -2075,6 +2825,26 @@ async function logout() {
     localStorage.removeItem('currentUser');
     try { await window.supabaseClient.auth.signOut(); } catch(e) {}
     window.location.href = 'login.html';
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('active');
+    if (sidebar.classList.contains('open')) {
+        toggleBodyScroll(true);
+    } else {
+        toggleBodyScroll(false);
+    }
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    toggleBodyScroll(false);
 }
 
 // ===================== تهيئة الصفحة =====================
@@ -2110,6 +2880,23 @@ window.addEventListener('load', async () => {
         });
     }
     
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterReports();
+            }, 400);
+        });
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                filterReports();
+            }
+        });
+    }
+    
     await loadAllReportsToCache();
     
     if (allReportsCache && allReportsCache.length > 0) {
@@ -2132,6 +2919,22 @@ window.addEventListener('load', async () => {
         }, 500);
         window.history.replaceState({}, document.title, window.location.pathname);
     }
+    
+    document.addEventListener('click', function (event) {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebarBtn');
+        if (window.innerWidth <= 992 && sidebar.classList.contains('open')) {
+            if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                closeSidebar();
+            }
+        }
+    });
+    
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 992) {
+            closeSidebar();
+        }
+    });
 });
 </script>
 
