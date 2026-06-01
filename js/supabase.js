@@ -353,7 +353,6 @@ async function handleNotificationClick(notificationId) {
             return { success: false, error: 'supabaseClient not available' };
         }
         
-        // جلب بيانات الإشعار
         const { data: notification, error } = await window.supabaseClient
             .from('notifications')
             .select('related_report_id, related_report_type, title, message')
@@ -362,24 +361,19 @@ async function handleNotificationClick(notificationId) {
         
         if (error) throw error;
         
-        // تحديث حالة الإشعار كمقروء
         await markNotificationAsRead(notificationId);
         
-        // تحديث العدد غير المقروء في الواجهة إذا كانت الدالة متوفرة
         if (typeof updateUnreadBadge === 'function') {
             try { await updateUnreadBadge(); } catch(e) {}
         }
         
-        // التحقق من وجود تقرير مرتبط
         if (notification && notification.related_report_id && notification.related_report_type) {
             const reportId = notification.related_report_id;
             const reportType = notification.related_report_type;
             
             if (reportType === 'summary') {
-                // فتح التقرير التجميعي
                 window.location.href = `summary-reports.html?view=${reportId}`;
             } else if (reportType === 'in_person' || reportType === 'remote') {
-                // فتح التقرير العادي
                 window.location.href = `reports.html?view=${reportId}&type=${reportType}`;
             } else {
                 console.warn('Unknown report type:', reportType);
@@ -388,7 +382,6 @@ async function handleNotificationClick(notificationId) {
             
             return { success: true, redirected: true };
         } else {
-            // إشعار بدون تقرير مرتبط
             console.log('Notification without related report');
             return { success: true, redirected: false };
         }
@@ -429,7 +422,280 @@ async function logout() {
     window.location.href = 'login.html';
 }
 
-// ==================== تصدير الدوال ====================
+// ==================== دوال حذف الإشعارات القديمة مع تحديد الوقت ====================
+
+function shouldRunCleanup(userId) {
+    const lastCleanupKey = `lastCleanup_${userId}`;
+    const lastCleanup = localStorage.getItem(lastCleanupKey);
+    const now = Date.now();
+    const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+    
+    if (!lastCleanup) {
+        return true;
+    }
+    
+    const timeSinceLastCleanup = now - parseInt(lastCleanup);
+    return timeSinceLastCleanup >= TWENTY_FOUR_HOURS;
+}
+
+function updateLastCleanupTime(userId) {
+    const lastCleanupKey = `lastCleanup_${userId}`;
+    localStorage.setItem(lastCleanupKey, Date.now().toString());
+}
+
+async function deleteOldUserNotificationsAndReorder(userId) {
+    try {
+        if (!shouldRunCleanup(userId)) {
+            const lastCleanup = localStorage.getItem(`lastCleanup_${userId}`);
+            const lastDate = lastCleanup ? new Date(parseInt(lastCleanup)).toLocaleString('ar-SA') : 'غير معروف';
+            console.log(`⏭️ تم التنظيف آخر مرة في ${lastDate} - تخطي`);
+            return { success: true, skipped: true, deletedCount: 0 };
+        }
+        
+        const fifteenDaysAgo = new Date();
+        fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+        
+        console.log(`🔍 جاري فحص الإشعارات القديمة للمستخدم ${userId}...`);
+        
+        const { data: oldNotifications, error: fetchError } = await window.supabaseClient
+            .from('notifications')
+            .select('id, created_at')
+            .eq('user_id', userId)
+            .lt('created_at', fifteenDaysAgo.toISOString());
+        
+        if (fetchError) throw fetchError;
+        
+        const deletedCount = oldNotifications?.length || 0;
+        
+        if (deletedCount > 0) {
+            const { error: deleteError } = await window.supabaseClient
+                .from('notifications')
+                .delete()
+                .eq('user_id', userId)
+                .lt('created_at', fifteenDaysAgo.toISOString());
+            
+            if (deleteError) throw deleteError;
+            
+            console.log(`✅ تم حذف ${deletedCount} إشعار قديم للمستخدم ${userId}`);
+            await reorderUserNotificationsSequential(userId);
+            updateLastCleanupTime(userId);
+        } else {
+            console.log(`📭 لا توجد إشعارات قديمة للمستخدم ${userId}`);
+            updateLastCleanupTime(userId);
+        }
+        
+        return { success: true, deletedCount: deletedCount, skipped: false };
+        
+    } catch (error) {
+        console.error('❌ خطأ:', error);
+        return { success: false, error: error.message, deletedCount: 0 };
+    }
+}
+
+async function reorderUserNotificationsSequential(userId) {
+    try {
+        const { data: userNotifications, error: fetchError } = await window.supabaseClient
+            .from('notifications')
+            .select('id, created_at')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: true });
+        
+        if (fetchError) throw fetchError;
+        
+        if (!userNotifications || userNotifications.length === 0) {
+            return { success: true, reorderedCount: 0 };
+        }
+        
+        let updateCount = 0;
+        
+        for (let i = 0; i < userNotifications.length; i++) {
+            const newId = i + 1;
+            const currentId = userNotifications[i].id;
+            
+            if (currentId !== newId) {
+                const { error: updateError } = await window.supabaseClient
+                    .from('notifications')
+                    .update({ id: newId })
+                    .eq('id', currentId);
+                
+                if (!updateError) {
+                    updateCount++;
+                }
+            }
+        }
+        
+        try {
+            const { data: maxIdResult } = await window.supabaseClient
+                .from('notifications')
+                .select('id')
+                .order('id', { ascending: false })
+                .limit(1);
+            
+            const maxId = maxIdResult && maxIdResult.length > 0 ? maxIdResult[0].id : userNotifications.length;
+            await window.supabaseClient.rpc('restart_notifications_sequence', { max_id: maxId });
+        } catch (rpcError) {
+            console.warn('⚠️ لا يمكن إعادة تعيين الـ sequence:', rpcError);
+        }
+        
+        return { success: true, reorderedCount: updateCount };
+        
+    } catch (error) {
+        console.error('❌ خطأ:', error);
+        return { success: false, error: error.message, reorderedCount: 0 };
+    }
+}
+
+async function initUserSessionCleanup(showNotification = true) {
+    const currentUser = await getCurrentUser();
+    
+    if (!currentUser || !currentUser.id) {
+        return { success: false, message: 'لا يوجد مستخدم مسجل الدخول', deletedCount: 0 };
+    }
+    
+    try {
+        console.log(`👤 تهيئة الجلسة للمستخدم: ${currentUser.name || currentUser.username}`);
+        const cleanupResult = await deleteOldUserNotificationsAndReorder(currentUser.id);
+        
+        if (typeof window.updateUnreadBadge === 'function') {
+            try { await window.updateUnreadBadge(); } catch(e) {}
+        }
+        
+        return {
+            success: true,
+            deletedCount: cleanupResult.deletedCount || 0,
+            skipped: cleanupResult.skipped || false,
+            userId: currentUser.id
+        };
+        
+    } catch (error) {
+        console.error('❌ خطأ:', error);
+        return { success: false, error: error.message, deletedCount: 0 };
+    }
+}
+
+// ==================== دوال الحفاظ على نشاط المشروع ====================
+
+let keepAliveInterval = null;
+let isKeepAliveRunning = false;
+
+async function keepProjectAlive() {
+    if (isKeepAliveRunning) {
+        return { success: false, message: 'Already running' };
+    }
+    
+    isKeepAliveRunning = true;
+    
+    try {
+        const now = new Date();
+        console.log(`🔄 [${now.toLocaleString('ar-SA')}] تنشيط المشروع...`);
+        
+        const { error } = await window.supabaseClient
+            .from('users')
+            .select('*', { count: 'exact', head: true })
+            .limit(1);
+        
+        if (error) throw error;
+        
+        const activityCount = parseInt(localStorage.getItem('activityCount') || '0') + 1;
+        localStorage.setItem('lastProjectActivity', now.toISOString());
+        localStorage.setItem('activityCount', activityCount.toString());
+        
+        console.log(`✅ تم تنشيط المشروع بنجاح (النشاط رقم ${activityCount})`);
+        
+        return { success: true };
+        
+    } catch (error) {
+        console.error('❌ فشل تنشيط المشروع:', error);
+        return { success: false, error: error.message };
+    } finally {
+        isKeepAliveRunning = false;
+    }
+}
+
+function startAutoKeepAlive() {
+    if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+        keepAliveInterval = null;
+    }
+    
+    setTimeout(() => { keepProjectAlive(); }, 10000);
+    
+    const FORTY_SEVEN_HOURS = 47 * 60 * 60 * 1000;
+    
+    keepAliveInterval = setInterval(async () => {
+        console.log('🚀 تنفيذ الصيانة الدورية للمشروع...');
+        await keepProjectAlive();
+        
+        const currentUser = await getCurrentUser();
+        if (currentUser && currentUser.id) {
+            await deleteOldUserNotificationsAndReorder(currentUser.id);
+        }
+    }, FORTY_SEVEN_HOURS);
+    
+    console.log('✅ تم تفعيل نظام الحفاظ على النشاط (كل 47 ساعة)');
+    
+    return keepAliveInterval;
+}
+
+function stopAutoKeepAlive() {
+    if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+        keepAliveInterval = null;
+        console.log('⏹️ تم إيقاف نظام الحفاظ على النشاط');
+    }
+}
+
+// ==================== دوال التنظيف لجميع المستخدمين ====================
+
+async function cleanupAllUsersNotifications() {
+    try {
+        const fifteenDaysAgo = new Date();
+        fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+        
+        const { data: oldNotifications, error: fetchError } = await window.supabaseClient
+            .from('notifications')
+            .select('user_id, id')
+            .lt('created_at', fifteenDaysAgo.toISOString());
+        
+        if (fetchError) throw fetchError;
+        
+        if (!oldNotifications || oldNotifications.length === 0) {
+            return { success: true, deletedCount: 0, affectedUsers: 0 };
+        }
+        
+        const uniqueUserIds = [...new Set(oldNotifications.map(n => n.user_id))];
+        const deletedCount = oldNotifications.length;
+        
+        const { error: deleteError } = await window.supabaseClient
+            .from('notifications')
+            .delete()
+            .lt('created_at', fifteenDaysAgo.toISOString());
+        
+        if (deleteError) throw deleteError;
+        
+        let reorderedCount = 0;
+        for (const userId of uniqueUserIds) {
+            const reorderResult = await reorderUserNotificationsSequential(userId);
+            if (reorderResult.success && reorderResult.reorderedCount) {
+                reorderedCount += reorderResult.reorderedCount;
+            }
+            localStorage.setItem(`lastCleanup_${userId}`, Date.now().toString());
+        }
+        
+        return { 
+            success: true, 
+            deletedCount: deletedCount, 
+            affectedUsers: uniqueUserIds.length,
+            reorderedCount: reorderedCount
+        };
+        
+    } catch (error) {
+        console.error('❌ خطأ:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// ==================== تصدير جميع الدوال ====================
 
 window.saveUserToStorage = saveUserToStorage;
 window.loadUserFromStorage = loadUserFromStorage;
@@ -444,7 +710,6 @@ window.logout = logout;
 window.ROLES = ROLES;
 window.ROLE_NAMES = ROLE_NAMES;
 
-// تصدير دوال الإشعارات
 window.createNotification = createNotification;
 window.sendVisitReportNotifications = sendVisitReportNotifications;
 window.sendSummaryReportNotifications = sendSummaryReportNotifications;
@@ -453,6 +718,14 @@ window.getRecentNotifications = getRecentNotifications;
 window.markNotificationAsRead = markNotificationAsRead;
 window.markAllNotificationsAsRead = markAllNotificationsAsRead;
 window.deleteNotification = deleteNotification;
-window.handleNotificationClick = handleNotificationClick;  // دالة موحدة لفتح الإشعارات
+window.handleNotificationClick = handleNotificationClick;
+
+window.deleteOldUserNotificationsAndReorder = deleteOldUserNotificationsAndReorder;
+window.reorderUserNotificationsSequential = reorderUserNotificationsSequential;
+window.initUserSessionCleanup = initUserSessionCleanup;
+window.keepProjectAlive = keepProjectAlive;
+window.startAutoKeepAlive = startAutoKeepAlive;
+window.stopAutoKeepAlive = stopAutoKeepAlive;
+window.cleanupAllUsersNotifications = cleanupAllUsersNotifications;
 
 console.log('✅ Supabase.js loaded successfully');
