@@ -22,7 +22,9 @@
     <script src="js/supabase.js"></script>
     
     <style>
-        /* ===== جميع الأنماط ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', 'Cairo', sans-serif; background: #f5f7fb; }
+        
         .notifications-container { position: fixed; top: 20px; left: 20px; z-index: 9999; max-width: 350px; }
         .notification-item { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-right: 4px solid #1e3c72; animation: slideIn 0.3s ease; cursor: pointer; }
         .notification-item.success { border-right-color: #2e9b54; }
@@ -30,7 +32,6 @@
         .notification-item.info { border-right-color: #1e3c72; }
         @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
-        /* ===== القائمة الجانبية المتجاوبة ===== */
         .sidebar {
             position: fixed;
             right: 0;
@@ -45,43 +46,20 @@
             flex-direction: column;
             box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
         }
-
         @media (max-width: 992px) {
-            .sidebar {
-                right: -280px;
-            }
-            .sidebar.open {
-                right: 0;
-                box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
-            }
-            .main-content {
-                margin-right: 0 !important;
-            }
-            .toggle-sidebar {
-                display: flex !important;
-            }
+            .sidebar { right: -280px; }
+            .sidebar.open { right: 0; }
+            .main-content { margin-right: 0 !important; }
+            .toggle-sidebar { display: flex !important; }
         }
-
         @media (max-width: 768px) {
-            .filters-bar {
-                flex-direction: column;
-            }
-            .filter-group {
-                width: 100%;
-            }
-            .reports-control-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .page-size-selector {
-                justify-content: center;
-            }
-            .modal-content {
-                margin: 0.5rem !important;
-                width: 95%;
-            }
+            .filters-bar { flex-direction: column; }
+            .filter-group { width: 100%; }
+            .reports-control-bar { flex-direction: column; align-items: stretch; }
+            .page-size-selector { justify-content: center; }
+            .modal-content { margin: 0.5rem !important; width: 95%; }
         }
-
+        
         .toggle-sidebar {
             display: none;
             position: fixed;
@@ -94,19 +72,15 @@
             height: 45px;
             cursor: pointer;
             z-index: 1001;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
             color: #1e3c72;
             transition: all 0.2s;
         }
-
-        .toggle-sidebar:hover {
-            background: #f0f4fa;
-            transform: scale(1.05);
-        }
-
+        .toggle-sidebar:hover { background: #f0f4fa; transform: scale(1.05); }
+        
         .sidebar-overlay {
             display: none;
             position: fixed;
@@ -118,129 +92,29 @@
             z-index: 999;
             transition: all 0.3s;
         }
-
-        /*.sidebar-overlay.active {
-            display: block;
-        }*/
-
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid #eef2f7;
-            text-align: center;
-        }
-
-        .sidebar-logo {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            color: white;
-            font-size: 1.5rem;
-        }
-
-        .sidebar-header h2 {
-            font-size: 1.1rem;
-            color: #1e3c72;
-            margin-bottom: 0.25rem;
-        }
-
-        .user-role {
-            font-size: 0.75rem;
-            color: #8ba0bc;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 1rem;
-        }
-
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: #4e6580;
-            text-decoration: none;
-            border-radius: 12px;
-            margin-bottom: 0.25rem;
-            transition: all 0.2s;
-        }
-
-        .sidebar-nav a:hover {
-            background: #e8f0fe;
-            color: #1e3c72;
-        }
-
-        .sidebar-nav a.active {
-            background: linear-gradient(135deg, #1e3c72, #153155);
-            color: white;
-        }
-
-        .sidebar-footer {
-            padding: 1rem;
-            border-top: 1px solid #eef2f7;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        .user-name {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #1e3c72;
-        }
-
-        .user-district {
-            font-size: 0.7rem;
-            color: #8ba0bc;
-        }
-
-        .logout-btn {
-            width: 100%;
-            padding: 0.75rem;
-            background: none;
-            border: 1px solid #e34f76;
-            color: #e34f76;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .logout-btn:hover {
-            background: #fff2f5;
-        }
-
-        .main-content {
-            margin-right: 280px;
-            min-height: 100vh;
-            padding: 1.5rem;
-            transition: margin-right 0.3s ease;
-        }
-
-        /* باقي الأنماط */
+        
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #eef2f7; text-align: center; }
+        .sidebar-logo { width: 50px; height: 50px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem; }
+        .sidebar-header h2 { font-size: 1.1rem; color: #1e3c72; margin-bottom: 0.25rem; }
+        .user-role { font-size: 0.75rem; color: #8ba0bc; }
+        .sidebar-nav { flex: 1; padding: 1rem; }
+        .sidebar-nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: #4e6580; text-decoration: none; border-radius: 12px; margin-bottom: 0.25rem; transition: all 0.2s; }
+        .sidebar-nav a:hover { background: #e8f0fe; color: #1e3c72; }
+        .sidebar-nav a.active { background: linear-gradient(135deg, #1e3c72, #153155); color: white; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid #eef2f7; }
+        .user-info { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+        .user-avatar { width: 45px; height: 45px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+        .user-name { font-size: 0.9rem; font-weight: 600; color: #1e3c72; }
+        .user-district { font-size: 0.7rem; color: #8ba0bc; }
+        .logout-btn { width: 100%; padding: 0.75rem; background: none; border: 1px solid #e34f76; color: #e34f76; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .logout-btn:hover { background: #fff2f5; }
+        .main-content { margin-right: 280px; min-height: 100vh; padding: 1.5rem; transition: margin-right 0.3s ease; }
+        
+        .btn-primary { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30,60,114,0.3); }
+        .btn-secondary { background: #f1f5f9; color: #4e6580; border: 1px solid #e2e8f0; padding: 0.6rem 1.2rem; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
+        .btn-secondary:hover { background: #eef2ff; color: #1e3c72; }
+        
         .skill-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; background: #f8fafd; border-radius: 8px; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem; }
         .skill-name { font-weight: 500; color: #0b1f35; flex: 1; min-width: 200px; }
         .skill-rating { display: flex; gap: 1rem; }
@@ -262,11 +136,7 @@
             overflow-y: auto;
             padding: 1rem;
         }
-        
-        .modal.active {
-            display: flex !important;
-        }
-        
+        .modal.active { display: flex !important; }
         .modal-content {
             margin: 0.5rem auto 2rem auto !important;
             max-width: 95%;
@@ -280,113 +150,18 @@
             overflow-y: auto;
         }
         
-        /* مودال التنبيه العام */
-        .alert-modal-content {
-            max-width: 550px;
-            text-align: center;
-        }
-        .alert-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #eef2ff, #e0e8f5);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-        }
-        .alert-icon i {
-            font-size: 2.5rem;
-            color: #1e3c72;
-        }
-        .alert-icon.info i {
-            color: #1e3c72;
-        }
-        .alert-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #1e3c72;
-            margin-bottom: 0.75rem;
-        }
-        .alert-message {
-            color: #4e6580;
-            font-size: 0.95rem;
-            line-height: 1.7;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        .alert-steps {
-            background: #f8fafd;
-            border-radius: 16px;
-            padding: 1rem;
-            margin: 1rem 0;
-            text-align: right;
-        }
-        .alert-steps p {
-            color: #1e3c72;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            font-size: 0.9rem;
-        }
-        .alert-steps ol {
-            margin: 0;
-            padding-right: 1.5rem;
-            color: #4e6580;
-            font-size: 0.85rem;
-            line-height: 1.8;
-        }
-        .alert-steps li {
-            margin-bottom: 0.5rem;
-        }
-        .alert-steps li i {
-            margin-left: 0.5rem;
-            color: #2e9b54;
-        }
-        .green-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #eef9f0;
-            color: #2e9b54;
-            padding: 0.3rem 0.8rem;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-        .green-badge i {
-            font-size: 0.8rem;
-        }
-        .alert-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        .alert-buttons button {
-            flex: 1;
-            padding: 0.85rem;
-            border-radius: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-        }
-        .btn-got-it {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-        }
-        .btn-got-it:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(30,60,114,0.3);
-        }
-        .btn-view-report {
-            background: #f1f5f9;
-            color: #4e6580;
-            border: 1px solid #e2e8f0;
-        }
-        .btn-view-report:hover {
-            background: #eef2ff;
-            color: #1e3c72;
-        }
+        .alert-modal-content { max-width: 550px; text-align: center; }
+        .alert-icon { width: 80px; height: 80px; background: linear-gradient(135deg, #eef2ff, #e0e8f5); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+        .alert-icon i { font-size: 2.5rem; color: #1e3c72; }
+        .alert-title { font-size: 1.3rem; font-weight: 700; color: #1e3c72; margin-bottom: 0.75rem; }
+        .alert-message { color: #4e6580; font-size: 0.95rem; line-height: 1.7; margin-bottom: 1rem; text-align: center; }
+        .alert-steps { background: #f8fafd; border-radius: 16px; padding: 1rem; margin: 1rem 0; text-align: right; }
+        .alert-steps p { color: #1e3c72; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .alert-steps ol { margin: 0; padding-right: 1.5rem; color: #4e6580; font-size: 0.85rem; line-height: 1.8; }
+        .green-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: #eef9f0; color: #2e9b54; padding: 0.3rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 500; }
+        .alert-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .alert-buttons button { flex: 1; padding: 0.85rem; border-radius: 16px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-got-it { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; }
         
         .form-section { background: #f8fafd; border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid #eef2f7; }
         .form-section h3 { color: #1e3c72; font-size: 1.1rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #1e3c72; display: inline-block; }
@@ -400,7 +175,6 @@
         .flatpickr-input[readonly] { background-color: white; cursor: pointer !important; }
         .filter-date-picker { cursor: pointer !important; background-color: white; }
         .flatpickr-calendar { z-index: 9999999 !important; }
-        .flatpickr-calendar.open { z-index: 9999999 !important; }
         
         .filters-bar {
             display: grid;
@@ -412,45 +186,18 @@
             margin-bottom: 1rem;
             align-items: flex-end;
         }
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-        }
-        .filter-group label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #1e3c72;
-            margin-bottom: 0.2rem;
-        }
-        .filter-group .form-input {
-            margin-bottom: 0;
-        }
-        .filter-buttons {
-            display: flex;
-            gap: 0.5rem;
-            align-items: flex-end;
-        }
-        .filter-buttons button {
-            margin-bottom: 0;
-            white-space: nowrap;
-        }
+        .filter-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .filter-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #1e3c72; margin-bottom: 0.2rem; }
+        .filter-group .form-input { margin-bottom: 0; }
+        .filter-buttons { display: flex; gap: 0.5rem; align-items: flex-end; }
+        .filter-buttons button { margin-bottom: 0; white-space: nowrap; }
         
         @media (max-width: 992px) {
-            .filters-bar {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            }
+            .filters-bar { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
         }
-        
         @media (max-width: 768px) {
-            .filters-bar {
-                grid-template-columns: 1fr;
-            }
-            .filter-buttons {
-                grid-column: 1 / -1;
-                justify-content: flex-start;
-            }
+            .filters-bar { grid-template-columns: 1fr; }
+            .filter-buttons { grid-column: 1 / -1; justify-content: flex-start; }
         }
         
         .reports-control-bar {
@@ -464,18 +211,8 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
-        .reports-info {
-            color: #4e6580;
-            font-size: 0.85rem;
-            background: white;
-            padding: 0.4rem 1rem;
-            border-radius: 30px;
-            border: 1px solid #e2e8f0;
-        }
-        .reports-info strong {
-            color: #1e3c72;
-            font-weight: 700;
-        }
+        .reports-info { color: #4e6580; font-size: 0.85rem; background: white; padding: 0.4rem 1rem; border-radius: 30px; border: 1px solid #e2e8f0; }
+        .reports-info strong { color: #1e3c72; font-weight: 700; }
         
         .pagination-container {
             display: flex;
@@ -496,85 +233,17 @@
             color: #1e3c72;
             transition: all 0.2s;
         }
-        .pagination-btn:hover:not(:disabled) {
-            background: #1e3c72;
-            color: white;
-            border-color: #1e3c72;
-        }
-        .pagination-btn.active {
-            background: #1e3c72;
-            color: white;
-            border-color: #1e3c72;
-        }
-        .pagination-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .page-info {
-            background: #f8fafd;
-            padding: 0.5rem 1rem;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            color: #4e6580;
-        }
-        .page-size-selector {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #f8fafd;
-            padding: 0.3rem 0.8rem;
-            border-radius: 30px;
-        }
-        .page-size-selector select {
-            padding: 0.3rem 0.5rem;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            background: white;
-        }
+        .pagination-btn:hover:not(:disabled) { background: #1e3c72; color: white; border-color: #1e3c72; }
+        .pagination-btn.active { background: #1e3c72; color: white; border-color: #1e3c72; }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-info { background: #f8fafd; padding: 0.5rem 1rem; border-radius: 30px; font-size: 0.85rem; color: #4e6580; }
+        .page-size-selector { display: flex; align-items: center; gap: 0.5rem; background: #f8fafd; padding: 0.3rem 0.8rem; border-radius: 30px; }
+        .page-size-selector select { padding: 0.3rem 0.5rem; border-radius: 8px; border: 1px solid #e2e8f0; background: white; }
         
-        .loading-indicator-inline {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #eef2ff;
-            padding: 5px 12px;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            color: #1e3c72;
-            font-weight: 500;
-        }
-        .loading-indicator-inline i {
-            font-size: 0.75rem;
-            animation: spin 0.8s linear infinite;
-        }
-
-        .progress-bar-bg {
-            background: #eef2f7;
-            border-radius: 30px;
-            height: 8px;
-            overflow: hidden;
-            margin: 0.5rem 0;
-        }
-        .progress-bar-fill {
-            background: linear-gradient(90deg, #1e3c72, #2e9b54);
-            width: 0%;
-            height: 100%;
-            border-radius: 30px;
-            transition: width 0.3s ease;
-        }
-        .loading-stats {
-            font-size: 0.8rem;
-            color: #4e6580;
-            text-align: center;
-            margin-top: 0.5rem;
-        }
-        .loading-progress {
-            background: white;
-            border-radius: 16px;
-            padding: 0.75rem 1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
+        .progress-bar-bg { background: #eef2f7; border-radius: 30px; height: 8px; overflow: hidden; margin: 0.5rem 0; }
+        .progress-bar-fill { background: linear-gradient(90deg, #1e3c72, #2e9b54); width: 0%; height: 100%; border-radius: 30px; transition: width 0.3s ease; }
+        .loading-stats { font-size: 0.8rem; color: #4e6580; text-align: center; margin-top: 0.5rem; }
+        .loading-progress { background: white; border-radius: 16px; padding: 0.75rem 1rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         
         .badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 500; }
         .badge-success { background: #eef2ff; color: #1e3c72; }
@@ -618,7 +287,6 @@
         
         .mark-all-read { background: none; border: none; color: #1e3c72; cursor: pointer; font-size: 0.8rem; padding: 0.3rem 0.6rem; border-radius: 8px; transition: all 0.2s; }
         .mark-all-read:hover { background: #eef2ff; }
-        
         .close-panel { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #8ba0bc; padding: 0.3rem 0.6rem; border-radius: 8px; }
         .close-panel:hover { background: #eef2ff; color: #1e3c72; }
         
@@ -651,7 +319,7 @@
         .modern-table th:nth-child(10) { min-width: 70px; }
         .modern-table th:nth-child(11) { min-width: 80px; }
         .modern-table th:nth-child(12) { min-width: 85px; }
-
+        
         @media (max-width: 1000px) {
             .modern-table { font-size: 0.7rem; }
             .modern-table th, .modern-table td { padding: 6px 3px !important; }
@@ -662,9 +330,7 @@
         .table-container::-webkit-scrollbar-thumb { background: #1e3c72; border-radius: 10px; }
         
         body.modal-open { overflow: hidden; }
-
         .view-loading { display: flex; align-items: center; justify-content: center; padding: 40px; color: #1e3c72; gap: 10px; }
-        
         .print-report-container { will-change: transform; }
         
         .download-note {
@@ -678,14 +344,13 @@
             font-weight: bold;
             border-radius: 15px;
         }
-
         @keyframes fadeLoop {
             0% { opacity: 0; }
             25% { opacity: 1; }
             75% { opacity: 1; }
             100% { opacity: 0; }
         }
-
+        
         .confirm-modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
@@ -700,21 +365,13 @@
         }
         .confirm-modal-overlay.active .confirm-modal { transform: scale(1); }
         .confirm-modal-header { padding: 1.5rem 1.5rem 0 1.5rem; text-align: center; }
-        .confirm-modal-icon {
-            width: 70px; height: 70px;
-            background: linear-gradient(135deg, #fff2f0, #ffe8e5);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 1rem;
-        }
+        .confirm-modal-icon { width: 70px; height: 70px; background: linear-gradient(135deg, #fff2f0, #ffe8e5); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
         .confirm-modal-icon i { font-size: 2.5rem; color: #e34f76; }
         .confirm-modal-header h3 { font-size: 1.4rem; color: #1e3c72; margin-bottom: 0.5rem; }
         .confirm-modal-header p { color: #4e6580; font-size: 0.95rem; line-height: 1.5; }
         .confirm-modal-content { padding: 1rem 1.5rem; text-align: center; }
         .confirm-modal-options { display: flex; gap: 1rem; margin-top: 1rem; }
-        .confirm-modal-options button {
-            flex: 1; padding: 0.85rem; border: none; border-radius: 16px;
-            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
-        }
+        .confirm-modal-options button { flex: 1; padding: 0.85rem; border: none; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .btn-confirm-yes { background: linear-gradient(135deg, #2e9b54, #257a44); color: white; }
         .btn-confirm-yes:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46,155,84,0.3); }
         .btn-confirm-no { background: #f1f5f9; color: #4e6580; border: 1px solid #e2e8f0; }
@@ -725,12 +382,9 @@
 </head>
 <body id="appBody">
 
-<!-- زر فتح القائمة للجوال -->
 <button class="toggle-sidebar" id="toggleSidebarBtn" onclick="toggleSidebar()">
     <i class="fas fa-bars"></i>
 </button>
-
-<!-- تغطية الخلفية عند فتح القائمة -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <div class="app-container">
@@ -740,7 +394,6 @@
             <h2>نظام التقارير التربوية</h2>
             <p class="user-role" id="userRoleDisplay">...</p>
         </div>
-        
         <div class="notifications-trigger" style="margin: 0.5rem 1rem;">
             <button onclick="toggleNotificationsPanel()" class="notification-badge">
                 <i class="fas fa-bell" style="font-size: 1.1rem;"></i>
@@ -748,7 +401,6 @@
                 <span id="unreadBadge" class="badge-count" style="display: none;">0</span>
             </button>
         </div>
-        
         <nav class="sidebar-nav" id="sidebarNav">
             <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
             <a href="reports.html" class="active"><i class="fas fa-file-alt"></i> التقارير</a>
@@ -760,7 +412,6 @@
                 <a href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
             </div>
         </nav>
-        
         <div class="sidebar-footer">
             <div class="user-info">
                 <div class="user-avatar"><i class="fas fa-user"></i></div>
@@ -851,9 +502,7 @@
         </div>
 
         <div id="loadingProgress" class="loading-progress" style="display: none;">
-            <div class="progress-bar-bg">
-                <div class="progress-bar-fill" id="progressFill"></div>
-            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
             <div class="loading-stats" id="loadingStats"></div>
         </div>
 
@@ -861,13 +510,13 @@
             <div style="overflow-x: auto;">
                 <table class="modern-table" id="reportsTable">
                     <thead>
-                        <tr><th>#</th><th>التاريخ</th><th>النوع</th><th>المنطقة</th><th>المدرسة</th><th>المعلم</th><th>مدير مركز TLS</th><th>الصف</th><th>الشعبة</th><th>المبحث</th><th>المختص</th><th>الإجراءات</th></tr>
+                        <tr><th>#</th><th>التاريخ</th><th>النوع</th><th>المنطقة</th><th>المركز/المدرسة</th><th>المعلم</th><th>مدير المركز/المدرسة</th><th>الصف</th><th>الشعبة</th><th>المبحث</th><th>المختص</th><th>الإجراءات</th></tr>
                     </thead>
                     <tbody id="reportsTableBody">
                         <tr><td colspan="12" style="text-align: center; padding: 3rem;"><div class="loader"></div><p>جاري تحميل التقارير...</p></td></tr>
+                    </tbody>
                 </table>
             </div>
-            
             <div id="paginationContainer" class="pagination-container"></div>
             <div style="margin-top: 1rem; color: #4e6580; text-align: center;" id="resultsCount"></div>
         </div>
@@ -881,8 +530,7 @@
             <h2>تفاصيل التقرير</h2>
             <button class="modal-close" onclick="closeViewModal()"><i class="fas fa-times"></i></button>
         </div>
-        <div id="reportDetails" style="padding: 1rem; max-height: 65vh; overflow-y: auto; min-height: 300px;">
-        </div>
+        <div id="reportDetails" style="padding: 1rem; max-height: 65vh; overflow-y: auto; min-height: 300px;"></div>
         <div class="modal-actions">
             <button onclick="closeViewModal()" class="btn-secondary">إغلاق</button>
             <button onclick="exportReportToPDF()" id="exportPdfBtn" class="btn-primary" style="background: #e34f76;"><i class="fas fa-print"></i> حفظ التقرير PDF</button>
@@ -898,38 +546,21 @@
             <button class="modal-close" onclick="closeEmailModal()"><i class="fas fa-times"></i></button>
         </div>
         <div style="padding: 0.5rem 0 1rem 0;">
-            <div class="email-group">
-                <label><i class="fas fa-user"></i> إلى (To):</label>
-                <input type="text" id="emailTo" class="form-input" readonly style="background: #f8fafd;">
-            </div>
-            <div class="email-group">
-                <label><i class="fas fa-copy"></i> نسخة (Cc):</label>
-                <input type="text" id="emailCc" class="form-input" readonly style="background: #f8fafd;">
-            </div>
-            <div class="email-group">
-                <label><i class="fas fa-tag"></i> الموضوع:</label>
-                <input type="text" id="emailSubject" class="form-input" readonly style="background: #f8fafd;">
-            </div>
-            <div class="email-group">
-                <label><i class="fas fa-align-left"></i> نص الرسالة:</label>
-                <textarea id="emailBody" rows="4" class="form-input" readonly style="background: #f8fafd;"></textarea>
-            </div>
+            <div class="email-group"><label><i class="fas fa-user"></i> إلى (To):</label><input type="text" id="emailTo" class="form-input" readonly style="background: #f8fafd;"></div>
+            <div class="email-group"><label><i class="fas fa-copy"></i> نسخة (Cc):</label><input type="text" id="emailCc" class="form-input" readonly style="background: #f8fafd;"></div>
+            <div class="email-group"><label><i class="fas fa-tag"></i> الموضوع:</label><input type="text" id="emailSubject" class="form-input" readonly style="background: #f8fafd;"></div>
+            <div class="email-group"><label><i class="fas fa-align-left"></i> نص الرسالة:</label><textarea id="emailBody" rows="4" class="form-input" readonly style="background: #f8fafd;"></textarea></div>
             <div class="email-actions">
                 <button onclick="openOutlookWithAttachment()" class="btn-outlook" id="openOutlookBtn"><i class="fab fa-windows"></i> فتح Outlook</button>
                 <button onclick="closeEmailModal()" class="btn-secondary">إلغاء</button>
             </div>
-            <p style="font-size: 12px; color: #e34f76; margin-top: 15px; text-align: center;">
-                <i class="fas fa-info-circle"></i> يرجى تحميل التقرير من خلال زر (حفظ التقرير PDF)
-            </p>
-            <p id="download" class="download-note">
-                <i class="fas fa-info-circle info-icon"></i>
-                في outlook إضغط على زر إرفاق وحمل التقرير الذي قمت بإنزاله سابقا يدوياً
-            </p>
+            <p style="font-size: 12px; color: #e34f76; margin-top: 15px; text-align: center;"><i class="fas fa-info-circle"></i> يرجى تحميل التقرير من خلال زر (حفظ التقرير PDF)</p>
+            <p id="download" class="download-note"><i class="fas fa-info-circle info-icon"></i> في outlook إضغط على زر إرفاق وحمل التقرير الذي قمت بإنزاله سابقا يدوياً</p>
         </div>
     </div>
 </div>
 
-<!-- ===================== مودال التنبيه العام ===================== -->
+<!-- مودال التنبيه العام -->
 <div id="sendEmailAlertModal" class="modal">
     <div class="modal-content alert-modal-content">
         <div class="modal-header">
@@ -937,14 +568,9 @@
             <button class="modal-close" onclick="closeSendEmailAlertModal()"><i class="fas fa-times"></i></button>
         </div>
         <div style="padding: 1.5rem;">
-            <div class="alert-icon info">
-                <i class="fas fa-envelope-open-text"></i>
-            </div>
+            <div class="alert-icon info"><i class="fas fa-envelope-open-text"></i></div>
             <div class="alert-title" id="alertTitle">✅ تم حفظ التقرير بنجاح</div>
-            <div class="alert-message" id="alertMessage">
-                لا تنسى إرسال التقرير بالبريد الإلكتروني إلى الأشخاص المعنيين.
-            </div>
-            
+            <div class="alert-message" id="alertMessage">لا تنسى إرسال التقرير بالبريد الإلكتروني إلى الأشخاص المعنيين.</div>
             <div class="alert-steps">
                 <p><i class="fas fa-lightbulb"></i> خطوات إرسال التقرير:</p>
                 <ol>
@@ -954,20 +580,13 @@
                     <li><i class="fas fa-paperclip"></i> قم بتحميل ملف PDF للتقرير وإرفاقه بالبريد</li>
                 </ol>
             </div>
-            
-            <div class="alert-recipient" id="alertRecipient" style="display: none;">
-                <strong><i class="fas fa-envelope"></i> سيتم الإرسال إلى:</strong>
-                <p id="recipientEmail"></p>
-            </div>
-            
-            <div class="alert-buttons">
-                <button onclick="closeSendEmailAlertModal()" class="btn-got-it"><i class="fas fa-check"></i> حسناً</button>
-            </div>
+            <div class="alert-recipient" id="alertRecipient" style="display: none;"><strong><i class="fas fa-envelope"></i> سيتم الإرسال إلى:</strong><p id="recipientEmail"></p></div>
+            <div class="alert-buttons"><button onclick="closeSendEmailAlertModal()" class="btn-got-it"><i class="fas fa-check"></i> حسناً</button></div>
         </div>
     </div>
 </div>
 
-<!-- ===================== مودال التقرير الوجاهي ===================== -->
+<!-- ===================== مودال التقرير الوجاهي المعدل ===================== -->
 <div id="inPersonModal" class="modal">
     <div class="modal-content" style="max-width: 950px;">
         <div class="modal-header">
@@ -983,23 +602,20 @@
                 </div>
                 <div class="form-group">
                     <label>المنطقة التعليمية *</label>
-                    <select id="inPersonDistrict" class="form-input" required onchange="loadSchoolsByDistrict('inPerson')">
+                    <select id="inPersonDistrict" class="form-input" required onchange="loadCenterManagersByDistrict()">
                         <option value="">اختر المنطقة</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>المدرسة *</label>
-                    <select id="inPersonSchoolId" class="form-input" required>
+                    <label>مدير مركز TLS *</label>
+                    <select id="inPersonManagerId" class="form-input" required onchange="loadEducationalCenterByManager()">
                         <option value="">اختر المنطقة أولاً</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>مدير مركز TLS *</label>
-                    <input type="text" id="inPersonPrincipalName" class="form-input" required placeholder="أدخل اسم مدير مركز TLS">
-                </div>
-                <div class="form-group">
-                    <label>البريد الإلكتروني لمدير مركز TLS</label>
-                    <input type="email" id="inPersonPrincipalEmail" class="form-input" placeholder="البريد الإلكتروني (سيتم تخزينه مع التقرير)">
+                    <label>المركز التعليمي</label>
+                    <input type="text" id="inPersonEducationalCenterName" class="form-input" readonly placeholder="سيتم جلب المركز تلقائياً" style="background:#f8fafd;">
+                    <input type="hidden" id="inPersonEducationalCenterId">
                 </div>
                 <div class="form-group">
                     <label>اسم المعلم *</label>
@@ -1067,7 +683,7 @@
     </div>
 </div>
 
-<!-- ===================== مودال التقرير عن بعد ===================== -->
+<!-- مودال التقرير عن بعد -->
 <div id="remoteModal" class="modal">
     <div class="modal-content" style="max-width: 950px;">
         <div class="modal-header">
@@ -1159,11 +775,30 @@
     </div>
 </div>
 
-<div id="deleteModal" class="modal"><div class="modal-content" style="max-width: 400px;"><div style="text-align: center;"><div style="width: 70px; height: 70px; background: #fff2f5; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #e34f76;"></i></div><h3>تأكيد الحذف</h3><p>هل أنت متأكد من حذف هذا التقرير؟</p></div><div style="display: flex; gap: 1rem; margin-top: 1.5rem;"><button onclick="confirmDelete()" class="btn-danger" style="flex: 1;">حذف</button><button onclick="closeDeleteModal()" class="btn-secondary" style="flex: 1;">إلغاء</button></div></div></div>
+<div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div style="text-align: center;">
+            <div style="width: 70px; height: 70px; background: #fff2f5; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #e34f76;"></i></div>
+            <h3>تأكيد الحذف</h3>
+            <p>هل أنت متأكد من حذف هذا التقرير؟</p>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button onclick="confirmDelete()" class="btn-primary" style="flex: 1; background: #e34f76;">حذف</button>
+            <button onclick="closeDeleteModal()" class="btn-secondary" style="flex: 1;">إلغاء</button>
+        </div>
+    </div>
+</div>
 
 <div class="notifications-container" id="notificationsContainer"></div>
 <div id="panelOverlay" class="panel-overlay" onclick="closeNotificationsPanel()"></div>
-<div id="notificationsPanel" class="notifications-panel"><div class="notifications-panel-header"><h3>الإشعارات</h3><button onclick="markAllAsRead()" class="mark-all-read" id="markAllReadBtn" style="display: none;">تعيين الكل كمقروء</button><button onclick="closeNotificationsPanel()" class="close-panel"><i class="fas fa-times"></i></button></div><div class="notifications-list" id="notificationsList"><div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div></div></div>
+<div id="notificationsPanel" class="notifications-panel">
+    <div class="notifications-panel-header">
+        <h3>الإشعارات</h3>
+        <button onclick="markAllAsRead()" class="mark-all-read" id="markAllReadBtn" style="display: none;">تعيين الكل كمقروء</button>
+        <button onclick="closeNotificationsPanel()" class="close-panel"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="notifications-list" id="notificationsList"><div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div></div>
+</div>
 
 <div id="confirmModal" class="confirm-modal-overlay">
     <div class="confirm-modal">
@@ -1235,6 +870,7 @@ let currentUser = null;
 let currentViewReport = null;
 let districtsList = [];
 let schoolsData = [];
+let educationalCentersList = [];
 let usersData = [];
 let isLoadingMore = false;
 let dateFromPicker = null, dateToPicker = null, inPersonDatePicker = null, remoteDatePicker = null;
@@ -1245,6 +881,7 @@ let reportsCache = new Map();
 let isLoadingReport = false;
 let currentOpenReportId = null;
 let currentReportHtmlBlob = null;
+let refreshInProgress = false;
 
 // Pagination variables
 let currentPage = 1;
@@ -1264,9 +901,7 @@ function toggleBodyScroll(disable) {
         document.body.style.position = '';
         document.body.style.width = '';
         document.body.style.top = '';
-        if (scrollY) {
-            window.scrollTo(0, parseInt(scrollY || '0') * -1);
-        }
+        if (scrollY) window.scrollTo(0, parseInt(scrollY || '0') * -1);
     }
 }
 
@@ -1276,33 +911,20 @@ function openModalWithScroll(modalId) {
         toggleBodyScroll(true);
         modal.classList.add('active');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        
         setTimeout(() => {
             if (modalId === 'inPersonModal') {
-                if (inPersonDatePicker) {
-                    inPersonDatePicker.redraw();
-                } else {
+                if (inPersonDatePicker) inPersonDatePicker.redraw();
+                else {
                     const today = new Date();
                     today.setHours(23, 59, 59, 999);
-                    inPersonDatePicker = flatpickr("#inPersonVisitDate", {
-                        locale: "ar",
-                        dateFormat: "d/m/Y",
-                        maxDate: today,
-                        clickOpens: true
-                    });
+                    inPersonDatePicker = flatpickr("#inPersonVisitDate", { locale: "ar", dateFormat: "d/m/Y", maxDate: today, clickOpens: true });
                 }
             } else if (modalId === 'remoteModal') {
-                if (remoteDatePicker) {
-                    remoteDatePicker.redraw();
-                } else {
+                if (remoteDatePicker) remoteDatePicker.redraw();
+                else {
                     const today = new Date();
                     today.setHours(23, 59, 59, 999);
-                    remoteDatePicker = flatpickr("#remoteVisitDate", {
-                        locale: "ar",
-                        dateFormat: "d/m/Y",
-                        maxDate: today,
-                        clickOpens: true
-                    });
+                    remoteDatePicker = flatpickr("#remoteVisitDate", { locale: "ar", dateFormat: "d/m/Y", maxDate: today, clickOpens: true });
                 }
             }
         }, 100);
@@ -1395,61 +1017,39 @@ function escapeHtmlText(text) {
 
 // ===================== مودال التنبيه العام =====================
 function showAlertModal(reportData, reportType) {
-    const alertModal = document.getElementById('sendEmailAlertModal');
-    
-    // إخفاء جزء المستلمين لأن المودال عام
     const recipientDiv = document.getElementById('alertRecipient');
     if (recipientDiv) recipientDiv.style.display = 'none';
-    
     openModalWithScroll('sendEmailAlertModal');
 }
+function closeSendEmailAlertModal() { closeModalWithScroll('sendEmailAlertModal'); }
 
-function closeSendEmailAlertModal() {
-    closeModalWithScroll('sendEmailAlertModal');
-}
-
-// ===================== البحث الذكي الدقيق =====================
+// ===================== البحث الذكي =====================
 function normalizeSearchText(text) {
     if (!text) return '';
     return text.toString().toLowerCase().trim()
-        .replace(/[أإآ]/g, 'ا')
-        .replace(/[ة]/g, 'ه')
-        .replace(/[ى]/g, 'ي')
-        .replace(/[ؤ]/g, 'و')
-        .replace(/[ئ]/g, 'ي')
-        .replace(/[^ا-يa-z0-9\s]/g, '');
+        .replace(/[أإآ]/g, 'ا').replace(/[ة]/g, 'ه').replace(/[ى]/g, 'ي')
+        .replace(/[ؤ]/g, 'و').replace(/[ئ]/g, 'ي').replace(/[^ا-يa-z0-9\s]/g, '');
 }
 
 function performSmartSearch(report, searchTerm) {
     if (!searchTerm || searchTerm.trim() === '') return true;
-    
     const normalizedTerm = normalizeSearchText(searchTerm);
     if (normalizedTerm === '') return true;
-    
     const searchWords = normalizedTerm.split(/\s+/).filter(w => w.length > 0);
-    
     const searchableFields = [
         report.users?.name,
-        report.schools?.name,
+        report.report_type === 'in_person' ? report.educational_centers?.name_en : report.schools?.name,
         report.teacher_name,
         report.subject
     ];
-    
     const normalizedFields = searchableFields.map(field => normalizeSearchText(field));
-    
     for (const word of searchWords) {
         let wordMatched = false;
         for (const field of normalizedFields) {
-            if (field && field.includes(word)) {
-                wordMatched = true;
-                break;
-            }
+            if (field && field.includes(word)) { wordMatched = true; break; }
         }
-        if (!wordMatched) {
-            return false;
-        }
+        if (!wordMatched) return false;
     }
-    
     return true;
 }
 
@@ -1468,8 +1068,6 @@ function buildEvaluationTableFast(items, evaluations, title) {
 function buildPrintHTMLFast(report, type) {
     const specialistName = report.users?.name || '-';
     const districtName = report.district_name || '-';
-    const schoolName = report.schools?.name || '-';
-    const principalName = report.principal_name || '-';
     const teacherName = report.teacher_name || '-';
     const className = getClassNameText(report.class_name);
     const section = report.section || '-';
@@ -1483,11 +1081,15 @@ function buildPrintHTMLFast(report, type) {
     let reportContent = '';
     
     if (type === 'in_person') {
+        const centerName = report.educational_centers?.name_en || '-';
+        const principalName = report.educational_centers?.manager_name_ar || report.principal_name || '-';
         const teachingTable = buildEvaluationTableFast(inPersonTeachingList, report.teaching_evaluation || {}, 'أولاً - الأنشطة التعليمية');
         const wellbeingTable = buildEvaluationTableFast(inPersonWellbeingList, report.wellbeing_evaluation || {}, 'ثانياً - الرفاه النفسي');
         
-        reportContent = `<div class="print-report-container"><div class="print-header"><div><h2>نظام التقارير التربوية</h2><p>دائرة التربية والتعليم</p></div></div><h2>تقرير الزيارة الوجاهية</h2><div class="print-info-grid"><div class="print-info-item"><span class="print-info-label">تاريخ الزيارة:</span> ${visitDate}</div><div class="print-info-item"><span class="print-info-label">المنطقة التعليمية:</span> ${districtName}</div><div class="print-info-item"><span class="print-info-label">المدرسة:</span> ${schoolName}</div><div class="print-info-item"><span class="print-info-label">مدير مركز TLS:</span> ${principalName}</div><div class="print-info-item"><span class="print-info-label">المختص التربوي:</span> ${specialistName}</div><div class="print-info-item"><span class="print-info-label">اسم المعلم:</span> ${teacherName}</div><div class="print-info-item"><span class="print-info-label">الصف:</span> ${className}</div><div class="print-info-item"><span class="print-info-label">الشعبة:</span> ${section}</div><div class="print-info-item"><span class="print-info-label">المبحث:</span> ${subject}</div><div class="print-info-item"><span class="print-info-label">عنوان الدرس:</span> ${report.lesson || '-'}</div></div>${teachingTable}${wellbeingTable}<div class="print-text-section"><h3>جوانب إيجابية / أفكار إبداعية</h3><div class="print-text-content">${escapeHtmlText(report.positive_aspects) || 'لا توجد جوانب إيجابية مسجلة'}</div></div><div class="print-text-section"><h3>التحديات</h3><div class="print-text-content">${escapeHtmlText(report.challenges) || 'لا توجد تحديات مسجلة'}</div></div><div class="print-text-section"><h3>التوصيات</h3><div class="print-text-content">${escapeHtmlText(report.recommendations) || 'لا توجد توصيات مسجلة'}</div></div><div class="print-footer">تم إنشاء التقرير بواسطة: ${userName}<br>تاريخ التصدير: ${currentDate} - ${currentTime}</div></div>`;
+        reportContent = `<div class="print-report-container"><div class="print-header"><div><h2>نظام التقارير التربوية</h2><p>دائرة التربية والتعليم</p></div></div><h2>تقرير الزيارة الوجاهية</h2><div class="print-info-grid"><div class="print-info-item"><span class="print-info-label">تاريخ الزيارة:</span> ${visitDate}</div><div class="print-info-item"><span class="print-info-label">المنطقة التعليمية:</span> ${districtName}</div><div class="print-info-item"><span class="print-info-label">المركز التعليمي:</span> ${centerName}</div><div class="print-info-item"><span class="print-info-label">مدير المركز:</span> ${principalName}</div><div class="print-info-item"><span class="print-info-label">المختص التربوي:</span> ${specialistName}</div><div class="print-info-item"><span class="print-info-label">اسم المعلم:</span> ${teacherName}</div><div class="print-info-item"><span class="print-info-label">الصف:</span> ${className}</div><div class="print-info-item"><span class="print-info-label">الشعبة:</span> ${section}</div><div class="print-info-item"><span class="print-info-label">المبحث:</span> ${subject}</div><div class="print-info-item"><span class="print-info-label">عنوان الدرس:</span> ${report.lesson || '-'}</div></div>${teachingTable}${wellbeingTable}<div class="print-text-section"><h3>جوانب إيجابية / أفكار إبداعية</h3><div class="print-text-content">${escapeHtmlText(report.positive_aspects) || 'لا توجد جوانب إيجابية مسجلة'}</div></div><div class="print-text-section"><h3>التحديات</h3><div class="print-text-content">${escapeHtmlText(report.challenges) || 'لا توجد تحديات مسجلة'}</div></div><div class="print-text-section"><h3>التوصيات</h3><div class="print-text-content">${escapeHtmlText(report.recommendations) || 'لا توجد توصيات مسجلة'}</div></div><div class="print-footer">تم إنشاء التقرير بواسطة: ${userName}<br>تاريخ التصدير: ${currentDate} - ${currentTime}</div></div>`;
     } else {
+        const schoolName = report.schools?.name || '-';
+        const principalName = report.principal_name || report.schools?.schoolPrincipal || '-';
         const adminTable = buildEvaluationTableFast(remoteAdminList, report.admin_evaluation || {}, 'أولاً - المهام الإدارية');
         const technicalTable = buildEvaluationTableFast(remoteTechnicalList, report.technical_evaluation || {}, 'ثانياً - المهام الفنية');
         
@@ -1504,356 +1106,508 @@ async function loadUsersData() {
         if (error) throw error;
         usersData = data || [];
         console.log('تم تحميل بيانات المستخدمين:', usersData.length);
-    } catch (error) {
-        console.error('Error loading users data:', error);
-    }
+    } catch (error) { console.error('Error loading users data:', error); }
 }
 
 async function openEmailModal() {
-    if (!currentViewReport) {
-        showMessage('لا يوجد تقرير للإرسال', 'error');
-        return;
-    }
-    
+    if (!currentViewReport) { showMessage('لا يوجد تقرير للإرسال', 'error'); return; }
     const emailBtn = document.getElementById('emailReportBtn');
     if (emailBtn) emailBtn.disabled = true;
-    
     try {
         const specialistName = currentViewReport.users?.name || 'المختص';
-        let subject = '';
+        let subject = currentViewReport.report_type === 'in_person' ? `${specialistName}_TLSReport` : `${specialistName}_R.LReport`;
+        let body = `قام المختص التربوي (${specialistName}) بإرسال تقرير لزيارة مدرسية\n\n`;
         if (currentViewReport.report_type === 'in_person') {
-            subject = `${specialistName}_TLSReport`;
+            body += `- المركز: ${currentViewReport.educational_centers?.name_en || '-'}\n`;
         } else {
-            subject = `${specialistName}_R.LReport`;
+            body += `- المدرسة: ${currentViewReport.schools?.name || '-'}\n`;
+        }
+        body += `- المعلم: ${currentViewReport.teacher_name || '-'}\n- تاريخ الزيارة: ${new Date(currentViewReport.visit_date).toLocaleDateString('ar-SA')}\n- الصف: ${getClassNameText(currentViewReport.class_name)}/${currentViewReport.section || '-'}\n- المبحث: ${currentViewReport.subject || '-'}`;
+        
+        let toEmails = [];
+        if (currentViewReport.report_type === 'in_person') {
+            if (currentViewReport.educational_centers?.email) toEmails.push(currentViewReport.educational_centers.email);
+        } else {
+            if (currentViewReport.schools?.schoolPrincipalEmail) toEmails.push(currentViewReport.schools.schoolPrincipalEmail);
         }
         
-        const body = `قام المختص التربوي (${specialistName}) بإرسال تقرير لزيارة مدرسية
-        
-تفاصيل التقرير:
-- المدرسة: ${currentViewReport.schools?.name || '-'}
-- المعلم: ${currentViewReport.teacher_name || '-'}
-- تاريخ الزيارة: ${new Date(currentViewReport.visit_date).toLocaleDateString('ar-SA')}
-- الصف: ${getClassNameText(currentViewReport.class_name)}/${currentViewReport.section || '-'}
-- المبحث: ${currentViewReport.subject || '-'}`;
-        
-        const toEmails = [];
-        
-        if (currentViewReport.report_type === 'in_person') {
-            if (currentViewReport.principal_Email) {
-                toEmails.push(currentViewReport.principal_Email);
-            } else if (currentViewReport.schools?.schoolPrincipalEmail) {
-                toEmails.push(currentViewReport.schools.schoolPrincipalEmail);
-            }
-        } else {
-            if (currentViewReport.schools?.schoolPrincipalEmail) {
-                toEmails.push(currentViewReport.schools.schoolPrincipalEmail);
-            }
-        }
-        
-        const schoolDistrictId = currentViewReport.schools?.district_id;
+        const centerDistrictId = currentViewReport.report_type === 'in_person' ? currentViewReport.educational_centers?.district_id : currentViewReport.schools?.district_id;
         let districtSupportEmail = null;
-        if (schoolDistrictId) {
-            const { data: districtData } = await window.supabaseClient
-                .from('districts')
-                .select('mangerEmail, supportEmail')
-                .eq('id', schoolDistrictId)
-                .single();
+        if (centerDistrictId) {
+            const { data: districtData } = await window.supabaseClient.from('districts').select('mangerEmail, supportEmail').eq('id', centerDistrictId).single();
             if (districtData?.mangerEmail) toEmails.push(districtData.mangerEmail);
             districtSupportEmail = districtData?.supportEmail || null;
         }
-        
         const ccEmails = ['i.Najjar@UNRWA.ORG', 'Ma.Zaid@unrwa-edu.org'];
-        if (districtSupportEmail) {
-            ccEmails.push(districtSupportEmail);
-        }
+        if (districtSupportEmail) ccEmails.push(districtSupportEmail);
         
-        const toValue = toEmails.filter(e => e && e !== '').join('; ');
-        const ccValue = ccEmails.join('; ');
-        
-        document.getElementById('emailTo').value = toValue || '(لم يتم العثور على بريد إلكتروني)';
-        document.getElementById('emailCc').value = ccValue;
+        document.getElementById('emailTo').value = toEmails.filter(e => e && e !== '').join('; ') || '(لم يتم العثور على بريد إلكتروني)';
+        document.getElementById('emailCc').value = ccEmails.join('; ');
         document.getElementById('emailSubject').value = subject;
         document.getElementById('emailBody').value = body;
         
         let html = reportsCache.get(currentViewReport.id);
-        if (!html) {
-            html = buildPrintHTMLFast(currentViewReport, currentViewReport.report_type);
-        }
+        if (!html) html = buildPrintHTMLFast(currentViewReport, currentViewReport.report_type);
         currentReportHtmlBlob = new Blob([html], { type: 'text/html' });
-        
         openModalWithScroll('emailModal');
-        
     } catch (error) {
         console.error('Error preparing email:', error);
         showMessage('حدث خطأ في تجهيز البريد', 'error');
-    } finally {
-        if (emailBtn) emailBtn.disabled = false;
-    }
+    } finally { if (emailBtn) emailBtn.disabled = false; }
 }
 
-function closeEmailModal() {
-    closeModalWithScroll('emailModal');
-    currentReportHtmlBlob = null;
-}
+function closeEmailModal() { closeModalWithScroll('emailModal'); currentReportHtmlBlob = null; }
 
 function openOutlookWithAttachment() {
-    if (!currentViewReport) {
-        showMessage('لا يوجد تقرير للإرسال', 'error');
-        return;
-    }
-
+    if (!currentViewReport) { showMessage('لا يوجد تقرير للإرسال', 'error'); return; }
     const executeOpenOutlook = function() {
-        const toList = (document.getElementById('emailTo').value || '')
-            .split(/[;,]/)
-            .map(v => v.trim())
-            .filter(Boolean);
-
-        const ccList = (document.getElementById('emailCc').value || '')
-            .split(/[;,]/)
-            .map(v => v.trim())
-            .filter(Boolean);
-
+        const toList = (document.getElementById('emailTo').value || '').split(/[;,]/).map(v => v.trim()).filter(Boolean);
+        const ccList = (document.getElementById('emailCc').value || '').split(/[;,]/).map(v => v.trim()).filter(Boolean);
         const recipients = [...new Set([...toList, ...ccList])].join(',');
         const subject = (document.getElementById('emailSubject').value || '').trim();
         const body = (document.getElementById('emailBody').value || '').trim();
-        const url = 'https://outlook.cloud.microsoft/mail/0/deeplink/compose?' +
-            'to=' + encodeURIComponent(recipients) +
-            '&subject=' + encodeURIComponent(subject) +
-            '&body=' + encodeURIComponent(body);
+        const url = 'https://outlook.cloud.microsoft/mail/0/deeplink/compose?' + 'to=' + encodeURIComponent(recipients) + '&subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
         window.open(url, '_blank');
         closeEmailModal();
         showMessage('تم فتح Outlook، يرجى إرفاق ملف PDF للتقرير', 'success');
     };
-
     const openPrintSave = function() {
         showMessage('سيتم فتح نافذة حفظ التقرير، يرجى حفظ الملف ثم الضغط على فتح Outlook مرة أخرى', 'info');
-        if (typeof exportReportToPDF === 'function') {
-            exportReportToPDF();
-        } else {
-            showMessage('حدث خطأ في فتح نافذة الطباعة', 'error');
-        }
+        if (typeof exportReportToPDF === 'function') exportReportToPDF();
+        else showMessage('حدث خطأ في فتح نافذة الطباعة', 'error');
     };
-
     const confirmModal = document.getElementById('confirmModal');
-    
     if (!confirmModal) {
         const userConfirmed = confirm('⚠️ تأكيد قبل إرسال البريد الإلكتروني\n\nهل قمت بتحميل ملف التقرير (PDF) على جهازك?\n\n• إذا اخترت "نعم": سيتم فتح Outlook مع تعبئة بيانات البريد.\n• إذا اخترت "لا": سيتم فتح نافذة حفظ التقرير أولاً.');
-        if (userConfirmed) {
-            executeOpenOutlook();
-        } else {
-            openPrintSave();
+        if (userConfirmed) executeOpenOutlook();
+        else openPrintSave();
+        return;
+    }
+    confirmModal.classList.add('active');
+    const yesBtn = document.getElementById('confirmYesBtn');
+    const noBtn = document.getElementById('confirmNoBtn');
+    if (yesBtn) { const newYesBtn = yesBtn.cloneNode(true); yesBtn.parentNode.replaceChild(newYesBtn, yesBtn); newYesBtn.onclick = function() { confirmModal.classList.remove('active'); executeOpenOutlook(); }; }
+    if (noBtn) { const newNoBtn = noBtn.cloneNode(true); noBtn.parentNode.replaceChild(newNoBtn, noBtn); newNoBtn.onclick = function() { confirmModal.classList.remove('active'); openPrintSave(); }; }
+    confirmModal.onclick = function(e) { if (e.target === confirmModal) confirmModal.classList.remove('active'); };
+}
+
+// ===================== دوال المراكز والمدراء =====================
+async function loadCenterManagersByDistrict() {
+    const districtId = document.getElementById('inPersonDistrict').value;
+    const managerSelect = document.getElementById('inPersonManagerId');
+    const centerNameInput = document.getElementById('inPersonEducationalCenterName');
+    const centerIdInput = document.getElementById('inPersonEducationalCenterId');
+    
+    if (!districtId) {
+        managerSelect.innerHTML = '<option value="">اختر المنطقة أولاً</option>';
+        centerNameInput.value = '';
+        centerIdInput.value = '';
+        return;
+    }
+    managerSelect.innerHTML = '<option value="">جاري تحميل المدراء...</option>';
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('educational_centers')
+            .select('id, name_en, manager_name_ar, email, district_id')
+            .eq('district_id', districtId)
+            .order('manager_name_ar', { ascending: true });
+        if (error) throw error;
+        educationalCentersList = data || [];
+        const managersList = educationalCentersList.filter(c => c.manager_name_ar && c.manager_name_ar.trim() !== '');
+        if (managersList.length === 0) { managerSelect.innerHTML = '<option value="">لا يوجد مدراء في هذه المنطقة</option>'; return; }
+        let options = '<option value="">اختر مدير المركز</option>';
+        managersList.forEach(center => {
+            options += `<option value="${center.id}" data-center-id="${center.id}" data-center-name="${center.name_en || ''}" data-manager-name="${center.manager_name_ar || ''}" data-center-email="${center.email || ''}">${center.manager_name_ar}</option>`;
+        });
+        managerSelect.innerHTML = options;
+        centerNameInput.value = '';
+        centerIdInput.value = '';
+    } catch (error) {
+        console.error('Error loading center managers:', error);
+        managerSelect.innerHTML = '<option value="">حدث خطأ في التحميل</option>';
+        showMessage('حدث خطأ في تحميل بيانات المدراء', 'error');
+    }
+}
+
+function loadEducationalCenterByManager() {
+    const managerSelect = document.getElementById('inPersonManagerId');
+    const selectedOption = managerSelect.options[managerSelect.selectedIndex];
+    const centerNameInput = document.getElementById('inPersonEducationalCenterName');
+    const centerIdInput = document.getElementById('inPersonEducationalCenterId');
+    if (!selectedOption || !selectedOption.value) { centerNameInput.value = ''; centerIdInput.value = ''; return; }
+    const centerId = selectedOption.value;
+    const centerName = selectedOption.getAttribute('data-center-name') || '';
+    const foundCenter = educationalCentersList.find(c => c.id == centerId);
+    if (foundCenter) { centerNameInput.value = foundCenter.name_en || ''; centerIdInput.value = centerId; }
+    else { centerNameInput.value = centerName; centerIdInput.value = centerId; }
+}
+
+// ===================== دوال الإشعارات المتقدمة =====================
+
+// دالة لإرسال إشعارات عند إضافة/تعديل تقرير وجاهي
+async function sendInPersonReportNotifications(reportData, reportId, action, specialistName) {
+    try {
+        const centerId = reportData.educational_center_id;
+        
+        const { data: center, error: centerError } = await window.supabaseClient
+            .from('educational_centers')
+            .select(`*, districts:district_id(id, name, mangerEmail, supportEmail)`)
+            .eq('id', centerId)
+            .single();
+        
+        if (centerError) throw centerError;
+        
+        const recipients = [];
+        
+        if (center.email) {
+            recipients.push({ email: center.email, type: 'center_manager' });
         }
+        
+        if (center.districts?.mangerEmail) {
+            recipients.push({ email: center.districts.mangerEmail, type: 'district_manager' });
+        }
+        
+        if (center.districts?.supportEmail) {
+            recipients.push({ email: center.districts.supportEmail, type: 'district_support' });
+        }
+        
+        const { data: topManagement, error: topError } = await window.supabaseClient
+            .from('users')
+            .select('id, email, name')
+            .in('role', ['admin', 'support']);
+        
+        if (!topError && topManagement) {
+            topManagement.forEach(u => {
+                if (u.email && !recipients.find(r => r.email === u.email)) {
+                    recipients.push({ email: u.email, type: 'top_management', userId: u.id, name: u.name });
+                }
+            });
+        }
+        
+        const { data: specialist, error: specialistError } = await window.supabaseClient
+            .from('users')
+            .select('name')
+            .eq('id', reportData.specialist_id)
+            .single();
+        
+        const specialistUserName = specialist?.name || specialistName || 'مختص تربوي';
+        const centerName = center.name_ar || center.name_en || '';
+        
+        const actionText = action === 'update' ? 'تحديث' : 'إضافة';
+        const title = `${actionText} تقرير زيارة وجاهية`;
+        const message = `قام المختص التربوي (${specialistUserName}) ${actionText === 'تحديث' ? 'بتحديث' : 'بإضافة'} تقرير زيارة وجاهية للمركز (${centerName})`;
+        
+        for (const recipient of recipients) {
+            if (recipient.email) {
+                await window.sendCustomNotification({
+                    userId: recipient.userId || null,
+                    email: recipient.email,
+                    title: title,
+                    message: message,
+                    related_report_type: 'in_person',
+                    related_report_id: reportId
+                });
+            }
+        }
+        
+        if (reportData.specialist_id) {
+            await window.sendCustomNotification({
+                userId: reportData.specialist_id,
+                title: `✅ تم ${actionText === 'update' ? 'تحديث' : 'حفظ'} التقرير بنجاح`,
+                message: `تم ${actionText === 'update' ? 'تحديث' : 'حفظ'} تقرير الزيارة الوجاهية للمركز (${centerName}) بنجاح`,
+                related_report_type: 'in_person',
+                related_report_id: reportId
+            });
+        }
+        
+        console.log(`تم إرسال ${recipients.length} إشعار للتقرير الوجاهي (ID: ${reportId})`);
+        return true;
+        
+    } catch (error) {
+        console.error('Error sending in_person notifications:', error);
+        return false;
+    }
+}
+
+// دالة لإرسال إشعارات عند إضافة/تعديل تقرير عن بعد
+async function sendRemoteReportNotifications(reportData, reportId, action, specialistName) {
+    try {
+        const schoolId = reportData.school_id;
+        
+        const { data: school, error: schoolError } = await window.supabaseClient
+            .from('schools')
+            .select(`*, districts:district_id(id, name, mangerEmail, supportEmail)`)
+            .eq('id', schoolId)
+            .single();
+        
+        if (schoolError) throw schoolError;
+        
+        const recipients = [];
+        
+        if (school.schoolPrincipalEmail) {
+            recipients.push({ email: school.schoolPrincipalEmail, type: 'school_principal' });
+        }
+        
+        if (school.districts?.mangerEmail) {
+            recipients.push({ email: school.districts.mangerEmail, type: 'district_manager' });
+        }
+        
+        if (school.districts?.supportEmail) {
+            recipients.push({ email: school.districts.supportEmail, type: 'district_support' });
+        }
+        
+        const { data: topManagement, error: topError } = await window.supabaseClient
+            .from('users')
+            .select('id, email, name')
+            .in('role', ['admin', 'support']);
+        
+        if (!topError && topManagement) {
+            topManagement.forEach(u => {
+                if (u.email && !recipients.find(r => r.email === u.email)) {
+                    recipients.push({ email: u.email, type: 'top_management', userId: u.id, name: u.name });
+                }
+            });
+        }
+        
+        const { data: specialist, error: specialistError } = await window.supabaseClient
+            .from('users')
+            .select('name')
+            .eq('id', reportData.specialist_id)
+            .single();
+        
+        const specialistUserName = specialist?.name || specialistName || 'مختص تربوي';
+        
+        const actionText = action === 'update' ? 'تحديث' : 'إضافة';
+        const title = `${actionText} تقرير تعليم عن بعد`;
+        const message = `قام المختص التربوي (${specialistUserName}) ${actionText === 'تحديث' ? 'بتحديث' : 'بإضافة'} تقرير متابعة التعليم عن بعد للمدرسة (${school.name})`;
+        
+        for (const recipient of recipients) {
+            if (recipient.email) {
+                await window.sendCustomNotification({
+                    userId: recipient.userId || null,
+                    email: recipient.email,
+                    title: title,
+                    message: message,
+                    related_report_type: 'remote',
+                    related_report_id: reportId
+                });
+            }
+        }
+        
+        if (reportData.specialist_id) {
+            await window.sendCustomNotification({
+                userId: reportData.specialist_id,
+                title: `✅ تم ${actionText === 'update' ? 'تحديث' : 'حفظ'} التقرير بنجاح`,
+                message: `تم ${actionText === 'update' ? 'تحديث' : 'حفظ'} تقرير متابعة التعليم عن بعد للمدرسة (${school.name}) بنجاح`,
+                related_report_type: 'remote',
+                related_report_id: reportId
+            });
+        }
+        
+        console.log(`تم إرسال ${recipients.length} إشعار للتقرير عن بعد (ID: ${reportId})`);
+        return true;
+        
+    } catch (error) {
+        console.error('Error sending remote notifications:', error);
+        return false;
+    }
+}
+
+// دالة لفتح التقرير من الإشعار
+async function openReportFromNotification(reportId, reportType) {
+    if (isLoadingReport) {
+        showMessage('جاري تحميل تقرير آخر، الرجاء الانتظار...', 'info');
         return;
     }
     
-    confirmModal.classList.add('active');
-    
-    const yesBtn = document.getElementById('confirmYesBtn');
-    const noBtn = document.getElementById('confirmNoBtn');
-    
-    if (yesBtn) {
-        const newYesBtn = yesBtn.cloneNode(true);
-        yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
-        newYesBtn.onclick = function() {
-            confirmModal.classList.remove('active');
-            executeOpenOutlook();
-        };
+    if (currentOpenReportId === reportId && document.getElementById('viewModal').classList.contains('active')) {
+        return;
     }
     
-    if (noBtn) {
-        const newNoBtn = noBtn.cloneNode(true);
-        noBtn.parentNode.replaceChild(newNoBtn, noBtn);
-        newNoBtn.onclick = function() {
-            confirmModal.classList.remove('active');
-            openPrintSave();
-        };
-    }
+    const detailsDiv = document.getElementById('reportDetails');
     
-    confirmModal.onclick = function(e) {
-        if (e.target === confirmModal) {
-            confirmModal.classList.remove('active');
+    detailsDiv.innerHTML = '<div class="view-loading"><div class="loader-small"></div><span>جاري تحميل التقرير...</span></div>';
+    openModalWithScroll('viewModal');
+    
+    isLoadingReport = true;
+    
+    let report = allReportsCache.find(r => r.id == reportId && r.report_type === reportType);
+    
+    if (!report) {
+        try {
+            report = await fetchSingleReportDirectly(reportId, reportType);
+            if (report) {
+                allReportsCache.push(report);
+                if (!filteredReportsCache.find(r => r.id == reportId)) {
+                    filteredReportsCache.push(report);
+                    totalFilteredCount = filteredReportsCache.length;
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching report:', err);
         }
-    };
+    }
+    
+    if (!report) {
+        detailsDiv.innerHTML = '<div class="view-loading" style="color: red;"><i class="fas fa-exclamation-triangle"></i><span>التقرير غير موجود أو حدث خطأ</span></div>';
+        showMessage('التقرير غير موجود', 'error');
+        isLoadingReport = false;
+        return;
+    }
+    
+    currentViewReport = report;
+    currentOpenReportId = reportId;
+    
+    let cachedHtml = reportsCache.get(reportId);
+    
+    if (cachedHtml) {
+        detailsDiv.innerHTML = cachedHtml;
+        isLoadingReport = false;
+        showMessage('تم فتح التقرير من الإشعار', 'success');
+        const emailBtn = document.getElementById('emailReportBtn');
+        if (emailBtn && canEmailReport(currentUser)) emailBtn.style.display = 'inline-flex';
+        return;
+    }
+    
+    try {
+        const html = buildPrintHTMLFast(report, reportType);
+        reportsCache.set(reportId, html);
+        if (reportsCache.size > 50) {
+            const firstKey = reportsCache.keys().next().value;
+            reportsCache.delete(firstKey);
+        }
+        detailsDiv.innerHTML = html;
+        showMessage('تم فتح التقرير بنجاح', 'success');
+        const emailBtn = document.getElementById('emailReportBtn');
+        if (emailBtn && canEmailReport(currentUser)) emailBtn.style.display = 'inline-flex';
+    } catch (error) {
+        console.error('Error building report HTML:', error);
+        detailsDiv.innerHTML = '<div class="view-loading" style="color: red;"><i class="fas fa-exclamation-triangle"></i><span>حدث خطأ في تحميل التقرير</span></div>';
+        showMessage('حدث خطأ في فتح التقرير', 'error');
+    } finally {
+        isLoadingReport = false;
+    }
 }
 
 // ===================== دوال التقارير الرئيسية =====================
 async function loadAllReportsToCache() {
     if (isLoadingMore) return;
     isLoadingMore = true;
-    
     const progressDiv = document.getElementById('loadingProgress');
     const progressFill = document.getElementById('progressFill');
     const loadingStats = document.getElementById('loadingStats');
-    
     progressDiv.style.display = 'block';
     progressFill.style.width = '5%';
     loadingStats.innerHTML = 'جاري تحميل جميع التقارير إلى الكاش...';
-    
     try {
         const districtsMap = {};
         districtsList.forEach(d => { districtsMap[d.id] = d.name; });
-        
         progressFill.style.width = '10%';
         loadingStats.innerHTML = 'جاري جلب التقارير الوجاهية (قد يستغرق وقتاً)...';
-        
         let allInPersonReports = [];
         let inPersonPage = 0;
         const pageSizeFetch = 1000;
-        
         let inPersonQuery = window.supabaseClient
             .from('in_person_reports')
-            .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
+            .select(`*, educational_centers:educational_center_id(id, name_en, manager_name_ar, email, district_id), users:specialist_id(id,name,email)`)
             .order('visit_date', { ascending: false });
-        
-        if (currentUser.role === 'user') {
-            inPersonQuery = inPersonQuery.eq('specialist_id', currentUser.id);
-        } else if (currentUser.role === 'manger' && currentUser.district_id) {
-            const { data: schools } = await window.supabaseClient.from('schools').select('id').eq('district_id', currentUser.district_id);
-            const schoolIds = schools?.map(s => s.id) || [];
-            if (schoolIds.length > 0) {
-                inPersonQuery = inPersonQuery.in('school_id', schoolIds);
-            } else {
-                inPersonQuery = inPersonQuery.eq('school_id', -1);
-            }
-        } else if (currentUser.role === 'spuser' && currentUser.school_id) {
-            inPersonQuery = inPersonQuery.eq('school_id', currentUser.school_id);
-        }
-        
+        if (currentUser.role === 'user') inPersonQuery = inPersonQuery.eq('specialist_id', currentUser.id);
+        else if (currentUser.role === 'manger' && currentUser.district_id) {
+            const { data: centers } = await window.supabaseClient.from('educational_centers').select('id').eq('district_id', currentUser.district_id);
+            const centerIds = centers?.map(c => c.id) || [];
+            if (centerIds.length > 0) inPersonQuery = inPersonQuery.in('educational_center_id', centerIds);
+            else inPersonQuery = inPersonQuery.eq('educational_center_id', -1);
+        } else if (currentUser.role === 'spuser' && currentUser.school_id) inPersonQuery = inPersonQuery.eq('educational_center_id', -1);
         let hasMore = true;
         while (hasMore) {
             const start = inPersonPage * pageSizeFetch;
             const end = start + pageSizeFetch - 1;
-            
             const { data, error } = await inPersonQuery.range(start, end);
-            
             if (error) throw error;
-            
             if (data && data.length > 0) {
                 allInPersonReports = [...allInPersonReports, ...data];
                 inPersonPage++;
-                
                 const percent = Math.min(10 + (allInPersonReports.length / 6000) * 30, 40);
                 progressFill.style.width = `${percent}%`;
                 loadingStats.innerHTML = `📊 جاري تحميل التقارير الوجاهية: ${allInPersonReports.length.toLocaleString()} تقرير حتى الآن...`;
-                
                 if (data.length < pageSizeFetch) hasMore = false;
-            } else {
-                hasMore = false;
-            }
+            } else { hasMore = false; }
         }
-        
         progressFill.style.width = '45%';
         loadingStats.innerHTML = 'جاري جلب التقارير عن بعد (قد يستغرق وقتاً)...';
-        
         let allRemoteReports = [];
         let remotePage = 0;
-        
-        let remoteQuery = window.supabaseClient
-            .from('remote_reports')
+        let remoteQuery = window.supabaseClient            .from('remote_reports')
             .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
             .order('visit_date', { ascending: false });
-        
-        if (currentUser.role === 'user') {
-            remoteQuery = remoteQuery.eq('specialist_id', currentUser.id);
-        } else if (currentUser.role === 'manger' && currentUser.district_id) {
+        if (currentUser.role === 'user') remoteQuery = remoteQuery.eq('specialist_id', currentUser.id);
+        else if (currentUser.role === 'manger' && currentUser.district_id) {
             const { data: schools } = await window.supabaseClient.from('schools').select('id').eq('district_id', currentUser.district_id);
             const schoolIds = schools?.map(s => s.id) || [];
-            if (schoolIds.length > 0) {
-                remoteQuery = remoteQuery.in('school_id', schoolIds);
-            } else {
-                remoteQuery = remoteQuery.eq('school_id', -1);
-            }
-        } else if (currentUser.role === 'spuser' && currentUser.school_id) {
-            remoteQuery = remoteQuery.eq('school_id', currentUser.school_id);
-        }
-        
+            if (schoolIds.length > 0) remoteQuery = remoteQuery.in('school_id', schoolIds);
+            else remoteQuery = remoteQuery.eq('school_id', -1);
+        } else if (currentUser.role === 'spuser' && currentUser.school_id) remoteQuery = remoteQuery.eq('school_id', currentUser.school_id);
         hasMore = true;
         while (hasMore) {
             const start = remotePage * pageSizeFetch;
             const end = start + pageSizeFetch - 1;
-            
             const { data, error } = await remoteQuery.range(start, end);
-            
             if (error) throw error;
-            
             if (data && data.length > 0) {
                 allRemoteReports = [...allRemoteReports, ...data];
                 remotePage++;
-                
                 const percent = Math.min(45 + (allRemoteReports.length / 6000) * 30, 75);
                 progressFill.style.width = `${percent}%`;
                 loadingStats.innerHTML = `📊 جاري تحميل التقارير عن بعد: ${allRemoteReports.length.toLocaleString()} تقرير حتى الآن...`;
-                
                 if (data.length < pageSizeFetch) hasMore = false;
-            } else {
-                hasMore = false;
-            }
+            } else { hasMore = false; }
         }
-        
         progressFill.style.width = '80%';
         loadingStats.innerHTML = 'جاري معالجة البيانات وترتيبها...';
-        
         const inPersonData = allInPersonReports.map(r => ({ 
-            ...r, report_type: 'in_person', schools: r.schools, users: r.users, 
-            district_name: districtsMap[r.schools?.district_id] || '-', 
-            principal_name: r.principal_name || r.schools?.schoolPrincipal || '',
-            principal_Email: r.principal_Email || r.schools?.schoolPrincipalEmail || ''
+            ...r, report_type: 'in_person', educational_centers: r.educational_centers, users: r.users, 
+            district_name: districtsMap[r.educational_centers?.district_id] || '-', 
+            principal_name: r.principal_name || r.educational_centers?.manager_name_ar || '',
+            principal_Email: r.principal_Email || r.educational_centers?.email || '',
+            center_name: r.educational_centers?.name_en || '-'
         }));
-        
         const remoteData = allRemoteReports.map(r => ({ 
             ...r, report_type: 'remote', schools: r.schools, users: r.users, 
             district_name: districtsMap[r.schools?.district_id] || '-', 
             principal_name: r.principal_name || r.schools?.schoolPrincipal || ''
         }));
-        
         const allReports = [...inPersonData, ...remoteData].sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date));
-        
         allReportsCache = allReports;
         filteredReportsCache = [...allReports];
         totalFilteredCount = filteredReportsCache.length;
-        
         progressFill.style.width = '100%';
         loadingStats.innerHTML = `✅ تم تحميل ${allReports.length.toLocaleString()} تقرير بنجاح إلى الكاش! (${allInPersonReports.length} وجاهي + ${allRemoteReports.length} عن بعد)`;
-        
-        setTimeout(() => {
-            progressDiv.style.display = 'none';
-        }, 800);
-        
+        setTimeout(() => { progressDiv.style.display = 'none'; }, 800);
         const totalCountSpan = document.getElementById('totalCountDisplay');
         if (totalCountSpan) totalCountSpan.textContent = allReports.length.toLocaleString();
-        
         const totalHint = document.getElementById('totalReportsHint');
         if (totalHint) totalHint.textContent = allReports.length.toLocaleString();
-        
         console.log(`✅ تم تحميل ${allReports.length} تقرير (${allInPersonReports.length} وجاهي + ${allRemoteReports.length} عن بعد)`);
-        
         return allReports;
-        
     } catch (error) {
         console.error('Error loading all reports:', error);
         loadingStats.innerHTML = '❌ حدث خطأ في تحميل التقارير';
         loadingStats.style.color = '#e34f76';
-        setTimeout(() => {
-            progressDiv.style.display = 'none';
-        }, 2000);
+        setTimeout(() => { progressDiv.style.display = 'none'; }, 2000);
         throw error;
-    } finally {
-        isLoadingMore = false;
-    }
+    } finally { isLoadingMore = false; }
 }
 
 function displayCurrentPage() {
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const pageReports = filteredReportsCache.slice(startIndex, endIndex);
-    
     const tbody = document.getElementById('reportsTableBody');
     if (!pageReports || pageReports.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>';
+        tbody.innerHTML = '<td><td colspan="12" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>';
         document.getElementById('resultsCount').innerHTML = 'عدد النتائج: 0';
         return;
     }
-    
     tbody.innerHTML = pageReports.map((report, idx) => {
         const globalIndex = startIndex + idx + 1;
         const canEdit = canEditReport(currentUser, report);
@@ -1862,15 +1616,16 @@ function displayCurrentPage() {
         if (canEdit) actionsHtml += `<a href="#" onclick="editReport('${report.report_type}', '${report.id}')" class="action-link edit" title="تعديل"><i class="fas fa-edit"></i></a>`;
         if (canDelete) actionsHtml += `<a href="#" onclick="openDeleteModal('${report.report_type}', '${report.id}')" class="action-link delete" title="حذف"><i class="fas fa-trash"></i></a>`;
         const typeBadge = report.report_type === 'in_person' ? '<span class="badge badge-success">وجاهي</span>' : '<span class="badge badge-primary">عن بعد</span>';
-        
+        const centerOrSchool = report.report_type === 'in_person' ? (report.educational_centers?.name_en || '-') : (report.schools?.name || '-');
+        const managerName = report.report_type === 'in_person' ? (report.educational_centers?.manager_name_ar || report.principal_name || '-') : (report.principal_name || '-');
         return `<tr>
             <td style="padding:12px">${globalIndex}</td>
             <td style="padding:12px">${new Date(report.visit_date).toLocaleDateString('ar-SA')}</td>
             <td style="padding:12px">${typeBadge}</td>
             <td style="padding:12px">${report.district_name || '-'}</td>
-            <td style="padding:12px">${report.schools?.name || '-'}</td>
+            <td style="padding:12px">${centerOrSchool}</td>
             <td style="padding:12px">${report.teacher_name || '-'}</td>
-            <td style="padding:12px" title="مدير مركز TLS">${report.principal_name || '-'}</td>
+            <td style="padding:12px" title="مدير المركز/المدرسة">${managerName}</td>
             <td style="padding:12px">${getClassNameText(report.class_name)}</td>
             <td style="padding:12px">${report.section || '-'}</td>
             <td style="padding:12px">${report.subject || '-'}</td>
@@ -1878,50 +1633,33 @@ function displayCurrentPage() {
             <td style="padding:12px"><div style="display:flex;gap:0.5rem;">${actionsHtml}</div></td>
         </tr>`;
     }).join('');
-    
     const fromNum = ((currentPage-1)*pageSize)+1;
     const toNum = Math.min(currentPage*pageSize, totalFilteredCount);
     document.getElementById('resultsCount').innerHTML = `عرض ${fromNum.toLocaleString()} - ${toNum.toLocaleString()} من ${totalFilteredCount.toLocaleString()} تقرير`;
-    
     buildPaginationButtons();
 }
 
 function buildPaginationButtons() {
     const container = document.getElementById('paginationContainer');
     if (!container) return;
-    
     const totalPages = Math.ceil(totalFilteredCount / pageSize);
-    
-    if (totalPages <= 1) {
-        container.innerHTML = '';
-        return;
-    }
-    
+    if (totalPages <= 1) { container.innerHTML = ''; return; }
     let buttonsHtml = '';
-    
     buttonsHtml += `<button class="pagination-btn" onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-angle-double-right"></i></button>`;
     buttonsHtml += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-angle-right"></i></button>`;
-    
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, currentPage + 2);
-    
     if (startPage > 1) {
         buttonsHtml += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
         if (startPage > 2) buttonsHtml += `<span class="page-info">...</span>`;
     }
-    
-    for (let i = startPage; i <= endPage; i++) {
-        buttonsHtml += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i.toLocaleString()}</button>`;
-    }
-    
+    for (let i = startPage; i <= endPage; i++) buttonsHtml += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i.toLocaleString()}</button>`;
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) buttonsHtml += `<span class="page-info">...</span>`;
         buttonsHtml += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages.toLocaleString()}</button>`;
     }
-    
     buttonsHtml += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-angle-left"></i></button>`;
     buttonsHtml += `<button class="pagination-btn" onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-angle-double-left"></i></button>`;
-    
     container.innerHTML = buttonsHtml;
 }
 
@@ -1940,36 +1678,22 @@ function filterReports() {
     const type = document.getElementById('reportTypeFilter').value;
     const district = document.getElementById('districtFilter').value;
     const classFilter = document.getElementById('classFilter').value;
-    
-    if (!allReportsCache || allReportsCache.length === 0) {
-        showMessage('لا توجد تقارير للتصفية، يرجى الانتظار حتى اكتمال التحميل', 'info');
-        return;
-    }
-    
+    if (!allReportsCache || allReportsCache.length === 0) { showMessage('لا توجد تقارير للتصفية، يرجى الانتظار حتى اكتمال التحميل', 'info'); return; }
     let filtered = allReportsCache.filter(r => {
         if (type && r.report_type !== type) return false;
         if (district && district !== '' && r.district_name !== district) return false;
         if (classFilter && r.class_name !== classFilter) return false;
         if (fromDate && r.visit_date < fromDate) return false;
         if (toDate && r.visit_date > toDate) return false;
-        
-        if (search && search.trim() !== '') {
-            return performSmartSearch(r, search);
-        }
-        
+        if (search && search.trim() !== '') return performSmartSearch(r, search);
         return true;
     });
-    
     filteredReportsCache = filtered;
     totalFilteredCount = filtered.length;
     currentPage = 1;
     displayCurrentPage();
-    
-    if (filtered.length > 0) {
-        showMessage(`تم العثور على ${filtered.length.toLocaleString()} تقرير مطابق`, 'success');
-    } else {
-        showMessage('لا توجد تقارير مطابقة', 'info');
-    }
+    if (filtered.length > 0) showMessage(`تم العثور على ${filtered.length.toLocaleString()} تقرير مطابق`, 'success');
+    else showMessage('لا توجد تقارير مطابقة', 'info');
 }
 
 function clearFilters() {
@@ -1979,50 +1703,46 @@ function clearFilters() {
     document.getElementById('reportTypeFilter').value = '';
     document.getElementById('districtFilter').value = '';
     document.getElementById('classFilter').value = '';
-    
     if (allReportsCache && allReportsCache.length > 0) {
         filteredReportsCache = [...allReportsCache];
         totalFilteredCount = filteredReportsCache.length;
         currentPage = 1;
         displayCurrentPage();
         showMessage('تم مسح جميع الفلاتر', 'success');
-    } else {
-        showMessage('لا توجد تقارير لعرضها', 'info');
-    }
+    } else { showMessage('لا توجد تقارير لعرضها', 'info'); }
 }
 
 async function refreshCache() {
-    await loadAllReportsToCache();
-    filteredReportsCache = [...allReportsCache];
-    totalFilteredCount = filteredReportsCache.length;
-    currentPage = 1;
-    displayCurrentPage();
+    if (refreshInProgress) return;
+    refreshInProgress = true;
+    try {
+        await loadAllReportsToCache();
+        filteredReportsCache = [...allReportsCache];
+        totalFilteredCount = filteredReportsCache.length;
+        currentPage = 1;
+        displayCurrentPage();
+    } finally {
+        refreshInProgress = false;
+    }
 }
 
 async function fetchSingleReportDirectly(reportId, reportType) {
     try {
         const districtsMap = {};
         districtsList.forEach(d => { districtsMap[d.id] = d.name; });
-        
         let reportData = null;
-        
         if (reportType === 'in_person') {
             const { data, error } = await window.supabaseClient
                 .from('in_person_reports')
-                .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
+                .select(`*, educational_centers:educational_center_id(id, name_en, manager_name_ar, email, district_id), users:specialist_id(id,name,email)`)
                 .eq('id', reportId)
                 .single();
-            
             if (error) throw error;
-            
             reportData = {
-                ...data,
-                report_type: 'in_person',
-                schools: data.schools,
-                users: data.users,
-                district_name: districtsMap[data.schools?.district_id] || '-',
-                principal_name: data.principal_name || data.schools?.schoolPrincipal || '',
-                principal_Email: data.principal_Email || data.schools?.schoolPrincipalEmail || ''
+                ...data, report_type: 'in_person', educational_centers: data.educational_centers, users: data.users,
+                district_name: districtsMap[data.educational_centers?.district_id] || '-',
+                principal_name: data.principal_name || data.educational_centers?.manager_name_ar || '',
+                principal_Email: data.principal_Email || data.educational_centers?.email || ''
             };
         } else {
             const { data, error } = await window.supabaseClient
@@ -2030,223 +1750,80 @@ async function fetchSingleReportDirectly(reportId, reportType) {
                 .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
                 .eq('id', reportId)
                 .single();
-            
             if (error) throw error;
-            
             reportData = {
-                ...data,
-                report_type: 'remote',
-                schools: data.schools,
-                users: data.users,
+                ...data, report_type: 'remote', schools: data.schools, users: data.users,
                 district_name: districtsMap[data.schools?.district_id] || '-',
                 principal_name: data.principal_name || data.schools?.schoolPrincipal || ''
             };
         }
-        
         return reportData;
-        
-    } catch (error) {
-        console.error('Error fetching single report:', error);
-        return null;
-    }
-}
-
-async function openReportFromNotification(reportId, reportType) {
-    if (isLoadingReport) {
-        showMessage('جاري تحميل تقرير آخر، الرجاء الانتظار...', 'info');
-        return;
-    }
-    
-    if (currentOpenReportId === reportId) {
-        openModalWithScroll('viewModal');
-        return;
-    }
-    
-    const detailsDiv = document.getElementById('reportDetails');
-    const modal = document.getElementById('viewModal');
-    
-    detailsDiv.innerHTML = '<div class="view-loading"><div class="loader-small"></div><span>جاري تحميل التقرير مباشرة...</span></div>';
-    openModalWithScroll('viewModal');
-    
-    isLoadingReport = true;
-    
-    let cachedHtml = reportsCache.get(reportId);
-    
-    if (cachedHtml) {
-        detailsDiv.innerHTML = cachedHtml;
-        isLoadingReport = false;
-        currentOpenReportId = reportId;
-        showMessage('تم فتح التقرير من الإشعار', 'success');
-        const emailBtn = document.getElementById('emailReportBtn');
-        if (emailBtn && canEmailReport(currentUser)) {
-            emailBtn.style.display = 'inline-flex';
-        }
-        return;
-    }
-    
-    try {
-        const report = await fetchSingleReportDirectly(reportId, reportType);
-        
-        if (!report) {
-            detailsDiv.innerHTML = '<div class="view-loading" style="color: red;"><i class="fas fa-exclamation-triangle"></i><span>التقرير غير موجود أو حدث خطأ</span></div>';
-            showMessage('التقرير غير موجود', 'error');
-            isLoadingReport = false;
-            return;
-        }
-        
-        currentViewReport = report;
-        
-        const html = buildPrintHTMLFast(report, reportType);
-        
-        reportsCache.set(reportId, html);
-        if (reportsCache.size > 50) {
-            const firstKey = reportsCache.keys().next().value;
-            reportsCache.delete(firstKey);
-        }
-        
-        detailsDiv.innerHTML = html;
-        currentOpenReportId = reportId;
-        showMessage('تم فتح التقرير بنجاح', 'success');
-        
-        const emailBtn = document.getElementById('emailReportBtn');
-        if (emailBtn && canEmailReport(currentUser)) {
-            emailBtn.style.display = 'inline-flex';
-        }
-        
-    } catch (error) {
-        console.error('Error opening report from notification:', error);
-        detailsDiv.innerHTML = '<div class="view-loading" style="color: red;"><i class="fas fa-exclamation-triangle"></i><span>حدث خطأ في تحميل التقرير</span></div>';
-        showMessage('حدث خطأ في فتح التقرير', 'error');
-    } finally {
-        isLoadingReport = false;
-    }
+    } catch (error) { console.error('Error fetching single report:', error); return null; }
 }
 
 async function viewReport(type, id) {
-    if (isLoadingReport) {
-        showMessage('جاري تحميل تقرير آخر، الرجاء الانتظار...', 'info');
-        return;
-    }
-    
-    if (currentOpenReportId === id) {
-        openModalWithScroll('viewModal');
-        return;
-    }
-    
+    if (isLoadingReport) { showMessage('جاري تحميل تقرير آخر، الرجاء الانتظار...', 'info'); return; }
+    if (currentOpenReportId === id && document.getElementById('viewModal').classList.contains('active')) { return; }
     let report = allReportsCache.find(r => r.report_type === type && r.id == id);
-    
     if (!report) {
         showMessage('التقرير غير موجود في الكاش، جاري البحث في قاعدة البيانات...', 'info');
         try {
             const fetchedReport = await fetchSingleReportDirectly(id, type);
-            if (fetchedReport) {
-                report = fetchedReport;
-                allReportsCache.push(report);
-            }
-        } catch (err) {
-            console.error('Error fetching single report:', err);
-        }
+            if (fetchedReport) { report = fetchedReport; allReportsCache.push(report); }
+        } catch (err) { console.error('Error fetching single report:', err); }
     }
-    
-    if (!report) {
-        showMessage('عذراً، التقرير غير موجود أو لا تملك صلاحية عرضه', 'error');
-        return;
-    }
-    
+    if (!report) { showMessage('عذراً، التقرير غير موجود أو لا تملك صلاحية عرضه', 'error'); return; }
     currentViewReport = report;
     currentOpenReportId = id;
-    
     const detailsDiv = document.getElementById('reportDetails');
-    
     let cachedHtml = reportsCache.get(id);
-    
     if (cachedHtml) {
         detailsDiv.innerHTML = cachedHtml;
         openModalWithScroll('viewModal');
         const emailBtn = document.getElementById('emailReportBtn');
-        if (emailBtn && canEmailReport(currentUser)) {
-            emailBtn.style.display = 'inline-flex';
-        }
+        if (emailBtn && canEmailReport(currentUser)) emailBtn.style.display = 'inline-flex';
         return;
     }
-    
     detailsDiv.innerHTML = '<div class="view-loading"><div class="loader-small"></div><span>جاري تحميل التقرير...</span></div>';
     openModalWithScroll('viewModal');
-    
     isLoadingReport = true;
-    
     requestAnimationFrame(() => {
         try {
             const html = buildPrintHTMLFast(report, type);
             reportsCache.set(id, html);
-            
-            if (reportsCache.size > 50) {
-                const firstKey = reportsCache.keys().next().value;
-                reportsCache.delete(firstKey);
-            }
-            
+            if (reportsCache.size > 50) { const firstKey = reportsCache.keys().next().value; reportsCache.delete(firstKey); }
             detailsDiv.innerHTML = html;
-            
             const emailBtn = document.getElementById('emailReportBtn');
-            if (emailBtn && canEmailReport(currentUser)) {
-                emailBtn.style.display = 'inline-flex';
-            }
+            if (emailBtn && canEmailReport(currentUser)) emailBtn.style.display = 'inline-flex';
         } catch (error) {
             console.error('خطأ في بناء التقرير:', error);
             detailsDiv.innerHTML = '<div class="view-loading" style="color: red;"><i class="fas fa-exclamation-triangle"></i><span>حدث خطأ في تحميل التقرير</span></div>';
             showMessage('حدث خطأ في تحميل التقرير', 'error');
-        } finally {
-            isLoadingReport = false;
-        }
+        } finally { isLoadingReport = false; }
     });
 }
 
 function generateReportFileName(report) {
     const prefix = (report.report_type === 'remote' || report.report_type === 'remote_learning') ? 'SP_RL' : 'SP_TLS';
-    
-    const clean = (text = '') => {
-        return String(text)
-            .trim()
-            .replace(/[\\/:*?"<>|]/g, '')
-            .replace(/\s+/g, '_')
-            .replace(/_+/g, '_')
-            .replace(/^_+|_+$/g, '');
-    };
-    
+    const clean = (text = '') => { return String(text).trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, ''); };
     const specialist = clean(report.users?.name || 'مختص');
-    const school = clean(report.schools?.name || 'مدرسة');
-    
-    return `${prefix}_${specialist}_${school}.pdf`;
+    const centerOrSchool = report.report_type === 'in_person' ? clean(report.educational_centers?.name_en || 'مركز') : clean(report.schools?.name || 'مدرسة');
+    return `${prefix}_${specialist}_${centerOrSchool}.pdf`;
 }
 
 function exportReportToPDF(reportId = null) {
     const report = reportId ? allReportsCache.find(r => r.id == reportId) : currentViewReport;
-
-    if (!report) {
-        showMessage('لم يتم العثور على التقرير', 'error');
-        return;
-    }
-
+    if (!report) { showMessage('لم يتم العثور على التقرير', 'error'); return; }
     const html = reportsCache.get(report.id) || buildPrintHTMLFast(report, report.report_type);
     const fileName = generateReportFileName(report);
-
     const printWindow = window.open('', '_blank');
-
-    if (!printWindow) {
-        showMessage('الرجاء السماح للنوافذ المنبثقة', 'error');
-        return;
-    }
-
+    if (!printWindow) { showMessage('الرجاء السماح للنوافذ المنبثقة', 'error'); return; }
     printWindow.document.open();
     printWindow.document.write(html);
     printWindow.document.title = fileName.replace('.pdf', '');
     printWindow.document.close();
-
     printWindow.focus();
-
-    setTimeout(() => {
-        printWindow.print();
-    }, 500);
+    setTimeout(() => { printWindow.print(); }, 500);
 }
 
 function closeViewModal() { 
@@ -2267,11 +1844,8 @@ function updateUIBasedOnRole(user) {
     const addReportBtns = document.querySelectorAll('.add-report-btn');
     const showAddButtons = canCreateReports(user);
     addReportBtns.forEach(btn => btn.style.display = showAddButtons ? 'inline-flex' : 'none');
-    
     const emailBtn = document.getElementById('emailReportBtn');
-    if (emailBtn) {
-        emailBtn.style.display = canEmailReport(user) ? 'inline-flex' : 'none';
-    }
+    if (emailBtn) emailBtn.style.display = canEmailReport(user) ? 'inline-flex' : 'none';
 }
 
 async function getCurrentUserFromLocal() {
@@ -2281,7 +1855,6 @@ async function getCurrentUserFromLocal() {
         console.log('✅ تم تحميل المستخدم من localStorage:', parsed.name);
         return parsed;
     }
-    
     try {
         const { data: { user } } = await window.supabaseClient.auth.getUser();
         if (user) {
@@ -2301,10 +1874,7 @@ async function getCurrentUserFromLocal() {
             }
         }
         return null;
-    } catch (error) {
-        console.error('❌ خطأ في جلب المستخدم:', error);
-        return null;
-    }
+    } catch (error) { console.error('❌ خطأ في جلب المستخدم:', error); return null; }
 }
 
 async function loadDistricts() {
@@ -2312,10 +1882,8 @@ async function loadDistricts() {
         const { data, error } = await window.supabaseClient.from('districts').select('id, name, mangerEmail, supportEmail').order('name');
         if (error) throw error;
         districtsList = data || [];
-        
         let visibleDistricts = districtsList;
         let filterDistricts = districtsList;
-        
         if (currentUser.role === 'manger' && currentUser.district_id) {
             visibleDistricts = districtsList.filter(d => d.id == currentUser.district_id);
             filterDistricts = districtsList.filter(d => d.id == currentUser.district_id);
@@ -2323,28 +1891,19 @@ async function loadDistricts() {
             visibleDistricts = districtsList.filter(d => d.id == currentUser.district_id);
             filterDistricts = districtsList;
         }
-        
         const options = '<option value="">اختر المنطقة</option>' + visibleDistricts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
         document.getElementById('inPersonDistrict').innerHTML = options;
         document.getElementById('remoteDistrict').innerHTML = options;
-        
         let filterOptions = '<option value="">جميع المناطق</option>';
         if (currentUser.role === 'manger' && currentUser.district_id) {
             const userDistrict = districtsList.find(d => d.id == currentUser.district_id);
-            if (userDistrict) {
-                filterOptions = `<option value="${userDistrict.name}">${userDistrict.name}</option>`;
-                document.getElementById('districtFilter').disabled = true;
-            }
+            if (userDistrict) { filterOptions = `<option value="${userDistrict.name}">${userDistrict.name}</option>`; document.getElementById('districtFilter').disabled = true; }
         } else {
             filterOptions += filterDistricts.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
             document.getElementById('districtFilter').disabled = false;
         }
         document.getElementById('districtFilter').innerHTML = filterOptions;
-        
-        if (currentUser.role === 'manger' && currentUser.district_name) {
-            document.getElementById('districtFilter').value = currentUser.district_name;
-        }
-        
+        if (currentUser.role === 'manger' && currentUser.district_name) document.getElementById('districtFilter').value = currentUser.district_name;
     } catch (error) { console.error('Error loading districts:', error); }
 }
 
@@ -2358,10 +1917,7 @@ async function loadSchools() {
 
 async function loadSchoolsByDistrict(type) {
     const districtId = document.getElementById(`${type}District`).value;
-    if (!districtId) { 
-        document.getElementById(`${type}SchoolId`).innerHTML = '<option value="">اختر المنطقة أولاً</option>'; 
-        return; 
-    }
+    if (!districtId) { document.getElementById(`${type}SchoolId`).innerHTML = '<option value="">اختر المنطقة أولاً</option>'; return; }
     const filteredSchools = schoolsData.filter(s => s.district_id == districtId).sort((a,b) => a.name.localeCompare(b.name));
     const options = '<option value="">اختر المدرسة</option>' + filteredSchools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
     document.getElementById(`${type}SchoolId`).innerHTML = options;
@@ -2372,24 +1928,23 @@ async function loadSchoolPrincipal(type) {
         const schoolId = document.getElementById(`remoteSchoolId`).value;
         if (!schoolId) return;
         const school = schoolsData.find(s => s.id == schoolId);
-        if (school) {
-            document.getElementById('remotePrincipalName').value = school.schoolPrincipal || '';
-            window.currentRemoteSchoolEmail = school.schoolPrincipalEmail || '';
-        }
+        if (school) { document.getElementById('remotePrincipalName').value = school.schoolPrincipal || ''; window.currentRemoteSchoolEmail = school.schoolPrincipalEmail || ''; }
     }
 }
 
 function exportToExcel() {
     const sourceReports = filteredReportsCache.length > 0 ? filteredReportsCache : allReportsCache;
-    const rows = [['التاريخ', 'النوع', 'المنطقة', 'المدرسة', 'المعلم', 'مدير مركز TLS', 'الصف', 'الشعبة', 'المبحث', 'المختص']];
+    const rows = [['التاريخ', 'النوع', 'المنطقة', 'المركز/المدرسة', 'المعلم', 'مدير المركز/المدرسة', 'الصف', 'الشعبة', 'المبحث', 'المختص']];
     sourceReports.forEach(report => { 
+        const centerOrSchool = report.report_type === 'in_person' ? (report.educational_centers?.name_en || '-') : (report.schools?.name || '-');
+        const managerName = report.report_type === 'in_person' ? (report.educational_centers?.manager_name_ar || report.principal_name || '-') : (report.principal_name || '-');
         rows.push([
             new Date(report.visit_date).toLocaleDateString('ar-SA'), 
             report.report_type === 'in_person' ? 'وجاهي' : 'عن بعد', 
             report.district_name || '-', 
-            report.schools?.name || '-', 
+            centerOrSchool, 
             report.teacher_name || '-', 
-            report.principal_name || '-', 
+            managerName, 
             getClassNameText(report.class_name), 
             report.section || '-', 
             report.subject || '-', 
@@ -2411,10 +1966,10 @@ function openAddReportModal(type) {
         document.getElementById('inPersonForm').reset();
         document.getElementById('inPersonReportId').value = '';
         if (inPersonDatePicker) inPersonDatePicker.setDate(new Date());
-        document.getElementById('inPersonSchoolId').innerHTML = '<option value="">اختر المنطقة أولاً</option>';
+        document.getElementById('inPersonManagerId').innerHTML = '<option value="">اختر المنطقة أولاً</option>';
+        document.getElementById('inPersonEducationalCenterName').value = '';
+        document.getElementById('inPersonEducationalCenterId').value = '';
         document.getElementById('inPersonDistrict').value = '';
-        document.getElementById('inPersonPrincipalName').value = '';
-        document.getElementById('inPersonPrincipalEmail').value = '';
         buildEvaluationItems('inPersonTeachingActivities', inPersonTeachingList, 'in_person_teaching');
         buildEvaluationItems('inPersonWellbeing', inPersonWellbeingList, 'in_person_wellbeing');
         openModalWithScroll('inPersonModal');
@@ -2443,11 +1998,17 @@ async function editReport(type, id) {
         const districtObj = districtsList.find(d => d.name === report.district_name);
         if (districtObj) {
             document.getElementById('inPersonDistrict').value = districtObj.id;
-            await loadSchoolsByDistrict('inPerson');
+            await loadCenterManagersByDistrict();
             setTimeout(() => {
-                document.getElementById('inPersonSchoolId').value = report.school_id;
-                document.getElementById('inPersonPrincipalName').value = report.principal_name || '';
-                document.getElementById('inPersonPrincipalEmail').value = report.principal_Email || '';
+                const managerSelect = document.getElementById('inPersonManagerId');
+                for (let i = 0; i < managerSelect.options.length; i++) {
+                    const opt = managerSelect.options[i];
+                    if (opt.value == report.educational_center_id) {
+                        managerSelect.value = opt.value;
+                        loadEducationalCenterByManager();
+                        break;
+                    }
+                }
             }, 100);
         }
         document.getElementById('inPersonTeacherName').value = report.teacher_name || '';
@@ -2471,13 +2032,8 @@ async function editReport(type, id) {
             setTimeout(() => {
                 document.getElementById('remoteSchoolId').value = report.school_id;
                 const school = schoolsData.find(s => s.id == report.school_id);
-                if (school) {
-                    document.getElementById('remotePrincipalName').value = school.schoolPrincipal || '';
-                    window.currentRemoteSchoolEmail = school.schoolPrincipalEmail || '';
-                } else {
-                    document.getElementById('remotePrincipalName').value = report.principal_name || '';
-                    window.currentRemoteSchoolEmail = '';
-                }
+                if (school) { document.getElementById('remotePrincipalName').value = school.schoolPrincipal || ''; window.currentRemoteSchoolEmail = school.schoolPrincipalEmail || ''; }
+                else { document.getElementById('remotePrincipalName').value = report.principal_name || ''; window.currentRemoteSchoolEmail = ''; }
             }, 150);
         }
         document.getElementById('remoteTeacherName').value = report.teacher_name || '';
@@ -2493,24 +2049,26 @@ async function editReport(type, id) {
     }
 }
 
-// ===================== حفظ التقرير الوجاهي =====================
+// ===================== حفظ التقرير الوجاهي (مع تحسين تجربة المستخدم) =====================
 document.getElementById('inPersonForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (isInPersonSaving) { showMessage('جاري الحفظ... الرجاء الانتظار', 'info'); return; }
-    const schoolId = document.getElementById('inPersonSchoolId').value;
-    if (!schoolId) { showMessage('الرجاء اختيار المدرسة', 'error'); return; }
+    
+    const centerId = document.getElementById('inPersonEducationalCenterId').value;
+    if (!centerId) { showMessage('الرجاء اختيار مدير المركز', 'error'); return; }
+    
+    const managerSelect = document.getElementById('inPersonManagerId');
+    const selectedOption = managerSelect.options[managerSelect.selectedIndex];
+    const principalName = selectedOption?.getAttribute('data-manager-name') || '';
+    const principalEmail = selectedOption?.getAttribute('data-center-email') || '';
     const visitDate = getDateFromPicker(inPersonDatePicker);
     if (!visitDate) { showMessage('الرجاء اختيار تاريخ الزيارة', 'error'); return; }
-    const tlsManagerName = document.getElementById('inPersonPrincipalName').value;
-    if (!tlsManagerName) { showMessage('الرجاء إدخال اسم مدير مركز TLS', 'error'); return; }
-    
-    const principalEmail = document.getElementById('inPersonPrincipalEmail').value || '';
     
     const data = {
         visit_date: visitDate, 
-        school_id: parseInt(schoolId), 
+        educational_center_id: parseInt(centerId), 
         teacher_name: document.getElementById('inPersonTeacherName').value,
-        principal_name: tlsManagerName, 
+        principal_name: principalName, 
         principal_Email: principalEmail,
         specialist_id: currentUser.id,
         class_name: document.getElementById('inPersonClass').value, 
@@ -2523,12 +2081,14 @@ document.getElementById('inPersonForm')?.addEventListener('submit', async (e) =>
         challenges: document.getElementById('inPersonChallenges').value,
         recommendations: document.getElementById('inPersonRecommendations').value
     };
+    
     const isEdit = currentEditingId !== null && currentEditingType === 'in_person';
     const saveBtn = document.getElementById('inPersonSaveBtn');
     const originalHtml = saveBtn.innerHTML;
     isInPersonSaving = true;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
     saveBtn.disabled = true;
+    
     try {
         let result, newReportId;
         if (isEdit) {
@@ -2540,42 +2100,55 @@ document.getElementById('inPersonForm')?.addEventListener('submit', async (e) =>
         }
         if (result.error) throw result.error;
         
-        const school = schoolsData.find(s => s.id == parseInt(schoolId));
-        
-        const savedReport = {
-            ...data,
-            id: newReportId,
-            report_type: 'in_person',
-            schools: { name: school?.name || '', schoolPrincipalEmail: principalEmail },
-            principal_Email: principalEmail,
-            users: { name: currentUser.name }
+        const educationalCenter = educationalCentersList.find(c => c.id == parseInt(centerId));
+        const savedReport = { 
+            ...data, 
+            id: newReportId, 
+            report_type: 'in_person', 
+            educational_centers: { name_en: educationalCenter?.name_en || '', email: principalEmail, manager_name_ar: principalName }, 
+            users: { name: currentUser.name } 
         };
         
+        // إرسال الإشعارات في الخلفية
         if (newReportId && currentUser) {
-            await window.sendVisitReportNotifications({ ...data, school_id: parseInt(schoolId) }, newReportId, 'in_person', currentUser.name || currentUser.username || 'مختص', isEdit ? 'update' : 'create');
+            sendInPersonReportNotifications(data, newReportId, isEdit ? 'update' : 'create', currentUser.name).catch(err => console.error('Notification error:', err));
         }
         
+        // إغلاق مودال الإدخال فوراً
         closeModalWithScroll('inPersonModal');
-        await refreshCache();
-        showMessage(isEdit ? 'تم تحديث التقرير بنجاح' : 'تم حفظ التقرير بنجاح', 'success');
         
         // عرض مودال التنبيه العام
         if (!isEdit) {
             showAlertModal(savedReport, 'in_person');
+        } else {
+            showMessage('تم تحديث التقرير بنجاح', 'success');
         }
+        
+        // تحديث الكاش في الخلفية
+        refreshCache().catch(err => console.error('Refresh cache error:', err));
         
         currentEditingId = null;
         currentEditingType = null;
-    } catch (error) { console.error('Error:', error); showMessage('خطأ: ' + error.message, 'error'); }
-    finally { isInPersonSaving = false; saveBtn.innerHTML = originalHtml; saveBtn.disabled = false; }
+        
+    } catch (error) { 
+        console.error('Error:', error); 
+        showMessage('خطأ: ' + error.message, 'error');
+        closeModalWithScroll('inPersonModal');
+    } finally { 
+        isInPersonSaving = false; 
+        saveBtn.innerHTML = originalHtml; 
+        saveBtn.disabled = false; 
+    }
 });
 
-// ===================== حفظ التقرير عن بعد =====================
+// ===================== حفظ التقرير عن بعد (مع تحسين تجربة المستخدم) =====================
 document.getElementById('remoteForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (isRemoteSaving) { showMessage('جاري الحفظ... الرجاء الانتظار', 'info'); return; }
+    
     const schoolId = document.getElementById('remoteSchoolId').value;
     if (!schoolId) { showMessage('الرجاء اختيار المدرسة', 'error'); return; }
+    
     const visitDate = getDateFromPicker(remoteDatePicker);
     if (!visitDate) { showMessage('الرجاء اختيار تاريخ الزيارة', 'error'); return; }
     
@@ -2597,12 +2170,14 @@ document.getElementById('remoteForm')?.addEventListener('submit', async (e) => {
         creative_ideas: document.getElementById('remoteCreativeIdeas').value || null,
         recommendations: document.getElementById('remoteRecommendations').value || null
     };
+    
     const isEdit = currentEditingId !== null && currentEditingType === 'remote';
     const saveBtn = document.getElementById('remoteSaveBtn');
     const originalHtml = saveBtn.innerHTML;
     isRemoteSaving = true;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
     saveBtn.disabled = true;
+    
     try {
         let result, newReportId;
         if (isEdit) {
@@ -2614,31 +2189,44 @@ document.getElementById('remoteForm')?.addEventListener('submit', async (e) => {
         }
         if (result.error) throw result.error;
         
-        const savedReport = {
-            ...data,
-            id: newReportId,
-            report_type: 'remote',
-            schools: { name: school?.name || '', schoolPrincipalEmail: principalEmail },
-            users: { name: currentUser.name }
+        const savedReport = { 
+            ...data, 
+            id: newReportId, 
+            report_type: 'remote', 
+            schools: { name: school?.name || '', schoolPrincipalEmail: principalEmail }, 
+            users: { name: currentUser.name } 
         };
         
+        // إرسال الإشعارات في الخلفية
         if (newReportId && currentUser) {
-            await window.sendVisitReportNotifications({ ...data, school_id: parseInt(schoolId) }, newReportId, 'remote', currentUser.name || currentUser.username || 'مختص', isEdit ? 'update' : 'create');
+            sendRemoteReportNotifications(data, newReportId, isEdit ? 'update' : 'create', currentUser.name).catch(err => console.error('Notification error:', err));
         }
         
+        // إغلاق مودال الإدخال فوراً
         closeModalWithScroll('remoteModal');
-        await refreshCache();
-        showMessage(isEdit ? 'تم تحديث التقرير بنجاح' : 'تم حفظ التقرير بنجاح', 'success');
         
         // عرض مودال التنبيه العام
         if (!isEdit) {
             showAlertModal(savedReport, 'remote');
+        } else {
+            showMessage('تم تحديث التقرير بنجاح', 'success');
         }
+        
+        // تحديث الكاش في الخلفية
+        refreshCache().catch(err => console.error('Refresh cache error:', err));
         
         currentEditingId = null;
         currentEditingType = null;
-    } catch (error) { console.error('Error:', error); showMessage('خطأ: ' + error.message, 'error'); }
-    finally { isRemoteSaving = false; saveBtn.innerHTML = originalHtml; saveBtn.disabled = false; }
+        
+    } catch (error) { 
+        console.error('Error:', error); 
+        showMessage('خطأ: ' + error.message, 'error');
+        closeModalWithScroll('remoteModal');
+    } finally { 
+        isRemoteSaving = false; 
+        saveBtn.innerHTML = originalHtml; 
+        saveBtn.disabled = false; 
+    }
 });
 
 function openDeleteModal(type, id) {
@@ -2661,17 +2249,15 @@ async function confirmDelete() {
 function closeModal(id) { closeModalWithScroll(id); }
 function closeDeleteModal() { closeModalWithScroll('deleteModal'); deleteReportData = null; }
 
-// ===================== دوال الإشعارات =====================
+// ===================== دوال الإشعارات العامة =====================
 async function updateUnreadBadge() {
     try {
         const result = await window.getUnreadNotificationsCount(currentUser?.id);
         if (result.success) {
             const badge = document.getElementById('unreadBadge');
             if (badge) {
-                if (result.count > 0) {
-                    badge.textContent = result.count > 99 ? '99+' : result.count;
-                    badge.style.display = 'flex';
-                } else { badge.style.display = 'none'; }
+                if (result.count > 0) { badge.textContent = result.count > 99 ? '99+' : result.count; badge.style.display = 'flex'; }
+                else { badge.style.display = 'none'; }
             }
         }
     } catch (error) { console.error('Error updating badge:', error); }
@@ -2697,17 +2283,14 @@ async function loadNotifications() {
         const result = await window.getRecentNotifications(currentUser?.id, 50);
         if (result.success) {
             const notifications = result.data;
-            if (!notifications || notifications.length === 0) {
-                listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
-            } else {
+            if (!notifications || notifications.length === 0) { listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>'; }
+            else {
                 listContainer.innerHTML = notifications.map(n => `<div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationItemClick(${n.id}, '${n.related_report_type || ''}', ${n.related_report_id || 'null'})"><div class="title">${escapeHtml(n.title)}</div><div class="message">${escapeHtml(n.message)}</div><div class="time">${formatNotificationTime(n.created_at)}</div><button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${n.id})"><i class="fas fa-trash"></i></button></div>`).join('');
             }
             await updateUnreadBadge();
             const markAllBtn = document.getElementById('markAllReadBtn');
             if (markAllBtn) { const hasUnread = notifications.some(n => !n.is_read); markAllBtn.style.display = hasUnread ? 'flex' : 'none'; }
-        } else {
-            listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>';
-        }
+        } else { listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>'; }
     } catch (error) {
         console.error('Error loading notifications:', error);
         listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>';
@@ -2716,31 +2299,16 @@ async function loadNotifications() {
 
 async function handleNotificationItemClick(notificationId, reportType, reportId) {
     try {
-        if (!window.supabaseClient) {
-            showMessage('حدث خطأ في الاتصال', 'error');
-            return;
-        }
-        
+        if (!window.supabaseClient) { showMessage('حدث خطأ في الاتصال', 'error'); return; }
         await window.markNotificationAsRead(notificationId);
         await updateUnreadBadge();
         closeNotificationsPanel();
-        
         if (reportId && reportType) {
-            if (reportType === 'summary') {
-                window.location.href = `summary-reports.html?view=${reportId}&t=${Date.now()}`;
-            } else if (reportType === 'in_person' || reportType === 'remote') {
-                await openReportFromNotification(reportId, reportType);
-            } else {
-                showMessage('نوع التقرير غير معروف', 'error');
-            }
-        } else {
-            showMessage('لا يوجد تقرير مرتبط بهذا الإشعار', 'info');
-        }
-        
-    } catch (error) {
-        console.error('Error handling notification click:', error);
-        showMessage('حدث خطأ في فتح الإشعار', 'error');
-    }
+            if (reportType === 'summary') window.location.href = `summary-reports.html?view=${reportId}&t=${Date.now()}`;
+            else if (reportType === 'in_person' || reportType === 'remote') await openReportFromNotification(reportId, reportType);
+            else showMessage('نوع التقرير غير معروف', 'error');
+        } else { showMessage('لا يوجد تقرير مرتبط بهذا الإشعار', 'info'); }
+    } catch (error) { console.error('Error handling notification click:', error); showMessage('حدث خطأ في فتح الإشعار', 'error'); }
 }
 
 async function deleteNotificationItem(notificationId) {
@@ -2778,46 +2346,10 @@ function stopNotificationPolling() { if (notificationInterval) { clearInterval(n
 function initDatePickers() {
     const today = new Date();
     today.setHours(23, 59, 59, 999);
-    
-    dateFromPicker = flatpickr("#dateFrom", {
-        locale: "ar",
-        dateFormat: "d/m/Y",
-        maxDate: today,
-        onChange: function(selectedDates) {
-            if (selectedDates.length > 0) {
-                dateToPicker.set('minDate', selectedDates[0]);
-            }
-        }
-    });
-    
-    dateToPicker = flatpickr("#dateTo", {
-        locale: "ar",
-        dateFormat: "d/m/Y",
-        maxDate: today,
-        onChange: function(selectedDates) {
-            if (selectedDates.length > 0) {
-                dateFromPicker.set('maxDate', selectedDates[0]);
-            }
-        }
-    });
-    
-    if (!inPersonDatePicker) {
-        inPersonDatePicker = flatpickr("#inPersonVisitDate", {
-            locale: "ar",
-            dateFormat: "d/m/Y",
-            maxDate: today,
-            clickOpens: true
-        });
-    }
-    
-    if (!remoteDatePicker) {
-        remoteDatePicker = flatpickr("#remoteVisitDate", {
-            locale: "ar",
-            dateFormat: "d/m/Y",
-            maxDate: today,
-            clickOpens: true
-        });
-    }
+    dateFromPicker = flatpickr("#dateFrom", { locale: "ar", dateFormat: "d/m/Y", maxDate: today, onChange: function(selectedDates) { if (selectedDates.length > 0) dateToPicker.set('minDate', selectedDates[0]); } });
+    dateToPicker = flatpickr("#dateTo", { locale: "ar", dateFormat: "d/m/Y", maxDate: today, onChange: function(selectedDates) { if (selectedDates.length > 0) dateFromPicker.set('maxDate', selectedDates[0]); } });
+    if (!inPersonDatePicker) inPersonDatePicker = flatpickr("#inPersonVisitDate", { locale: "ar", dateFormat: "d/m/Y", maxDate: today, clickOpens: true });
+    if (!remoteDatePicker) remoteDatePicker = flatpickr("#remoteVisitDate", { locale: "ar", dateFormat: "d/m/Y", maxDate: today, clickOpens: true });
 }
 
 async function logout() {
@@ -2832,11 +2364,8 @@ function toggleSidebar() {
     const overlay = document.getElementById('sidebarOverlay');
     sidebar.classList.toggle('open');
     overlay.classList.toggle('active');
-    if (sidebar.classList.contains('open')) {
-        toggleBodyScroll(true);
-    } else {
-        toggleBodyScroll(false);
-    }
+    if (sidebar.classList.contains('open')) toggleBodyScroll(true);
+    else toggleBodyScroll(false);
 }
 
 function closeSidebar() {
@@ -2850,93 +2379,35 @@ function closeSidebar() {
 // ===================== تهيئة الصفحة =====================
 window.addEventListener('load', async () => {
     currentUser = await getCurrentUserFromLocal();
-    
-    if (!currentUser) {
-        console.log('لم يتم العثور على مستخدم، التوجيه إلى صفحة التسجيل');
-        window.location.href = 'login.html';
-        return;
-    }
-    
+    if (!currentUser) { console.log('لم يتم العثور على مستخدم، التوجيه إلى صفحة التسجيل'); window.location.href = 'login.html'; return; }
     console.log('✅ تم تسجيل الدخول بنجاح:', currentUser.name, 'الدور:', currentUser.role);
-    
     document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username || 'مستخدم';
     document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
     document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(currentUser);
-    
     updateUIBasedOnRole(currentUser);
-    
     await loadUsersData();
     await loadDistricts();
     await loadSchools();
-    
     initDatePickers();
-    
     const pageSizeSelect = document.getElementById('pageSizeSelect');
-    if (pageSizeSelect) {
-        pageSizeSelect.addEventListener('change', (e) => {
-            pageSize = parseInt(e.target.value);
-            currentPage = 1;
-            displayCurrentPage();
-        });
-    }
-    
+    if (pageSizeSelect) pageSizeSelect.addEventListener('change', (e) => { pageSize = parseInt(e.target.value); currentPage = 1; displayCurrentPage(); });
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         let searchTimeout;
-        searchInput.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                filterReports();
-            }, 400);
-        });
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                clearTimeout(searchTimeout);
-                filterReports();
-            }
-        });
+        searchInput.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => { filterReports(); }, 400); });
+        searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { clearTimeout(searchTimeout); filterReports(); } });
     }
-    
     await loadAllReportsToCache();
-    
-    if (allReportsCache && allReportsCache.length > 0) {
-        filteredReportsCache = [...allReportsCache];
-        totalFilteredCount = filteredReportsCache.length;
-        currentPage = 1;
-        displayCurrentPage();
-    }
-    
+    if (allReportsCache && allReportsCache.length > 0) { filteredReportsCache = [...allReportsCache]; totalFilteredCount = filteredReportsCache.length; currentPage = 1; displayCurrentPage(); }
     await updateUnreadBadge();
     startNotificationPolling();
-    
     const urlParams = new URLSearchParams(window.location.search);
     const reportIdToView = urlParams.get('view');
     const reportTypeToView = urlParams.get('type');
-    
-    if (reportIdToView && reportTypeToView && reportIdToView !== 'null' && reportTypeToView !== 'null') {
-        setTimeout(() => {
-            openReportFromNotification(reportIdToView, reportTypeToView);
-        }, 500);
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-    
-    document.addEventListener('click', function (event) {
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('toggleSidebarBtn');
-        if (window.innerWidth <= 992 && sidebar.classList.contains('open')) {
-            if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
-                closeSidebar();
-            }
-        }
-    });
-    
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 992) {
-            closeSidebar();
-        }
-    });
+    if (reportIdToView && reportTypeToView && reportIdToView !== 'null' && reportTypeToView !== 'null') { setTimeout(() => { openReportFromNotification(reportIdToView, reportTypeToView); }, 500); window.history.replaceState({}, document.title, window.location.pathname); }
+    document.addEventListener('click', function (event) { const sidebar = document.getElementById('sidebar'); const toggleBtn = document.getElementById('toggleSidebarBtn'); if (window.innerWidth <= 992 && sidebar.classList.contains('open')) { if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) closeSidebar(); } });
+    window.addEventListener('resize', function() { if (window.innerWidth > 992) closeSidebar(); });
 });
 </script>
-
 </body>
 </html>
