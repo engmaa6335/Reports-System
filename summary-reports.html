@@ -126,7 +126,6 @@
         }
         .modal-large { max-width: 1300px; width: 95%; }
         
-        /* أنماط مودال التنبيه */
         .alert-modal-content { max-width: 550px; text-align: center; }
         .alert-icon { width: 80px; height: 80px; background: linear-gradient(135deg, #eef2ff, #e0e8f5); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
         .alert-icon i { font-size: 2.5rem; color: #1e3c72; }
@@ -135,9 +134,8 @@
         .alert-message { color: #4e6580; font-size: 0.95rem; line-height: 1.7; margin-bottom: 1rem; text-align: center; }
         .alert-steps { background: #f8fafd; border-radius: 16px; padding: 1rem; margin: 1rem 0; text-align: right; }
         .alert-steps p { color: #1e3c72; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9rem; }
-        .alert-steps ol { margin: 0; padding-right: 1.5rem; color: #4e6580; font-size: 0.85rem; line-height: 1.8; }
+        .alert-steps ul { margin: 0.5rem 0 0 1.5rem; color: #4e6580; font-size: 0.85rem; line-height: 1.8; }
         .alert-steps li { margin-bottom: 0.5rem; }
-        .alert-steps li i { margin-left: 0.5rem; color: #2e9b54; }
         .green-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: #eef9f0; color: #2e9b54; padding: 0.3rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 500; }
         .alert-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; }
         .alert-buttons button { flex: 1; padding: 0.85rem; border-radius: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
@@ -331,6 +329,7 @@
         .notification-list-item .delete-notification {
             position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
             background: none; border: none; color: #e34f76; cursor: pointer; opacity: 0;
+            transition: opacity 0.2s;
         }
         .notification-list-item:hover .delete-notification { opacity: 1; }
         .panel-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: none; }
@@ -426,15 +425,12 @@
 </head>
 <body>
 
-<!-- زر فتح القائمة للجوال -->
 <button class="toggle-sidebar" id="toggleSidebarBtn" onclick="toggleSidebar()">
     <i class="fas fa-bars"></i>
 </button>
 
-<!-- تغطية الخلفية عند فتح القائمة -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-<!-- القائمة الجانبية -->
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
@@ -455,8 +451,9 @@
         <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
         <a href="summary-reports.html" class="active"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
         <a href="analytics.html" id="navAnalytics" style="display: none;"><i class="fas fa-chart-bar"></i> التحليلات</a>
-        <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
+        
         <div id="adminLinks" style="display: none;">
+            <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
             <a href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
             <a href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
         </div>
@@ -665,7 +662,7 @@
     </div>
 </div>
 
-<!-- مودال التنبيه العام (مثل reports.html) -->
+<!-- ===================== مودال التنبيه العام (المعدل) ===================== -->
 <div id="sendEmailAlertModal" class="modal">
     <div class="modal-content alert-modal-content">
         <div class="modal-header">
@@ -673,27 +670,21 @@
             <button class="modal-close" onclick="closeSendEmailAlertModal()"><i class="fas fa-times"></i></button>
         </div>
         <div style="padding: 1.5rem;">
-            <div class="alert-icon info">
-                <i class="fas fa-envelope-open-text"></i>
-            </div>
+            <div class="alert-icon info"><i class="fas fa-check-circle"></i></div>
             <div class="alert-title" id="alertTitle">✅ تم حفظ التقرير بنجاح</div>
-            <div class="alert-message" id="alertMessage">
-                لا تنسى إرسال التقرير بالبريد الإلكتروني إلى الأشخاص المعنيين.
-            </div>
+            <div class="alert-message" id="alertMessage">تم حفظ التقرير في النظام بنجاح.</div>
             
+            <!-- ملاحظات هامة جديدة -->
             <div class="alert-steps">
-                <p><i class="fas fa-lightbulb"></i> خطوات إرسال التقرير:</p>
-                <ol>
-                    <li><i class="fas fa-eye"></i> اضغط على زر <strong>"المعاينة" (👁️)</strong> بجانب التقرير في الجدول</li>
-                    <li><i class="fas fa-envelope green-badge"><span style="margin-right:0.5rem;">زر أخضر</span></i> داخل نافذة المعاينة، اضغط على زر <strong class="green-badge" style="background:#2e9b54;color:white;padding:0.2rem 0.6rem;">إرسال التقرير بالبريد الإلكتروني</strong></li>
-                    <li><i class="fas fa-paper-plane"></i> سيتم فتح نافذة Outlook مع تعبئة بيانات المستلمين تلقائياً</li>
-                    <li><i class="fas fa-paperclip"></i> قم بتحميل ملف PDF للتقرير وإرفاقه بالبريد</li>
-                </ol>
+                <p><i class="fas fa-lightbulb"></i> ملاحظات هامة:</p>
+                <ul style="margin: 0.5rem 0 0 1.5rem;">
+                    <li><i class="fas fa-user-graduate"></i> يمكن لمدير المدرسة ومدير المنطقة الإطلاع على التقرير من خلال الدخول لحساباتهم على النظام</li>
+                    <li><i class="fas fa-envelope"></i> من أجل التوثيق / يرجى إرسال التقرير النصف شهري على البريد</li>
+                </ul>
             </div>
-            
-            <div class="alert-buttons">
-                <button onclick="closeSendEmailAlertModal()" class="btn-got-it"><i class="fas fa-check"></i> حسناً</button>
-            </div>
+
+            <div class="alert-recipient" id="alertRecipient" style="display: none;"><strong><i class="fas fa-envelope"></i> سيتم الإرسال إلى:</strong><p id="recipientEmail"></p></div>
+            <div class="alert-buttons"><button onclick="closeSendEmailAlertModal()" class="btn-got-it"><i class="fas fa-check"></i> حسناً</button></div>
         </div>
     </div>
 </div>
@@ -706,7 +697,7 @@
             <h3>تأكيد الحذف</h3>
             <p>هل أنت متأكد من حذف هذا التقرير؟</p>
         </div>
-        <div style="display:flex;gap:1rem;margin-top:1.5rem;"><button onclick="confirmDelete()" class="btn-danger" style="flex:1;">حذف</button><button onclick="closeDeleteModal()" class="btn-secondary" style="flex:1;">إلغاء</button></div>
+        <div style="display:flex;gap:1rem;margin-top:1.5rem;"><button onclick="confirmDelete()" class="btn-danger" style="flex:1; background: linear-gradient(135deg, #e34f76, #c73e5c); color: white; border: none; padding: 0.75rem; border-radius: 12px; cursor: pointer;">حذف</button><button onclick="closeDeleteModal()" class="btn-secondary" style="flex:1;">إلغاء</button></div>
     </div>
 </div>
 
@@ -1185,53 +1176,160 @@ async function loadVisitsData() {
     let periodTo = null;
     if (periodFromPicker && periodFromPicker.selectedDates && periodFromPicker.selectedDates[0]) { periodFrom = formatDateToYMD(periodFromPicker.selectedDates[0]); }
     if (periodToPicker && periodToPicker.selectedDates && periodToPicker.selectedDates[0]) { periodTo = formatDateToYMD(periodToPicker.selectedDates[0]); }
+    
     if (!reportType || !specialistId || !districtId || !periodFrom || !periodTo) {
         document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #4e6580;"><i class="fas fa-info-circle"></i> الرجاء تحديد نوع التقرير والمختص والمنطقة والفترة الزمنية<\/td><\/tr>';
         document.getElementById('totalVisits').value = '';
         currentVisitsData = [];
         return;
     }
+    
     if (isLoadingVisits) return;
     isLoadingVisits = true;
     document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><div class="loader-small"></div> جاري تحميل الزيارات...<\/td><\/tr>';
+    
     try {
-        const { data: schoolsInDistrict, error: schoolsError } = await window.supabaseClient.from('schools').select('id, name').eq('district_id', districtId);
-        if (schoolsError) throw schoolsError;
-        const schoolIds = schoolsInDistrict?.map(s => s.id) || [];
-        const schoolsMapTemp = {};
-        schoolsInDistrict?.forEach(s => { schoolsMapTemp[s.id] = s.name; });
-        if (schoolIds.length === 0) {
-            document.getElementById('visitsTableBody').innerHTML = '<table><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-school"></i> لا توجد مدارس في هذه المنطقة<\/td><\/tr>';
-            document.getElementById('totalVisits').value = 0;
-            currentVisitsData = [];
-            isLoadingVisits = false;
-            return;
-        }
+        let visits = [];
         const tableName = reportType === 'in_person' ? 'in_person_reports' : 'remote_reports';
         const toDateObj = new Date(periodTo);
         const nextDayDate = new Date(toDateObj);
         nextDayDate.setDate(toDateObj.getDate() + 1);
         const nextDay = formatDateToYMD(nextDayDate);
-        const { data, error } = await window.supabaseClient.from(tableName).select('*').eq('specialist_id', specialistId).in('school_id', schoolIds).gte('visit_date', periodFrom).lt('visit_date', nextDay).order('visit_date', { ascending: true });
-        if (error) throw error;
-        const visits = (data || []).map(visit => ({ ...visit, school_name: schoolsMapTemp[visit.school_id] || 'مدرسة غير محددة' }));
-        currentVisitsData = visits;
-        document.getElementById('totalVisits').value = visits.length;
-        if (visits.length === 0) {
-            document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-calendar-times"></i> لا توجد زيارات في هذه الفترة<\/td><\/tr>';
-        } else {
-            let html = '';
-            visits.forEach((visit, index) => {
-                const creativeField = reportType === 'in_person' ? (visit.positive_aspects || '') : (visit.creative_ideas || '');
-                const recommendations = visit.recommendations || '';
-                const schoolName = visit.school_name || 'غير محدد';
-                html += `<tr><td style="padding: 8px;">${index + 1}</td><td style="padding: 8px;">${visit.visit_date || ''}</td><td style="padding: 8px;">${schoolName}</td><td style="padding: 8px;">${visit.class_name || ''}</td><td style="padding: 8px;">${visit.section || ''}</td><td style="padding: 8px;">${visit.subject || ''}</td><td style="padding: 8px;">${visit.teacher_name || ''}</td><td style="padding: 8px;">${creativeField}</td><td style="padding: 8px;">${recommendations}</td></tr>`;
+        
+        if (reportType === 'in_person') {
+            const { data: centersInDistrict, error: centersError } = await window.supabaseClient
+                .from('educational_centers')
+                .select('id, name_en, manager_name_ar')
+                .eq('district_id', districtId);
+            
+            if (centersError) throw centersError;
+            const centerIds = centersInDistrict?.map(c => c.id) || [];
+            const centersMap = {};
+            centersInDistrict?.forEach(center => { 
+                centersMap[center.id] = {
+                    name: center.name_en || 'Center not specified',
+                    manager: center.manager_name_ar || 'غير محدد'
+                };
             });
-            document.getElementById('visitsTableBody').innerHTML = html;
+            
+            if (centerIds.length === 0) {
+                document.getElementById('visitsTableBody').innerHTML = '<td><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-building"></i> لا توجد مراكز تعليمية في هذه المنطقة<\/td><\/tr>';
+                document.getElementById('totalVisits').value = 0;
+                currentVisitsData = [];
+                isLoadingVisits = false;
+                return;
+            }
+            
+            const { data, error } = await window.supabaseClient
+                .from(tableName)
+                .select('*')
+                .eq('specialist_id', specialistId)
+                .in('educational_center_id', centerIds)
+                .gte('visit_date', periodFrom)
+                .lt('visit_date', nextDay)
+                .order('visit_date', { ascending: true });
+            
+            if (error) throw error;
+            
+            visits = (data || []).map(visit => ({
+                ...visit,
+                school_name: centersMap[visit.educational_center_id]?.name || 'Center not specified',
+                center_manager: centersMap[visit.educational_center_id]?.manager || 'غير محدد'
+            }));
+            
+            document.getElementById('totalVisits').value = visits.length;
+            
+            if (visits.length === 0) {
+                document.getElementById('visitsTableBody').innerHTML = '<td><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-calendar-times"></i> لا توجد زيارات وجاهية في هذه الفترة<\/td><\/tr>';
+            } else {
+                let html = '';
+                visits.forEach((visit, index) => {
+                    const creativeField = visit.positive_aspects || '';
+                    const recommendations = visit.recommendations || '';
+                    const centerName = visit.school_name;
+                    const managerName = visit.center_manager;
+                    html += `<tr>
+                        <td style="padding: 8px;">${index + 1}</td>
+                        <td style="padding: 8px;">${visit.visit_date || ''}</td>
+                        <td style="padding: 8px;">${centerName}${managerName !== 'غير محدد' ? `<br><small style="color:#666;">مدير المركز: ${managerName}</small>` : ''}</td>
+                        <td style="padding: 8px;">${visit.class_name || ''}</td>
+                        <td style="padding: 8px;">${visit.section || ''}</td>
+                        <td style="padding: 8px;">${visit.subject || ''}</td>
+                        <td style="padding: 8px;">${visit.teacher_name || ''}</td>
+                        <td style="padding: 8px;">${creativeField}</td>
+                        <td style="padding: 8px;">${recommendations}</td>
+                    </tr>`;
+                });
+                document.getElementById('visitsTableBody').innerHTML = html;
+            }
+            
+        } 
+        else if (reportType === 'remote') {
+            const { data: schoolsInDistrict, error: schoolsError } = await window.supabaseClient
+                .from('schools')
+                .select('id, name')
+                .eq('district_id', districtId);
+            
+            if (schoolsError) throw schoolsError;
+            const schoolIds = schoolsInDistrict?.map(s => s.id) || [];
+            const schoolsMapTemp = {};
+            schoolsInDistrict?.forEach(s => { schoolsMapTemp[s.id] = s.name; });
+            
+            if (schoolIds.length === 0) {
+                document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-school"></i> لا توجد مدارس في هذه المنطقة<\/td><\/tr>';
+                document.getElementById('totalVisits').value = 0;
+                currentVisitsData = [];
+                isLoadingVisits = false;
+                return;
+            }
+            
+            const { data, error } = await window.supabaseClient
+                .from(tableName)
+                .select('*')
+                .eq('specialist_id', specialistId)
+                .in('school_id', schoolIds)
+                .gte('visit_date', periodFrom)
+                .lt('visit_date', nextDay)
+                .order('visit_date', { ascending: true });
+            
+            if (error) throw error;
+            
+            visits = (data || []).map(visit => ({
+                ...visit,
+                school_name: schoolsMapTemp[visit.school_id] || 'مدرسة غير محددة'
+            }));
+            
+            document.getElementById('totalVisits').value = visits.length;
+            
+            if (visits.length === 0) {
+                document.getElementById('visitsTableBody').innerHTML = '<td><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-calendar-times"></i> لا توجد زيارات عن بعد في هذه الفترة<\/td><\/tr>';
+            } else {
+                let html = '';
+                visits.forEach((visit, index) => {
+                    const creativeField = visit.creative_ideas || '';
+                    const recommendations = visit.recommendations || '';
+                    const schoolName = visit.school_name;
+                    html += `<tr>
+                        <td style="padding: 8px;">${index + 1}</td>
+                        <td style="padding: 8px;">${visit.visit_date || ''}</td>
+                        <td style="padding: 8px;">${schoolName}</td>
+                        <td style="padding: 8px;">${visit.class_name || ''}</td>
+                        <td style="padding: 8px;">${visit.section || ''}</td>
+                        <td style="padding: 8px;">${visit.subject || ''}</td>
+                        <td style="padding: 8px;">${visit.teacher_name || ''}</td>
+                        <td style="padding: 8px;">${creativeField}</td>
+                        <td style="padding: 8px;">${recommendations}</td>
+                    </tr>`;
+                });
+                document.getElementById('visitsTableBody').innerHTML = html;
+            }
         }
+        
+        currentVisitsData = visits;
+        
     } catch (error) {
         console.error('Error loading visits:', error);
-        document.getElementById('visitsTableBody').innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #e34f76;"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل الزيارات: ${error.message}<\/td><\/tr>`;
+        document.getElementById('visitsTableBody').innerHTML = `<td><td colspan="9" style="text-align: center; padding: 2rem; color: #e34f76;"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل الزيارات: ${error.message}<\/td><\/tr>`;
         currentVisitsData = [];
     } finally {
         isLoadingVisits = false;
@@ -1306,7 +1404,7 @@ async function viewReport(id) {
             visitsHtml += `<tr>
                 <td style="padding:10px; border:1px solid #dee2e6;">${i+1}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${visitDate}</td>
-                <td style="padding:10px; border:1px solid #dee2e6;">${schoolName}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${schoolName}${v.center_manager ? `<br><small style="color:#666;">مدير المركز: ${v.center_manager}</small>` : ''}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${className}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${v.section || ''}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${v.subject || ''}</td>
@@ -1316,7 +1414,7 @@ async function viewReport(id) {
               </tr>`;
         });
     } else {
-        visitsHtml = '<tr><td colspan="9" style="padding:30px;text-align:center;">لا توجد زيارات</td></tr>';
+        visitsHtml = '<tr><td colspan="9" style="padding:30px;text-align:center;">لا توجد زيارات</td><\/tr>';
     }
     
     let activitiesHtml = '';
@@ -1331,7 +1429,7 @@ async function viewReport(id) {
               </tr>`;
         });
     } else {
-        activitiesHtml = '<tr><td colspan="5" style="padding:30px;text-align:center;">لا توجد أنشطة إشرافية</td></tr>';
+        activitiesHtml = '<tr><td colspan="5" style="padding:30px;text-align:center;">لا توجد أنشطة إشرافية</td><\/tr>';
     }
     
     const html = `
@@ -1413,14 +1511,14 @@ async function editReport(id) {
             visitsHtml += `<tr>
                 <td style="padding:8px">${i+1}</td>
                 <td style="padding:8px">${visitDate}</td>
-                <td style="padding:8px">${schoolName}</td>
+                <td style="padding:8px">${schoolName}${v.center_manager ? `<br><small>مدير المركز: ${v.center_manager}</small>` : ''}</td>
                 <td style="padding:8px">${className}</td>
                 <td style="padding:8px">${v.section || ''}</td>
                 <td style="padding:8px">${v.subject || ''}</td>
                 <td style="padding:8px">${teacherName}</td>
                 <td style="padding:8px">${creativeField}</td>
                 <td style="padding:8px">${v.recommendations || ''}</td>
-              </tr>`;
+              </table>`;
         });
         document.getElementById('visitsTableBody').innerHTML = visitsHtml;
         document.getElementById('totalVisits').value = visits.length;
@@ -1506,7 +1604,12 @@ document.getElementById('summaryReportForm').addEventListener('submit', async (e
         if(isEdit) { result = await window.supabaseClient.from('summary_reports').update(reportData).eq('id', reportId); }
         else { result = await window.supabaseClient.from('summary_reports').insert([reportData]).select(); if(result.data && result.data[0]) newReportId = result.data[0].id; }
         if(result.error) throw result.error;
-        if(newReportId && currentUser) { await window.sendSummaryReportNotifications?.(reportData, newReportId, currentUser.name, isEdit ? 'update' : 'create'); }
+        
+        if(newReportId && currentUser) { 
+            console.log('📢 إرسال إشعار:', { isEdit, actionType: isEdit ? 'update' : 'create', reportId: newReportId });
+            await window.sendSummaryReportNotifications?.(reportData, newReportId, currentUser.name, isEdit ? 'update' : 'create'); 
+        }
+        
         closeModal();
         await loadAllSummaryReportsToCache();
         filteredReportsCache = [...allReportsCache];
@@ -1515,7 +1618,6 @@ document.getElementById('summaryReportForm').addEventListener('submit', async (e
         displayCurrentPage();
         showMessage(isEdit ? 'تم تحديث التقرير بنجاح' : 'تم حفظ التقرير بنجاح', 'success');
         
-        // عرض مودال التنبيه عند إضافة تقرير جديد (وليس تعديل)
         if (!isEdit) {
             showAlertModal(reportData);
         }
@@ -1528,9 +1630,55 @@ function closeViewModal() { closeModalWithScroll('viewModal'); currentViewReport
 function closeDeleteModal() { closeModalWithScroll('deleteModal'); deleteReportData = null; }
 function openDeleteModal(id) { deleteReportData = id; openModalWithScroll('deleteModal'); }
 
+// ==================== حذف التقرير مع إشعاراته المرتبطة ====================
 async function confirmDelete() {
     if(!deleteReportData) return;
-    try { const { error } = await window.supabaseClient.from('summary_reports').delete().eq('id', deleteReportData); if(error) throw error; showMessage('تم حذف التقرير بنجاح','success'); closeDeleteModal(); await loadAllSummaryReportsToCache(); filteredReportsCache = [...allReportsCache]; totalFilteredCount = filteredReportsCache.length; currentPage = 1; displayCurrentPage(); } catch(error) { showMessage('حدث خطأ في حذف التقرير','error'); }
+    
+    const confirmBtn = document.querySelector('#deleteModal .btn-danger');
+    const originalText = confirmBtn?.innerHTML || 'حذف';
+    if(confirmBtn) {
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحذف...';
+        confirmBtn.disabled = true;
+    }
+    
+    try {
+        const { error: notifError } = await window.supabaseClient
+            .from('notifications')
+            .delete()
+            .eq('related_report_id', deleteReportData)
+            .eq('related_report_type', 'summary');
+        
+        if (notifError) {
+            console.warn('⚠️ تحذير أثناء حذف الإشعارات:', notifError.message);
+        } else {
+            console.log(`✅ تم حذف الإشعارات المرتبطة بالتقرير ${deleteReportData}`);
+        }
+        
+        const { error } = await window.supabaseClient
+            .from('summary_reports')
+            .delete()
+            .eq('id', deleteReportData);
+        
+        if (error) throw error;
+        
+        showMessage('تم حذف التقرير وجميع إشعاراته بنجاح', 'success');
+        closeDeleteModal();
+        await loadAllSummaryReportsToCache();
+        filteredReportsCache = [...allReportsCache];
+        totalFilteredCount = filteredReportsCache.length;
+        currentPage = 1;
+        displayCurrentPage();
+        await updateUnreadBadge();
+        
+    } catch(error) { 
+        console.error('خطأ في الحذف:', error);
+        showMessage('حدث خطأ في حذف التقرير: ' + error.message, 'error');
+    } finally {
+        if(confirmBtn) {
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        }
+    }
 }
 
 // ==================== البريد الإلكتروني ====================
@@ -1549,10 +1697,10 @@ function generateSummaryReportHTML() {
     let visitsHtml = '';
     if (visits.length > 0) {
         visits.forEach((v, i) => {
-            visitsHtml += `<table>
+            visitsHtml += `<tr>
                 <td style="border:1px solid #000;padding:8px;">${i+1}</td>
                 <td style="border:1px solid #000;padding:8px;">${v.visit_date || v.date || ''}</td>
-                <td style="border:1px solid #000;padding:8px;">${v.school_name || v.school || ''}</td>
+                <td style="border:1px solid #000;padding:8px;">${v.school_name || v.school || ''}${v.center_manager ? `<br><small>مدير المركز: ${v.center_manager}</small>` : ''}</td>
                 <td style="border:1px solid #000;padding:8px;">${v.class_name || v.class || ''}</td>
                 <td style="border:1px solid #000;padding:8px;">${v.section || ''}</td>
                 <td style="border:1px solid #000;padding:8px;">${v.subject || ''}</td>
@@ -1562,7 +1710,7 @@ function generateSummaryReportHTML() {
             </tr>`;
         });
     } else {
-        visitsHtml = '<tr><td colspan="9" style="text-align:center;padding:30px;">لا توجد زيارات</td></tr>';
+        visitsHtml = '<tr><td colspan="9" style="text-align:center;padding:30px;">لا توجد زيارات<\/tr>';
     }
     
     let activitiesHtml = '';
@@ -1577,7 +1725,7 @@ function generateSummaryReportHTML() {
             </tr>`;
         });
     } else {
-        activitiesHtml = '<tr><td colspan="5" style="text-align:center;padding:30px;">لا توجد أنشطة إشرافية</td></tr>';
+        activitiesHtml = '<tr><td colspan="5" style="text-align:center;padding:30px;">لا توجد أنشطة إشرافية<\/tr>';
     }
     
     const userName = currentUser?.name || 'مستخدم';
@@ -1735,7 +1883,7 @@ function executeOpenOutlook() {
     const recipients = [...new Set([...toList, ...ccList])].join(',');
     const subject = (document.getElementById('emailSubject').value || '').trim();
     const body = (document.getElementById('emailBody').value || '').trim();
-    const url = 'https://outlook.cloud.microsoft/mail/0/deeplink/compose?' + 
+    const url = 'https://outlook.cloud.microsoft.com/mail/0/deeplink/compose?' + 
         'to=' + encodeURIComponent(recipients) + 
         '&subject=' + encodeURIComponent(subject) + 
         '&body=' + encodeURIComponent(body);
@@ -1757,11 +1905,69 @@ function exportToExcel() {
 
 // ==================== الإشعارات ====================
 async function updateUnreadBadge() {
-    try { const result = await window.getUnreadNotificationsCount(currentUser?.id); if(result && result.success) { const badge = document.getElementById('unreadBadge'); if(badge) { if(result.count > 0) { badge.textContent = result.count > 99 ? '99+' : result.count; badge.style.display = 'flex'; } else { badge.style.display = 'none'; } } } } catch(e) { console.error(e); } }
+    try { 
+        const result = await window.getUnreadNotificationsCount(currentUser?.id); 
+        if(result && result.success) { 
+            const badge = document.getElementById('unreadBadge'); 
+            if(badge) { 
+                if(result.count > 0) { 
+                    badge.textContent = result.count > 99 ? '99+' : result.count; 
+                    badge.style.display = 'flex'; 
+                } else { 
+                    badge.style.display = 'none'; 
+                } 
+            } 
+        } 
+    } catch(e) { console.error(e); } 
+}
 
-async function toggleNotificationsPanel() { const panel = document.getElementById('notificationsPanel'); const overlay = document.getElementById('panelOverlay'); if(panel.classList.contains('open')) { closeNotificationsPanel(); } else { await loadNotifications(); panel.classList.add('open'); overlay.classList.add('open'); } }
+async function toggleNotificationsPanel() { 
+    const panel = document.getElementById('notificationsPanel'); 
+    const overlay = document.getElementById('panelOverlay'); 
+    if(panel.classList.contains('open')) { 
+        closeNotificationsPanel(); 
+    } else { 
+        await loadNotifications(); 
+        panel.classList.add('open'); 
+        overlay.classList.add('open'); 
+    } 
+}
 
-function closeNotificationsPanel() { document.getElementById('notificationsPanel').classList.remove('open'); document.getElementById('panelOverlay').classList.remove('open'); }
+function closeNotificationsPanel() { 
+    document.getElementById('notificationsPanel').classList.remove('open'); 
+    document.getElementById('panelOverlay').classList.remove('open'); 
+}
+
+async function deleteNotification(notificationId, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    
+    const notificationElement = event?.target?.closest('.notification-list-item');
+    if (notificationElement) {
+        notificationElement.style.opacity = '0.5';
+        notificationElement.style.transition = 'opacity 0.2s';
+    }
+    
+    try {
+        const result = await window.deleteNotification(notificationId);
+        
+        if (result && result.success) {
+            await loadNotifications();
+            await updateUnreadBadge();
+            showMessage('تم حذف الإشعار بنجاح', 'success');
+        } else {
+            throw new Error(result?.error || 'فشل حذف الإشعار');
+        }
+    } catch(e) { 
+        console.error('Error deleting notification:', e);
+        showMessage('حدث خطأ في حذف الإشعار: ' + (e.message || 'غير معروف'), 'error');
+        if (notificationElement) {
+            notificationElement.style.opacity = '1';
+        }
+    }
+}
 
 async function loadNotifications() {
     const list = document.getElementById('notificationsList');
@@ -1770,30 +1976,83 @@ async function loadNotifications() {
         const result = await window.getRecentNotifications(currentUser?.id, 50);
         if(result && result.success) {
             const notifications = result.data;
-            if(!notifications || notifications.length === 0) { list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>'; }
-            else {
-                list.innerHTML = notifications.map(n => `<div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationClick(${n.id}, '${n.related_report_type || ''}', ${n.related_report_id || 'null'})"><div class="title">${escapeHtml(n.title)}</div><div class="message">${escapeHtml(n.message)}</div><div class="time">${formatTime(n.created_at)}</div><button class="delete-notification" onclick="event.stopPropagation(); deleteNotification(${n.id})"><i class="fas fa-trash"></i></button></div>`).join('');
+            if(!notifications || notifications.length === 0) { 
+                list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>'; 
+            } else {
+                list.innerHTML = notifications.map(n => `<div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationClick(${n.id}, '${n.related_report_type || ''}', ${n.related_report_id || 'null'})"><div class="title">${escapeHtml(n.title)}</div><div class="message">${escapeHtml(n.message)}</div><div class="time">${formatTime(n.created_at)}</div><button class="delete-notification" onclick="event.stopPropagation(); deleteNotification(${n.id}, event)"><i class="fas fa-trash"></i></button></div>`).join('');
                 const markAllBtn = document.getElementById('markAllReadBtn');
                 if(markAllBtn) markAllBtn.style.display = notifications.some(n => !n.is_read) ? 'flex' : 'none';
             }
             await updateUnreadBadge();
-        } else { list.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>'; }
-    } catch(e) { console.error(e); list.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ</p></div>'; }
+        } else { 
+            list.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>'; 
+        }
+    } catch(e) { 
+        console.error(e); 
+        list.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ</p></div>'; 
+    }
 }
 
 async function handleNotificationClick(notificationId, reportType, reportId) {
-    try { await window.markNotificationAsRead(notificationId); await updateUnreadBadge(); closeNotificationsPanel(); if(reportId && reportId !== 'null' && reportId !== null) { await viewReport(reportId); } else { showMessage('تم تحديث الإشعار', 'success'); } } catch(e) { console.error(e); showMessage('حدث خطأ في فتح الإشعار','error'); } }
+    try { 
+        await window.markNotificationAsRead(notificationId); 
+        await updateUnreadBadge(); 
+        closeNotificationsPanel(); 
+        if(reportId && reportId !== 'null' && reportId !== null) { 
+            await viewReport(reportId); 
+        } else { 
+            showMessage('تم تحديث الإشعار', 'success'); 
+        } 
+    } catch(e) { 
+        console.error(e); 
+        showMessage('حدث خطأ في فتح الإشعار','error'); 
+    } 
+}
 
-async function deleteNotification(notificationId) { try { await window.deleteNotification(notificationId); await loadNotifications(); await updateUnreadBadge(); } catch(e) { showMessage('حدث خطأ في حذف الإشعار','error'); } }
+async function markAllAsRead() { 
+    try { 
+        await window.markAllNotificationsAsRead(currentUser?.id); 
+        await loadNotifications(); 
+        await updateUnreadBadge(); 
+        showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success'); 
+    } catch(e) { 
+        showMessage('حدث خطأ', 'error'); 
+    } 
+}
 
-async function markAllAsRead() { try { await window.markAllNotificationsAsRead(currentUser?.id); await loadNotifications(); await updateUnreadBadge(); showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success'); } catch(e) { showMessage('حدث خطأ', 'error'); } }
-
-function formatTime(dateString) { const date = new Date(dateString); const diffMins = Math.floor((new Date() - date) / 60000); if(diffMins < 1) return 'الآن'; if(diffMins < 60) return `منذ ${diffMins} دقيقة`; if(diffMins < 1440) return `منذ ${Math.floor(diffMins / 60)} ساعة`; return `منذ ${Math.floor(diffMins / 1440)} يوم`; }
+function formatTime(dateString) { 
+    const date = new Date(dateString); 
+    const diffMins = Math.floor((new Date() - date) / 60000); 
+    if(diffMins < 1) return 'الآن'; 
+    if(diffMins < 60) return `منذ ${diffMins} دقيقة`; 
+    if(diffMins < 1440) return `منذ ${Math.floor(diffMins / 60)} ساعة`; 
+    return `منذ ${Math.floor(diffMins / 1440)} يوم`; 
+}
 
 let notificationInterval = null;
-function startNotificationPolling() { if(notificationInterval) clearInterval(notificationInterval); notificationInterval = setInterval(async () => { if(currentUser && document.hasFocus()) { const r = await window.getUnreadNotificationsCount(currentUser.id); if(r && r.success && r.count > 0) updateUnreadBadge(); } }, 30000); }
-function stopNotificationPolling() { if(notificationInterval) { clearInterval(notificationInterval); notificationInterval = null; } }
-async function logout() { stopNotificationPolling(); localStorage.removeItem('currentUser'); try { await window.supabaseClient.auth.signOut(); } catch(e) {} window.location.href = 'login.html'; }
+function startNotificationPolling() { 
+    if(notificationInterval) clearInterval(notificationInterval); 
+    notificationInterval = setInterval(async () => { 
+        if(currentUser && document.hasFocus()) { 
+            const r = await window.getUnreadNotificationsCount(currentUser.id); 
+            if(r && r.success && r.count > 0) updateUnreadBadge(); 
+        } 
+    }, 30000); 
+}
+function stopNotificationPolling() { 
+    if(notificationInterval) { 
+        clearInterval(notificationInterval); 
+        notificationInterval = null; 
+    } 
+}
+async function logout() { 
+    stopNotificationPolling(); 
+    localStorage.removeItem('currentUser'); 
+    try { 
+        await window.supabaseClient.auth.signOut(); 
+    } catch(e) {} 
+    window.location.href = 'login.html'; 
+}
 
 // ==================== التهيئة ====================
 window.addEventListener('load', async () => {
@@ -1840,7 +2099,6 @@ window.addEventListener('load', async () => {
     const reportIdToView = urlParams.get('view');
     if(reportIdToView) { setTimeout(() => viewReport(reportIdToView), 500); window.history.replaceState({}, document.title, window.location.pathname); }
     
-    // إغلاق القائمة عند النقر خارجها
     document.addEventListener('click', function(event) {
         const sidebar = document.getElementById('sidebar');
         const toggleBtn = document.getElementById('toggleSidebarBtn');
