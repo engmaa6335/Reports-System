@@ -1883,7 +1883,7 @@ function executeOpenOutlook() {
     const recipients = [...new Set([...toList, ...ccList])].join(',');
     const subject = (document.getElementById('emailSubject').value || '').trim();
     const body = (document.getElementById('emailBody').value || '').trim();
-    const url = 'https://outlook.cloud.microsoft.com/mail/0/deeplink/compose?' + 
+    const url = 'https://outlook.cloud.microsoft/mail/0/deeplink/compose?' + 
         'to=' + encodeURIComponent(recipients) + 
         '&subject=' + encodeURIComponent(subject) + 
         '&body=' + encodeURIComponent(body);
