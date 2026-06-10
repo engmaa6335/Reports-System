@@ -94,6 +94,7 @@ async function createNotification(userId, title, message, type = 'info', reportI
             .select();
         
         if (error) throw error;
+        console.log(`✅ إشعار مرسل للمستخدم ${userId}: ${title}`);
         return { success: true, data: data?.[0] };
     } catch (error) {
         console.error('Error creating notification:', error);
@@ -101,6 +102,49 @@ async function createNotification(userId, title, message, type = 'info', reportI
     }
 }
 
+// دالة sendCustomNotification (الأساسية للإشعارات)
+async function sendCustomNotification({ userId, email, title, message, related_report_type, related_report_id }) {
+    console.log('📢 sendCustomNotification called:', { userId, email, title, related_report_type, related_report_id });
+    
+    try {
+        let targetUserId = userId;
+        
+        if (!targetUserId && email) {
+            const { data: user, error: userError } = await window.supabaseClient
+                .from('users')
+                .select('id')
+                .eq('email', email)
+                .maybeSingle();
+            
+            if (userError) {
+                console.error('Error finding user by email:', userError);
+                return { success: false, error: userError.message };
+            }
+            
+            if (user) {
+                targetUserId = user.id;
+                console.log(`Found user by email: ${email} -> ID: ${targetUserId}`);
+            } else {
+                console.log(`No user found for email: ${email}`);
+                return { success: true, note: 'No user found for this email' };
+            }
+        }
+        
+        if (!targetUserId) {
+            console.error('No userId or valid email provided');
+            return { success: false, error: 'No valid recipient' };
+        }
+        
+        const result = await createNotification(targetUserId, title, message, 'info', related_report_id, related_report_type);
+        return result;
+        
+    } catch (error) {
+        console.error('Error in sendCustomNotification:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// ✅ دالة الإشعارات الرئيسية (مع دعم التعديل والإضافة)
 async function sendVisitReportNotifications(reportData, reportId, reportType, specialistName, actionType = 'create') {
     try {
         if (!window.supabaseClient) {
@@ -108,60 +152,132 @@ async function sendVisitReportNotifications(reportData, reportId, reportType, sp
             return { success: false };
         }
         
-        const { data: school, error: schoolError } = await window.supabaseClient
-            .from('schools')
-            .select('id, name, district_id')
-            .eq('id', reportData.school_id)
-            .single();
+        // ✅ تحديد نوع العملية بشكل صريح
+        const isEdit = (actionType === 'update' || actionType === 'edit');
         
-        if (schoolError) throw schoolError;
+        console.log(`📢 إرسال إشعار: actionType=${actionType} (isEdit=${isEdit}) - reportType=${reportType}`);
         
+        let entityName = '';
+        let entityDistrictId = null;
+        let entityManagerEmail = null;
+        let entityManagerName = '';
+        
+        // تحديد نوع التقرير وجلب البيانات
+        if (reportType === 'in_person') {
+            const centerId = reportData.educational_center_id;
+            if (!centerId) {
+                console.error('لا يوجد educational_center_id');
+                return { success: false, error: 'Missing educational_center_id' };
+            }
+            
+            const { data: center, error: centerError } = await window.supabaseClient
+                .from('educational_centers')
+                .select('id, name_ar, name_en, district_id, manager_name_ar, email')
+                .eq('id', centerId)
+                .single();
+            
+            if (centerError) throw centerError;
+            
+            entityName = center.name_ar || center.name_en || 'المركز';
+            entityDistrictId = center.district_id;
+            entityManagerEmail = center.email;
+            entityManagerName = center.manager_name_ar || 'مدير المركز';
+        } else {
+            const schoolId = reportData.school_id;
+            if (!schoolId) {
+                console.error('لا يوجد school_id');
+                return { success: false, error: 'Missing school_id' };
+            }
+            
+            const { data: school, error: schoolError } = await window.supabaseClient
+                .from('schools')
+                .select('id, name, district_id, schoolPrincipal, schoolPrincipalEmail')
+                .eq('id', schoolId)
+                .single();
+            
+            if (schoolError) throw schoolError;
+            
+            entityName = school.name;
+            entityDistrictId = school.district_id;
+            entityManagerEmail = school.schoolPrincipalEmail;
+            entityManagerName = school.schoolPrincipal || 'مدير المدرسة';
+        }
+        
+        const reportTypeName = reportType === 'in_person' ? 'وجاهي' : 'عن بعد';
+        
+        // ✅ بناء عنوان ورسالة مختلفين للتعديل والإضافة
+        let title, message;
+        if (isEdit) {
+            title = `✏️ تعديل تقرير ${reportTypeName}`;
+            message = `تم تعديل التقرير ${reportTypeName} في ${entityName} بواسطة ${specialistName}`;
+        } else {
+            title = `📄 إضافة تقرير ${reportTypeName}`;
+            message = `تم إضافة تقرير ${reportTypeName} في ${entityName} بواسطة ${specialistName}`;
+        }
+        
+        // إضافة تفاصيل إضافية
+        if (reportData.teacher_name) message += `\nالمعلم: ${reportData.teacher_name}`;
+        if (reportData.visit_date) {
+            const date = new Date(reportData.visit_date).toLocaleDateString('ar-SA');
+            message += `\nالتاريخ: ${date}`;
+        }
+        
+        console.log(`📢 عنوان الإشعار: ${title}`);
+        
+        // جلب المستخدمين المستهدفين
         const { data: users, error: usersError } = await window.supabaseClient
             .from('users')
-            .select('id, role, district_id, school_id')
-            .in('role', ['admin', 'support', 'manger', 'spuser']);
+            .select('id, role, district_id, school_id, email');
         
         if (usersError) throw usersError;
         
-        const reportTypeName = reportType === 'in_person' ? 'وجاهي' : 'عن بعد';
-
-        let title, message;
-
-        if (actionType === 'update') {
-            title = `✏️ تم تعديل تقرير ${reportTypeName}`;
-            message = `تم تعديل تقرير في مدرسة ${school.name} بواسطة ${specialistName}`;
-        } else {
-            title = `📄 تقرير ${reportTypeName} جديد`;
-            message = `تم إضافة تقرير في مدرسة ${school.name} بواسطة ${specialistName}`;
-        }
+        let sentCount = 0;
+        const notifiedUserIds = new Set();
         
         for (const user of users) {
             let shouldNotify = false;
-
+            
             if (user.role === 'admin' || user.role === 'support') {
                 shouldNotify = true;
-            } 
-            else if (user.role === 'manger' && user.district_id === school.district_id) {
+            }
+            else if (user.role === 'manger' && user.district_id === entityDistrictId) {
                 shouldNotify = true;
-            } 
-            else if (user.role === 'spuser' && user.school_id === reportData.school_id) {
+            }
+            else if (reportType === 'remote' && user.role === 'spuser' && user.school_id === reportData.school_id) {
                 shouldNotify = true;
             }
             
-            if (shouldNotify) {
-                await createNotification(
-                    user.id,
-                    title,
-                    message,
-                    'info',
-                    reportId,
-                    reportType
-                );
+            if (shouldNotify && !notifiedUserIds.has(user.id)) {
+                await createNotification(user.id, title, message, 'info', reportId, reportType);
+                notifiedUserIds.add(user.id);
+                sentCount++;
+                console.log(`✅ إشعار ${isEdit ? 'تعديل' : 'إضافة'} للمستخدم ${user.id} (${user.role})`);
             }
         }
         
-        return { success: true };
-
+        // إشعار لمدير المركز (للتقارير الوجاهية)
+        if (reportType === 'in_person' && entityManagerEmail) {
+            const { data: managerUser, error: managerError } = await window.supabaseClient
+                .from('users')
+                .select('id')
+                .eq('email', entityManagerEmail)
+                .maybeSingle();
+            
+            if (managerUser && !notifiedUserIds.has(managerUser.id)) {
+                const managerTitle = isEdit ? `✏️ تعديل تقرير في ${entityName}` : `📋 إضافة تقرير في ${entityName}`;
+                const managerMessage = isEdit 
+                    ? `تم تعديل تقرير وجاهي في مركزك (${entityName}) بواسطة ${specialistName}`
+                    : `تم إضافة تقرير وجاهي في مركزك (${entityName}) بواسطة ${specialistName}`;
+                await createNotification(managerUser.id, managerTitle, managerMessage, 'info', reportId, reportType);
+                notifiedUserIds.add(managerUser.id);
+                sentCount++;
+                console.log(`✅ إشعار ${isEdit ? 'تعديل' : 'إضافة'} لمدير المركز (${entityManagerName})`);
+            }
+        }
+        
+        console.log(`✅ تم إرسال ${sentCount} إشعار (${isEdit ? 'تعديل' : 'إضافة'}) للتقرير ${reportTypeName} (ID: ${reportId})`);
+        return { success: true, sentCount: sentCount };
+        
     } catch (error) {
         console.error('Error sending visit report notifications:', error);
         return { success: false, error: error.message };
@@ -174,6 +290,8 @@ async function sendSummaryReportNotifications(reportData, reportId, specialistNa
             console.error('supabaseClient not available');
             return { success: false, error: 'supabaseClient not available' };
         }
+        
+        const isUpdate = (actionType === 'update' || actionType === 'edit');
         
         const { data: district, error: districtError } = await window.supabaseClient
             .from('districts')
@@ -193,14 +311,15 @@ async function sendSummaryReportNotifications(reportData, reportId, specialistNa
         const reportTypeName = reportData.report_type === 'in_person' ? 'وجاهي' : 'عن بعد';
         
         let title, message;
-        
-        if (actionType === 'update') {
-            title = `✏️ تم تعديل تقرير تجميعي (${reportTypeName})`;
-            message = `تم تعديل التقرير التجميعي لمنطقة ${district.name} بواسطة ${specialistName}`;
+        if (isUpdate) {
+            title = `✏️ تحديث تقرير تجميعي (${reportTypeName})`;
+            message = `تم تحديث التقرير التجميعي لمنطقة ${district.name} بواسطة ${specialistName}`;
         } else {
-            title = `📊 تقرير تجميعي جديد (${reportTypeName})`;
-            message = `تم إضافة تقرير تجميعي جديد لمنطقة ${district.name} بواسطة ${specialistName}`;
+            title = `📊 إضافة تقرير تجميعي (${reportTypeName})`;
+            message = `تم إضافة تقرير تجميعي لمنطقة ${district.name} بواسطة ${specialistName}`;
         }
+        
+        let sentCount = 0;
         
         for (const user of users) {
             let shouldNotify = false;
@@ -221,10 +340,11 @@ async function sendSummaryReportNotifications(reportData, reportId, specialistNa
                     reportId, 
                     'summary'
                 );
+                sentCount++;
             }
         }
         
-        console.log(`Summary report notification sent for ${actionType} action`);
+        console.log(`✅ تم إرسال ${sentCount} إشعار ${isUpdate ? 'تحديث' : 'إضافة'} للتقرير التجميعي`);
         return { success: true };
         
     } catch (error) {
@@ -344,50 +464,57 @@ async function deleteNotification(notificationId) {
     }
 }
 
-// ==================== دالة موحدة لفتح الإشعارات من أي صفحة ====================
+// ==================== دالة موحدة لفتح الإشعارات من أي صفحة (محسنة) ====================
 
 async function handleNotificationClick(notificationId) {
     try {
-        if (!window.supabaseClient) {
-            console.error('supabaseClient not available');
-            return { success: false, error: 'supabaseClient not available' };
-        }
+        console.log(`🔔 النقر على الإشعار: ${notificationId}`);
         
+        // جلب بيانات الإشعار
         const { data: notification, error } = await window.supabaseClient
             .from('notifications')
-            .select('related_report_id, related_report_type, title, message')
+            .select('related_report_id, related_report_type')
             .eq('id', notificationId)
             .single();
         
         if (error) throw error;
         
+        // تحديث حالة الإشعار كمقروء
         await markNotificationAsRead(notificationId);
         
-        if (typeof updateUnreadBadge === 'function') {
-            try { await updateUnreadBadge(); } catch(e) {}
+        const reportId = notification?.related_report_id;
+        const reportType = notification?.related_report_type;
+        
+        if (reportId && reportType && reportId !== 'null') {
+            const timestamp = Date.now();
+            
+            // تخزين البيانات في localStorage و sessionStorage
+            localStorage.setItem('pendingReportId', reportId);
+            localStorage.setItem('pendingReportType', reportType);
+            localStorage.setItem('pendingReportTimestamp', timestamp.toString());
+            sessionStorage.setItem('pendingReportId', reportId);
+            sessionStorage.setItem('pendingReportType', reportType);
+            sessionStorage.setItem('pendingReportTimestamp', timestamp.toString());
+            
+            console.log(`📌 تم تخزين التقرير: ${reportType} - ${reportId}`);
+            
+            // تحديد الصفحة المستهدفة
+            let targetPage = '';
+            if (reportType === 'summary') {
+                targetPage = 'summary-reports.html';
+                window.location.href = `${targetPage}?view=${reportId}&t=${timestamp}`;
+            } else {
+                targetPage = 'reports.html';
+                window.location.href = `${targetPage}?view=${reportId}&type=${reportType}&t=${timestamp}`;
+            }
+        } else {
+            console.log('إشعار بدون تقرير');
         }
         
-        if (notification && notification.related_report_id && notification.related_report_type) {
-            const reportId = notification.related_report_id;
-            const reportType = notification.related_report_type;
-            
-            if (reportType === 'summary') {
-                window.location.href = `summary-reports.html?view=${reportId}`;
-            } else if (reportType === 'in_person' || reportType === 'remote') {
-                window.location.href = `reports.html?view=${reportId}&type=${reportType}`;
-            } else {
-                console.warn('Unknown report type:', reportType);
-                return { success: false, error: 'Unknown report type' };
-            }
-            
-            return { success: true, redirected: true };
-        } else {
-            console.log('Notification without related report');
-            return { success: true, redirected: false };
-        }
+        return { success: true };
         
     } catch (error) {
-        console.error('Error handling notification click:', error);
+        console.error('Error in handleNotificationClick:', error);
         return { success: false, error: error.message };
     }
 }
@@ -695,6 +822,177 @@ async function cleanupAllUsersNotifications() {
     }
 }
 
+// ==================== دوال إدارة التقارير ====================
+
+async function createReport(reportData, reportType) {
+    try {
+        if (!window.supabaseClient) {
+            return { success: false, error: 'supabaseClient not available' };
+        }
+        
+        const tableName = reportType === 'in_person' ? 'in_person_reports' : 'remote_reports';
+        
+        const { data, error } = await window.supabaseClient
+            .from(tableName)
+            .insert([reportData])
+            .select();
+        
+        if (error) throw error;
+        
+        return { success: true, data: data?.[0] };
+    } catch (error) {
+        console.error('Error creating report:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function updateReport(reportId, reportData, reportType) {
+    try {
+        if (!window.supabaseClient) {
+            return { success: false, error: 'supabaseClient not available' };
+        }
+        
+        const tableName = reportType === 'in_person' ? 'in_person_reports' : 'remote_reports';
+        
+        const { data, error } = await window.supabaseClient
+            .from(tableName)
+            .update(reportData)
+            .eq('id', reportId)
+            .select();
+        
+        if (error) throw error;
+        
+        return { success: true, data: data?.[0] };
+    } catch (error) {
+        console.error('Error updating report:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function deleteReport(reportId, reportType) {
+    try {
+        if (!window.supabaseClient) {
+            return { success: false, error: 'supabaseClient not available' };
+        }
+        
+        const tableName = reportType === 'in_person' ? 'in_person_reports' : 'remote_reports';
+        
+        const { error } = await window.supabaseClient
+            .from(tableName)
+            .delete()
+            .eq('id', reportId);
+        
+        if (error) throw error;
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting report:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function getReportById(reportId, reportType) {
+    try {
+        if (!window.supabaseClient) {
+            return { success: false, error: 'supabaseClient not available' };
+        }
+        
+        const tableName = reportType === 'in_person' ? 'in_person_reports' : 'remote_reports';
+        
+        const { data, error } = await window.supabaseClient
+            .from(tableName)
+            .select('*')
+            .eq('id', reportId)
+            .single();
+        
+        if (error) throw error;
+        
+        return { success: true, data: data };
+    } catch (error) {
+        console.error('Error getting report:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function getReportsByUser(userId, reportType, filters = {}) {
+    try {
+        if (!window.supabaseClient) {
+            return { success: false, error: 'supabaseClient not available', data: [] };
+        }
+        
+        const tableName = reportType === 'in_person' ? 'in_person_reports' : 'remote_reports';
+        
+        let query = window.supabaseClient
+            .from(tableName)
+            .select('*')
+            .eq('specialist_id', userId)
+            .order('visit_date', { ascending: false });
+        
+        if (filters.startDate) {
+            query = query.gte('visit_date', filters.startDate);
+        }
+        if (filters.endDate) {
+            query = query.lte('visit_date', filters.endDate);
+        }
+        if (filters.educational_center_id) {
+            query = query.eq('educational_center_id', filters.educational_center_id);
+        }
+        if (filters.school_id) {
+            query = query.eq('school_id', filters.school_id);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) throw error;
+        
+        return { success: true, data: data || [] };
+    } catch (error) {
+        console.error('Error getting user reports:', error);
+        return { success: false, error: error.message, data: [] };
+    }
+}
+
+async function getAllReports(reportType, filters = {}) {
+    try {
+        if (!window.supabaseClient) {
+            return { success: false, error: 'supabaseClient not available', data: [] };
+        }
+        
+        const tableName = reportType === 'in_person' ? 'in_person_reports' : 'remote_reports';
+        
+        let query = window.supabaseClient
+            .from(tableName)
+            .select('*')
+            .order('visit_date', { ascending: false });
+        
+        if (filters.district_id) {
+            if (reportType === 'in_person') {
+                query = query.eq('educational_centers.district_id', filters.district_id);
+            } else {
+                query = query.eq('schools.district_id', filters.district_id);
+            }
+        }
+        if (filters.startDate) {
+            query = query.gte('visit_date', filters.startDate);
+        }
+        if (filters.endDate) {
+            query = query.lte('visit_date', filters.endDate);
+        }
+        if (filters.specialist_id) {
+            query = query.eq('specialist_id', filters.specialist_id);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) throw error;
+        
+        return { success: true, data: data || [] };
+    } catch (error) {
+        console.error('Error getting all reports:', error);
+        return { success: false, error: error.message, data: [] };
+    }
+}
+
 // ==================== تصدير جميع الدوال ====================
 
 window.saveUserToStorage = saveUserToStorage;
@@ -710,7 +1008,9 @@ window.logout = logout;
 window.ROLES = ROLES;
 window.ROLE_NAMES = ROLE_NAMES;
 
+// دوال الإشعارات
 window.createNotification = createNotification;
+window.sendCustomNotification = sendCustomNotification;
 window.sendVisitReportNotifications = sendVisitReportNotifications;
 window.sendSummaryReportNotifications = sendSummaryReportNotifications;
 window.getUnreadNotificationsCount = getUnreadNotificationsCount;
@@ -720,12 +1020,23 @@ window.markAllNotificationsAsRead = markAllNotificationsAsRead;
 window.deleteNotification = deleteNotification;
 window.handleNotificationClick = handleNotificationClick;
 
+// دوال التنظيف
 window.deleteOldUserNotificationsAndReorder = deleteOldUserNotificationsAndReorder;
 window.reorderUserNotificationsSequential = reorderUserNotificationsSequential;
 window.initUserSessionCleanup = initUserSessionCleanup;
+window.cleanupAllUsersNotifications = cleanupAllUsersNotifications;
+
+// دوال الحفاظ على النشاط
 window.keepProjectAlive = keepProjectAlive;
 window.startAutoKeepAlive = startAutoKeepAlive;
 window.stopAutoKeepAlive = stopAutoKeepAlive;
-window.cleanupAllUsersNotifications = cleanupAllUsersNotifications;
+
+// دوال إدارة التقارير
+window.createReport = createReport;
+window.updateReport = updateReport;
+window.deleteReport = deleteReport;
+window.getReportById = getReportById;
+window.getReportsByUser = getReportsByUser;
+window.getAllReports = getAllReports;
 
 console.log('✅ Supabase.js loaded successfully');
