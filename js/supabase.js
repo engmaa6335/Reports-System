@@ -144,7 +144,7 @@ async function sendCustomNotification({ userId, email, title, message, related_r
     }
 }
 
-// ✅ دالة الإشعارات الرئيسية (مع دعم التعديل والإضافة)
+// ✅ دالة الإشعارات الرئيسية (مع دعم التعديل والإضافة) - نسخة محسنة مع maybeSingle
 async function sendVisitReportNotifications(reportData, reportId, reportType, specialistName, actionType = 'create') {
     try {
         if (!window.supabaseClient) {
@@ -166,41 +166,57 @@ async function sendVisitReportNotifications(reportData, reportId, reportType, sp
         if (reportType === 'in_person') {
             const centerId = reportData.educational_center_id;
             if (!centerId) {
-                console.error('لا يوجد educational_center_id');
-                return { success: false, error: 'Missing educational_center_id' };
+                console.warn('⚠️ لا يوجد educational_center_id، استمرار بدون تفاصيل المركز');
+                entityName = 'مركز تعليمي';
+            } else {
+                try {
+                    const { data: center, error: centerError } = await window.supabaseClient
+                        .from('educational_centers')
+                        .select('id, name_ar, name_en, district_id, manager_name_ar, email')
+                        .eq('id', centerId)
+                        .maybeSingle();  // استخدام maybeSingle بدلاً من single
+                    
+                    if (!centerError && center) {
+                        entityName = center.name_ar || center.name_en || 'المركز';
+                        entityDistrictId = center.district_id;
+                        entityManagerEmail = center.email;
+                        entityManagerName = center.manager_name_ar || 'مدير المركز';
+                    } else {
+                        entityName = 'مركز تعليمي';
+                        console.warn(`⚠️ لم يتم العثور على المركز ID: ${centerId}`);
+                    }
+                } catch(e) {
+                    console.warn('⚠️ فشل جلب بيانات المركز:', e);
+                    entityName = 'مركز تعليمي';
+                }
             }
-            
-            const { data: center, error: centerError } = await window.supabaseClient
-                .from('educational_centers')
-                .select('id, name_ar, name_en, district_id, manager_name_ar, email')
-                .eq('id', centerId)
-                .single();
-            
-            if (centerError) throw centerError;
-            
-            entityName = center.name_ar || center.name_en || 'المركز';
-            entityDistrictId = center.district_id;
-            entityManagerEmail = center.email;
-            entityManagerName = center.manager_name_ar || 'مدير المركز';
         } else {
             const schoolId = reportData.school_id;
             if (!schoolId) {
-                console.error('لا يوجد school_id');
-                return { success: false, error: 'Missing school_id' };
+                console.warn('⚠️ لا يوجد school_id، استمرار بدون تفاصيل المدرسة');
+                entityName = 'مدرسة';
+            } else {
+                try {
+                    const { data: school, error: schoolError } = await window.supabaseClient
+                        .from('schools')
+                        .select('id, name, district_id, schoolPrincipal, schoolPrincipalEmail')
+                        .eq('id', schoolId)
+                        .maybeSingle();  // استخدام maybeSingle بدلاً من single
+                    
+                    if (!schoolError && school) {
+                        entityName = school.name;
+                        entityDistrictId = school.district_id;
+                        entityManagerEmail = school.schoolPrincipalEmail;
+                        entityManagerName = school.schoolPrincipal || 'مدير المدرسة';
+                    } else {
+                        entityName = 'مدرسة';
+                        console.warn(`⚠️ لم يتم العثور على المدرسة ID: ${schoolId}`);
+                    }
+                } catch(e) {
+                    console.warn('⚠️ فشل جلب بيانات المدرسة:', e);
+                    entityName = 'مدرسة';
+                }
             }
-            
-            const { data: school, error: schoolError } = await window.supabaseClient
-                .from('schools')
-                .select('id, name, district_id, schoolPrincipal, schoolPrincipalEmail')
-                .eq('id', schoolId)
-                .single();
-            
-            if (schoolError) throw schoolError;
-            
-            entityName = school.name;
-            entityDistrictId = school.district_id;
-            entityManagerEmail = school.schoolPrincipalEmail;
-            entityManagerName = school.schoolPrincipal || 'مدير المدرسة';
         }
         
         const reportTypeName = reportType === 'in_person' ? 'وجاهي' : 'عن بعد';
@@ -215,7 +231,7 @@ async function sendVisitReportNotifications(reportData, reportId, reportType, sp
             message = `تم إضافة تقرير ${reportTypeName} في ${entityName} بواسطة ${specialistName}`;
         }
         
-        // إضافة تفاصيل إضافية
+        // إضافة تفاصيل إضافية إن وجدت
         if (reportData.teacher_name) message += `\nالمعلم: ${reportData.teacher_name}`;
         if (reportData.visit_date) {
             const date = new Date(reportData.visit_date).toLocaleDateString('ar-SA');
@@ -240,10 +256,10 @@ async function sendVisitReportNotifications(reportData, reportId, reportType, sp
             if (user.role === 'admin' || user.role === 'support') {
                 shouldNotify = true;
             }
-            else if (user.role === 'manger' && user.district_id === entityDistrictId) {
+            else if (user.role === 'manger' && entityDistrictId && user.district_id === entityDistrictId) {
                 shouldNotify = true;
             }
-            else if (reportType === 'remote' && user.role === 'spuser' && user.school_id === reportData.school_id) {
+            else if (reportType === 'remote' && user.role === 'spuser' && reportData.school_id && user.school_id === reportData.school_id) {
                 shouldNotify = true;
             }
             
@@ -256,22 +272,26 @@ async function sendVisitReportNotifications(reportData, reportId, reportType, sp
         }
         
         // إشعار لمدير المركز (للتقارير الوجاهية)
-        if (reportType === 'in_person' && entityManagerEmail) {
-            const { data: managerUser, error: managerError } = await window.supabaseClient
-                .from('users')
-                .select('id')
-                .eq('email', entityManagerEmail)
-                .maybeSingle();
-            
-            if (managerUser && !notifiedUserIds.has(managerUser.id)) {
-                const managerTitle = isEdit ? `✏️ تعديل تقرير في ${entityName}` : `📋 إضافة تقرير في ${entityName}`;
-                const managerMessage = isEdit 
-                    ? `تم تعديل تقرير وجاهي في مركزك (${entityName}) بواسطة ${specialistName}`
-                    : `تم إضافة تقرير وجاهي في مركزك (${entityName}) بواسطة ${specialistName}`;
-                await createNotification(managerUser.id, managerTitle, managerMessage, 'info', reportId, reportType);
-                notifiedUserIds.add(managerUser.id);
-                sentCount++;
-                console.log(`✅ إشعار ${isEdit ? 'تعديل' : 'إضافة'} لمدير المركز (${entityManagerName})`);
+        if (reportType === 'in_person' && entityManagerEmail && entityManagerEmail !== '') {
+            try {
+                const { data: managerUser, error: managerError } = await window.supabaseClient
+                    .from('users')
+                    .select('id')
+                    .eq('email', entityManagerEmail)
+                    .maybeSingle();
+                
+                if (managerUser && !notifiedUserIds.has(managerUser.id)) {
+                    const managerTitle = isEdit ? `✏️ تعديل تقرير في ${entityName}` : `📋 إضافة تقرير في ${entityName}`;
+                    const managerMessage = isEdit 
+                        ? `تم تعديل تقرير وجاهي في مركزك (${entityName}) بواسطة ${specialistName}`
+                        : `تم إضافة تقرير وجاهي في مركزك (${entityName}) بواسطة ${specialistName}`;
+                    await createNotification(managerUser.id, managerTitle, managerMessage, 'info', reportId, reportType);
+                    notifiedUserIds.add(managerUser.id);
+                    sentCount++;
+                    console.log(`✅ إشعار ${isEdit ? 'تعديل' : 'إضافة'} لمدير المركز (${entityManagerName})`);
+                }
+            } catch(e) {
+                console.warn('⚠️ فشل إرسال إشعار لمدير المركز:', e);
             }
         }
         
@@ -297,7 +317,7 @@ async function sendSummaryReportNotifications(reportData, reportId, specialistNa
             .from('districts')
             .select('id, name')
             .eq('id', reportData.district_id)
-            .single();
+            .maybeSingle();
         
         if (districtError) throw districtError;
         
@@ -313,10 +333,10 @@ async function sendSummaryReportNotifications(reportData, reportId, specialistNa
         let title, message;
         if (isUpdate) {
             title = `✏️ تحديث تقرير تجميعي (${reportTypeName})`;
-            message = `تم تحديث التقرير التجميعي لمنطقة ${district.name} بواسطة ${specialistName}`;
+            message = `تم تحديث التقرير التجميعي لمنطقة ${district?.name || 'المنطقة'} بواسطة ${specialistName}`;
         } else {
             title = `📊 إضافة تقرير تجميعي (${reportTypeName})`;
-            message = `تم إضافة تقرير تجميعي لمنطقة ${district.name} بواسطة ${specialistName}`;
+            message = `تم إضافة تقرير تجميعي لمنطقة ${district?.name || 'المنطقة'} بواسطة ${specialistName}`;
         }
         
         let sentCount = 0;
@@ -327,7 +347,7 @@ async function sendSummaryReportNotifications(reportData, reportId, specialistNa
             if (user.role === 'admin' || user.role === 'support') {
                 shouldNotify = true;
             } 
-            else if (user.role === 'manger' && user.district_id === reportData.district_id) {
+            else if (user.role === 'manger' && district && user.district_id === reportData.district_id) {
                 shouldNotify = true;
             }
             
