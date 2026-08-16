@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+<!-- SYSTEM_FIX_VERSION: 2026-08-11-v5 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/modern-style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+console.log('%c🔖 SYSTEM_FIX_VERSION: 2026-08-11-v5', 'color:#2e9b54;font-weight:bold;font-size:14px');</script>
     <script src="js/supabase.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -281,12 +283,14 @@
     <nav class="sidebar-nav">
         <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
         <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
-        <a href="summary-reports.html"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
+        <a id="navSummerReports" href="summer-reports.html"><i class="fas fa-sun"></i> الأنشطة الصيفية</a>
+        <a id="navSummaryReports" href="summary-reports.html"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
         <a href="analytics.html" id="navAnalytics"><i class="fas fa-chart-bar"></i> التحليلات</a>
-        <a href="overview.html" class="active"><i class="fas fa-robot"></i> ملخص التقارير</a>
+        
         <div id="adminLinks" style="display: none;">
-            <a href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
-            <a href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
+            <a href="overview.html" class="active"><i class="fas fa-robot"></i> ملخص التقارير</a>
+            <a id="navDistrictsManagement" href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+            <a id="navUsersManagement" href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
         </div>
     </nav>
     
@@ -1170,7 +1174,8 @@ async function logout() {
     window.location.href = 'login.html'; 
 }
 
-function updateUIBasedOnRole(user) { 
+function updateUIBasedOnRole(user) {
+        if (typeof window.applySidebarPermissions === 'function') window.applySidebarPermissions(user); 
     if (!user) return; 
     const analyticsLink = document.getElementById('navAnalytics'); 
     const adminLinks = document.getElementById('adminLinks'); 

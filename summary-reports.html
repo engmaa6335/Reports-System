@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+<!-- SYSTEM_FIX_VERSION: 2026-08-11-v5 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -13,7 +14,8 @@
     <link rel="stylesheet" href="css/modern-style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+console.log('%c🔖 SYSTEM_FIX_VERSION: 2026-08-11-v5', 'color:#2e9b54;font-weight:bold;font-size:14px');</script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -449,13 +451,15 @@
     <nav class="sidebar-nav">
         <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
         <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
-        <a href="summary-reports.html" class="active"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
+        <a id="navSummerReports" href="summer-reports.html"><i class="fas fa-sun"></i> الأنشطة الصيفية</a>
+        <a id="navSummaryReports" href="summary-reports.html" class="active"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
         <a href="analytics.html" id="navAnalytics" style="display: none;"><i class="fas fa-chart-bar"></i> التحليلات</a>
         
         <div id="adminLinks" style="display: none;">
+            
             <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
-            <a href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
-            <a href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
+            <a id="navDistrictsManagement" href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+            <a id="navUsersManagement" href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
         </div>
     </nav>
     
@@ -486,7 +490,7 @@
 
     <div class="filters-bar">
         <div class="filter-group"><label><i class="fas fa-search"></i> بحث (مختص / منطقة)</label><input type="text" id="searchInput" class="form-input" placeholder="مختص / منطقة"></div>
-        <div class="filter-group"><label><i class="fas fa-filter"></i> نوع التقرير</label><select id="reportTypeFilter" class="form-input"><option value="">الكل</option><option value="in_person">وجاهي</option><option value="remote">عن بعد</option></select></div>
+        <div class="filter-group"><label><i class="fas fa-filter"></i> نوع التقرير</label><select id="reportTypeFilter" class="form-input"><option value="">الكل</option><option value="in_person">وجاهي</option><option value="remote">عن بعد</option><option value="summer">تعليم صيفي</option></select></div>
         <div class="filter-group"><label><i class="fas fa-calendar"></i> من تاريخ</label><input type="text" id="dateFrom" class="form-input filter-date-picker" placeholder="dd/mm/yyyy" readonly></div>
         <div class="filter-group"><label><i class="fas fa-calendar"></i> إلى تاريخ</label><input type="text" id="dateTo" class="form-input filter-date-picker" placeholder="dd/mm/yyyy" readonly></div>
         <div style="display: flex; gap: 0.5rem;">
@@ -550,6 +554,7 @@
                         <option value="">اختر نوع التقرير</option>
                         <option value="in_person">تعليم وجاهي</option>
                         <option value="remote">تعليم عن بعد</option>
+                        <option value="summer">تعليم صيفي</option>
                     </select>
                 </div>
             </div>
@@ -743,6 +748,12 @@ let currentVisitsData = [];
 let periodFromPicker = null, periodToPicker = null, filterDateFromPicker = null, filterDateToPicker = null;
 let activityDatePickers = [];
 let currentReportHtmlBlob = null;
+
+// متغيرات نظام الكاش
+let isRefreshing = false;
+let isUpdatingFromNotification = false; // منع الحلقات اللانهائية
+let lastRefreshTime = 0;
+const MIN_REFRESH_INTERVAL = 5000; // 5 ثواني بين التحديثات
 
 // ==================== دوال القائمة الجانبية ====================
 function toggleSidebar() {
@@ -968,66 +979,197 @@ function closeSendEmailAlertModal() {
     closeModalWithScroll('sendEmailAlertModal');
 }
 
-// ==================== تحميل جميع التقارير إلى الكاش ====================
-async function loadAllSummaryReportsToCache() {
+// ==================== تحميل التقارير باستخدام الكاش (معدل لمنع الحلقات) ====================
+async function loadAllSummaryReportsToCache(forceRefresh = false) {
+    // منع التحديث المتكرر
+    if (isRefreshing && !forceRefresh) {
+        console.log('⚠️ عملية تحديث قيد التنفيذ، تأجيل الطلب...');
+        return allReportsCache;
+    }
+    
+    // منع التحديث إذا كان آخر تحديث قبل أقل من 5 ثواني
+    const now = Date.now();
+    if (forceRefresh && (now - lastRefreshTime) < MIN_REFRESH_INTERVAL) {
+        console.log('⚠️ تم التحديث مؤخراً، تأجيل الطلب...');
+        return allReportsCache;
+    }
+    
     const progressDiv = document.getElementById('loadingProgress');
     const progressFill = document.getElementById('progressFill');
     const loadingStats = document.getElementById('loadingStats');
-    progressDiv.style.display = 'block';
-    progressFill.style.width = '5%';
-    loadingStats.innerHTML = 'جاري تحميل جميع التقارير التجميعية...';
+    
+    if (progressDiv && forceRefresh) progressDiv.style.display = 'block';
+    if (progressFill && forceRefresh) progressFill.style.width = '10%';
+    if (loadingStats && forceRefresh) loadingStats.innerHTML = '📡 جاري تحميل التقارير التجميعية...';
+    
+    isRefreshing = true;
+    
     try {
-        let allReports = [];
-        let page = 0;
-        const pageSizeFetch = 500;
-        let hasMore = true;
-        let query = window.supabaseClient.from('summary_reports').select('*, users:specialist_id(id, name), districts:district_id(id, name)').order('created_at', { ascending: false });
-        if (currentUser.role === 'manger' && currentUser.district_id) {
-            query = query.eq('district_id', currentUser.district_id);
-        } else if (currentUser.role === 'user') {
-            query = query.eq('specialist_id', currentUser.id);
+        const result = await window.getGlobalSummaryReportsCache(forceRefresh);
+        
+        if (progressFill && forceRefresh) progressFill.style.width = '70%';
+        
+        if (result.success && result.data) {
+            allReportsCache = result.data;
+            filteredReportsCache = [...allReportsCache];
+            totalFilteredCount = filteredReportsCache.length;
+            
+            if (progressFill && forceRefresh) progressFill.style.width = '100%';
+            if (loadingStats && forceRefresh) {
+                const fromCacheMsg = result.fromCache ? '📦 (من الكاش)' : '🔄 (من الخادم)';
+                loadingStats.innerHTML = `✅ تم تحميل ${allReportsCache.length.toLocaleString()} تقرير ${fromCacheMsg}`;
+            }
+            
+            const totalSpan = document.getElementById('totalCountDisplay');
+            if (totalSpan) totalSpan.textContent = allReportsCache.length.toLocaleString();
+            const totalHint = document.getElementById('totalReportsHint');
+            if (totalHint) totalHint.textContent = allReportsCache.length.toLocaleString();
+            
+            console.log(`✅ تم تحميل ${allReportsCache.length} تقرير تجميعي ${result.fromCache ? '(من الكاش)' : '(من الخادم)'}`);
+            
+            lastRefreshTime = Date.now();
+            
+            return allReportsCache;
+        } else {
+            throw new Error(result.error || 'فشل تحميل التقارير');
         }
-        while (hasMore) {
-            const start = page * pageSizeFetch;
-            const end = start + pageSizeFetch - 1;
-            const { data, error } = await query.range(start, end);
-            if (error) throw error;
-            if (data && data.length > 0) {
-                allReports = [...allReports, ...data];
-                page++;
-                const percent = Math.min(5 + (allReports.length / 3000) * 85, 90);
-                progressFill.style.width = `${percent}%`;
-                loadingStats.innerHTML = `جاري تحميل التقارير: ${allReports.length.toLocaleString()} تقرير...`;
-                if (data.length < pageSizeFetch) hasMore = false;
-            } else { hasMore = false; }
-        }
-        progressFill.style.width = '100%';
-        loadingStats.innerHTML = `✅ تم تحميل ${allReports.length.toLocaleString()} تقرير بنجاح!`;
-        setTimeout(() => { progressDiv.style.display = 'none'; }, 800);
-        allReportsCache = allReports;
-        filteredReportsCache = [...allReports];
-        totalFilteredCount = filteredReportsCache.length;
-        const totalSpan = document.getElementById('totalCountDisplay');
-        if (totalSpan) totalSpan.textContent = allReports.length.toLocaleString();
-        const totalHint = document.getElementById('totalReportsHint');
-        if (totalHint) totalHint.textContent = allReports.length.toLocaleString();
-        return allReports;
     } catch (error) {
-        console.error('Error loading summary reports:', error);
-        loadingStats.innerHTML = '❌ حدث خطأ في تحميل التقارير';
-        setTimeout(() => { progressDiv.style.display = 'none'; }, 2000);
+        console.error('❌ خطأ في تحميل التقارير:', error);
+        if (loadingStats && forceRefresh) loadingStats.innerHTML = '❌ حدث خطأ في تحميل التقارير...';
+        
+        const savedCache = localStorage.getItem('globalSummaryReportsCache');
+        if (savedCache) {
+            try {
+                const parsed = JSON.parse(savedCache);
+                if (parsed.data && parsed.data.length > 0) {
+                    allReportsCache = parsed.data;
+                    filteredReportsCache = [...allReportsCache];
+                    totalFilteredCount = filteredReportsCache.length;
+                    
+                    if (loadingStats && forceRefresh) loadingStats.innerHTML = `⚠️ استخدام نسخة احتياطية: ${allReportsCache.length.toLocaleString()} تقرير (غير محدث)`;
+                    console.log(`⚠️ استخدام الكاش الاحتياطي: ${allReportsCache.length} تقرير`);
+                    showMessage('تم تحميل التقارير من النسخة الاحتياطية (قد تكون غير محدثة)', 'info');
+                }
+            } catch(e) {}
+        }
+        
         throw error;
+    } finally {
+        if (progressDiv && forceRefresh) {
+            setTimeout(() => { progressDiv.style.display = 'none'; }, 500);
+        }
+        isRefreshing = false;
     }
 }
 
-// ==================== عرض الصفحة الحالية مع الترقيم ====================
+// ==================== تحديث تلقائي ====================
+async function autoRefreshIfNeeded() {
+    const now = Date.now();
+    const timeSinceLastRefresh = now - lastRefreshTime;
+    
+    if (timeSinceLastRefresh > 30000 && !isRefreshing && !isUpdatingFromNotification) {
+        console.log('🔄 تحديث تلقائي للبيانات...');
+        await loadAllSummaryReportsToCache(true);
+        applyFilters();
+    }
+}
+
+// ==================== إعداد مزامنة الكاش (معدل لمنع الحلقات) ====================
+function setupCacheSync() {
+    if (typeof window.subscribeToSummaryCacheChanges === 'function') {
+        window.subscribeToSummaryCacheChanges(async (notification) => {
+            // منع معالجة الإشعار إذا كنا في حالة تحديث
+            if (isUpdatingFromNotification) {
+                console.log('⚠️ تحديث قيد التنفيذ بالفعل، تجاهل الإشعار');
+                return;
+            }
+            
+            // منع معالجة الإشعارات المتكررة (نفس الإشعار خلال 3 ثواني)
+            const notificationKey = `${notification.action}_${notification.reportId || 'all'}`;
+            const lastProcessed = sessionStorage.getItem('lastProcessedNotification');
+            if (lastProcessed === notificationKey) {
+                console.log('⚠️ تمت معالجة هذا الإشعار مسبقاً، تجاهل');
+                return;
+            }
+            sessionStorage.setItem('lastProcessedNotification', notificationKey);
+            setTimeout(() => sessionStorage.removeItem('lastProcessedNotification'), 3000);
+            
+            console.log(`📢 تم استلام إشعار تحديث: ${notification.action}`);
+            
+            isUpdatingFromNotification = true;
+            
+            try {
+                if (notification.action === 'refresh') {
+                    await loadAllSummaryReportsToCache(true);
+                    applyFilters();
+                    // لا نعرض رسالة للتحديث التلقائي في الخلفية
+                    if (!notification.background) {
+                        showMessage('تم تحديث قائمة التقارير', 'success');
+                    }
+                } else if (notification.action === 'create' && notification.reportId) {
+                    await loadAllSummaryReportsToCache(true);
+                    applyFilters();
+                } else if (notification.action === 'update' && notification.reportId) {
+                    await loadAllSummaryReportsToCache(true);
+                    applyFilters();
+                } else if (notification.action === 'delete' && notification.reportId) {
+                    if (allReportsCache) {
+                        const beforeCount = allReportsCache.length;
+                        allReportsCache = allReportsCache.filter(r => r.id != notification.reportId);
+                        filteredReportsCache = [...allReportsCache];
+                        totalFilteredCount = filteredReportsCache.length;
+                        displayCurrentPage();
+                        
+                        const totalSpan = document.getElementById('totalCountDisplay');
+                        if (totalSpan) totalSpan.textContent = allReportsCache.length.toLocaleString();
+                        
+                        console.log(`🗑️ تم حذف تقرير من الكاش المحلي: ${notification.reportId}`);
+                    }
+                }
+            } finally {
+                isUpdatingFromNotification = false;
+            }
+        });
+    }
+    
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && !isUpdatingFromNotification) {
+            console.log('👁️ العودة إلى صفحة التقارير التجميعية');
+            autoRefreshIfNeeded();
+        }
+    });
+    
+    window.addEventListener('focus', () => {
+        if (!isUpdatingFromNotification) {
+            console.log('🎯 استعادة التركيز على الصفحة');
+            autoRefreshIfNeeded();
+        }
+    });
+    
+    console.log('✅ تم إعداد مزامنة الكاش');
+}
+
+// ==================== فحص الإشعارات ====================
+async function checkForSummaryReportChanges() {
+    const notification = window.checkSummaryReportsChangedNotification ? window.checkSummaryReportsChangedNotification() : null;
+    if (notification && (notification.action === 'create' || notification.action === 'update' || notification.action === 'delete' || notification.action === 'refresh')) {
+        console.log('📢 تم استلام إشعار بتغيير في التقارير التجميعية، جاري تحديث الكاش...');
+        await loadAllSummaryReportsToCache(true);
+        displayCurrentPage();
+        showMessage('تم تحديث قائمة التقارير', 'success');
+        return true;
+    }
+    return false;
+}
+
+// ==================== عرض الصفحة الحالية ====================
 function displayCurrentPage() {
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const pageReports = filteredReportsCache.slice(startIndex, endIndex);
     const tbody = document.getElementById('reportsTableBody');
     if (!pageReports || pageReports.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p>NonNullifiable<br></td>';
         document.getElementById('resultsCount').innerHTML = 'عدد النتائج: 0';
         document.getElementById('paginationContainer').innerHTML = '';
         return;
@@ -1078,7 +1220,7 @@ function goToPage(page) {
     document.querySelector('.table-container')?.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-// ==================== التصفية من الكاش (البحث الذكي) ====================
+// ==================== التصفية ====================
 function applyFilters() {
     const searchInput = document.getElementById('searchInput').value.trim();
     const type = document.getElementById('reportTypeFilter').value;
@@ -1167,7 +1309,7 @@ async function loadSpecialists() {
     if(currentUser.role === 'user') { document.getElementById('specialistId').value = currentUser.id; onSpecialistChange(); }
 }
 
-// ==================== جلب الزيارات بناءً على الفترة المحددة ====================
+// ==================== جلب الزيارات ====================
 async function loadVisitsData() {
     const reportType = document.getElementById('reportTypeSelect').value;
     const specialistId = document.getElementById('specialistId').value;
@@ -1186,7 +1328,7 @@ async function loadVisitsData() {
     
     if (isLoadingVisits) return;
     isLoadingVisits = true;
-    document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><div class="loader-small"></div> جاري تحميل الزيارات...<\/td><\/tr>';
+    document.getElementById('visitsTableBody').innerHTML = '<td><td colspan="9" style="text-align: center; padding: 2rem;"><div class="loader-small"></div> جاري تحميل الزيارات...<\/td><\/tr>';
     
     try {
         let visits = [];
@@ -1213,7 +1355,7 @@ async function loadVisitsData() {
             });
             
             if (centerIds.length === 0) {
-                document.getElementById('visitsTableBody').innerHTML = '<td><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-building"></i> لا توجد مراكز تعليمية في هذه المنطقة<\/td><\/tr>';
+                document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-building"></i> لا توجد مراكز تعليمية في هذه المنطقة<\/td><\/tr>';
                 document.getElementById('totalVisits').value = 0;
                 currentVisitsData = [];
                 isLoadingVisits = false;
@@ -1240,7 +1382,7 @@ async function loadVisitsData() {
             document.getElementById('totalVisits').value = visits.length;
             
             if (visits.length === 0) {
-                document.getElementById('visitsTableBody').innerHTML = '<td><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-calendar-times"></i> لا توجد زيارات وجاهية في هذه الفترة<\/td><\/tr>';
+                document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-calendar-times"></i> لا توجد زيارات وجاهية في هذه الفترة<\/td><\/tr>';
             } else {
                 let html = '';
                 visits.forEach((visit, index) => {
@@ -1302,7 +1444,7 @@ async function loadVisitsData() {
             document.getElementById('totalVisits').value = visits.length;
             
             if (visits.length === 0) {
-                document.getElementById('visitsTableBody').innerHTML = '<td><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-calendar-times"></i> لا توجد زيارات عن بعد في هذه الفترة<\/td><\/tr>';
+                document.getElementById('visitsTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;"><i class="fas fa-calendar-times"></i> لا توجد زيارات عن بعد في هذه الفترة<\/td><\/tr>';
             } else {
                 let html = '';
                 visits.forEach((visit, index) => {
@@ -1329,7 +1471,7 @@ async function loadVisitsData() {
         
     } catch (error) {
         console.error('Error loading visits:', error);
-        document.getElementById('visitsTableBody').innerHTML = `<td><td colspan="9" style="text-align: center; padding: 2rem; color: #e34f76;"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل الزيارات: ${error.message}<\/td><\/tr>`;
+        document.getElementById('visitsTableBody').innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #e34f76;"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل الزيارات: ${error.message}<\/td><\/tr>`;
         currentVisitsData = [];
     } finally {
         isLoadingVisits = false;
@@ -1367,14 +1509,30 @@ async function onSpecialistChange() {
     loadVisitsData();
 }
 
-// ==================== عرض التقرير في المودال ====================
+// ==================== عرض التقرير ====================
 async function viewReport(id) {
     let report = allReportsCache.find(r => r.id == id);
-    if(!report) {
-        const { data, error } = await window.supabaseClient.from('summary_reports').select('*, users:specialist_id(id,name), districts:district_id(id,name)').eq('id',id).single();
-        if(error) { showMessage('التقرير غير موجود', 'error'); return; }
-        report = data;
+    
+    if (!report && typeof window.getSummaryReportFromCache === 'function') {
+        report = window.getSummaryReportFromCache(id);
     }
+    
+    if (!report) {
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('summary_reports')
+                .select('*, users:specialist_id(id,name), districts:district_id(id,name)')
+                .eq('id', id)
+                .single();
+            
+            if (error) throw error;
+            report = data;
+        } catch (error) {
+            showMessage('التقرير غير موجود', 'error');
+            return;
+        }
+    }
+    
     currentViewReport = report;
     
     let specialistSpecialization = '';
@@ -1404,17 +1562,17 @@ async function viewReport(id) {
             visitsHtml += `<tr>
                 <td style="padding:10px; border:1px solid #dee2e6;">${i+1}</td>
                 <td style="padding:10px; border:1px solid #dee2e6;">${visitDate}</td>
-                <td style="padding:10px; border:1px solid #dee2e6;">${schoolName}${v.center_manager ? `<br><small style="color:#666;">مدير المركز: ${v.center_manager}</small>` : ''}</td>
-                <td style="padding:10px; border:1px solid #dee2e6;">${className}</td>
-                <td style="padding:10px; border:1px solid #dee2e6;">${v.section || ''}</td>
-                <td style="padding:10px; border:1px solid #dee2e6;">${v.subject || ''}</td>
-                <td style="padding:10px; border:1px solid #dee2e6;">${teacherName}</td>
-                <td style="padding:10px; border:1px solid #dee2e6;">${creativeField}</td>
-                <td style="padding:10px; border:1px solid #dee2e6;">${v.recommendations || ''}</td>
-              </tr>`;
+                <td style="padding:10px; border:1px solid #dee2e6;">${escapeHtml(schoolName)}${v.center_manager ? `<br><small style="color:#666;">مدير المركز: ${escapeHtml(v.center_manager)}</small>` : ''}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${escapeHtml(className)}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${escapeHtml(v.section || '')}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${escapeHtml(v.subject || '')}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${escapeHtml(teacherName)}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${escapeHtml(creativeField)}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${escapeHtml(v.recommendations || '')}</td>
+            </tr>`;
         });
     } else {
-        visitsHtml = '<tr><td colspan="9" style="padding:30px;text-align:center;">لا توجد زيارات</td><\/tr>';
+        visitsHtml = '<tr><td colspan="9" style="padding:30px;text-align:center;">لا توجد زيارات</td>';
     }
     
     let activitiesHtml = '';
@@ -1422,14 +1580,14 @@ async function viewReport(id) {
         activities.forEach((a, i) => {
             activitiesHtml += `<tr>
                 <td style="padding:10px; border:1px solid #dee2e6;">${i+1}</td>
-                <td style="padding:10px; border:1px solid #dee2e6;">${a.date || ''}</td>
-                <td style="padding:10px; border:1px solid #dee2e6;">${a.name || ''}</td>
-                <td style="padding:10px; border:1px solid #dee2e6;">${a.topic || ''}</td>
-                <td style="padding:10px; border:1px solid #dee2e6;">${a.target || ''}</td>
-              </tr>`;
+                <td style="padding:10px; border:1px solid #dee2e6;">${escapeHtml(a.date || '')}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${escapeHtml(a.name || '')}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${escapeHtml(a.topic || '')}</td>
+                <td style="padding:10px; border:1px solid #dee2e6;">${escapeHtml(a.target || '')}</td>
+            </tr>`;
         });
     } else {
-        activitiesHtml = '<tr><td colspan="5" style="padding:30px;text-align:center;">لا توجد أنشطة إشرافية</td><\/tr>';
+        activitiesHtml = '<tr><td colspan="5" style="padding:30px;text-align:center;">لا توجد أنشطة إشرافية</td>';
     }
     
     const html = `
@@ -1446,7 +1604,7 @@ async function viewReport(id) {
             <div style="overflow-x:auto;margin-bottom:25px;border-radius:12px;border:1px solid #e2e8f0;">
                 <table class="preview-table" style="width:100%; border-collapse:collapse;">
                     <thead>
-                        <tr><th style="padding:12px 10px; border:1px solid #dee2e6;">#</th><th style="padding:12px 10px; border:1px solid #dee2e6;">التاريخ</th><th style="padding:12px 10px; border:1px solid #dee2e6;">المدرسة</th><th style="padding:12px 10px; border:1px solid #dee2e6;">الصف</th><th style="padding:12px 10px; border:1px solid #dee2e6;">الشعبة</th><th style="padding:12px 10px; border:1px solid #dee2e6;">المبحث</th><th style="padding:12px 10px; border:1px solid #dee2e6;">اسم المعلم</th><th style="padding:12px 10px; border:1px solid #dee2e6;">أفكار إبداعية / جوانب إيجابية</th><th style="padding:12px 10px; border:1px solid #dee2e6;">التوصيات</th>
+                        <tr><th style="padding:12px 10px; border:1px solid #dee2e6;">#</th><th style="padding:12px 10px; border:1px solid #dee2e6;">التاريخ</th><th style="padding:12px 10px; border:1px solid #dee2e6;">المدرسة</th><th style="padding:12px 10px; border:1px solid #dee2e6;">الصف</th><th style="padding:12px 10px; border:1px solid #dee2e6;">الشعبة</th><th style="padding:12px 10px; border:1px solid #dee2e6;">المبحث</th><th style="padding:12px 10px; border:1px solid #dee2e6;">اسم المعلم</th><th style="padding:12px 10px; border:1px solid #dee2e6;">أفكار إبداعية / جوانب إيجابية</th><th style="padding:12px 10px; border:1px solid #dee2e6;">التوصيات</th></tr>
                     </thead>
                     <tbody>${visitsHtml}</tbody>
                 </table>
@@ -1518,7 +1676,7 @@ async function editReport(id) {
                 <td style="padding:8px">${teacherName}</td>
                 <td style="padding:8px">${creativeField}</td>
                 <td style="padding:8px">${v.recommendations || ''}</td>
-              </table>`;
+              </tr>`;
         });
         document.getElementById('visitsTableBody').innerHTML = visitsHtml;
         document.getElementById('totalVisits').value = visits.length;
@@ -1605,13 +1763,27 @@ document.getElementById('summaryReportForm').addEventListener('submit', async (e
         else { result = await window.supabaseClient.from('summary_reports').insert([reportData]).select(); if(result.data && result.data[0]) newReportId = result.data[0].id; }
         if(result.error) throw result.error;
         
+        if (isEdit && newReportId) {
+            const { data: updatedReport } = await window.supabaseClient
+                .from('summary_reports')
+                .select('*, users:specialist_id(id,name), districts:district_id(id,name)')
+                .eq('id', newReportId)
+                .single();
+            
+            if (updatedReport && typeof window.updateSummaryReportInGlobalCache === 'function') {
+                window.updateSummaryReportInGlobalCache(updatedReport);
+            }
+        } else if (newReportId && typeof window.refreshSummaryCacheAfterSave === 'function') {
+            await window.refreshSummaryCacheAfterSave();
+        }
+        
         if(newReportId && currentUser) { 
             console.log('📢 إرسال إشعار:', { isEdit, actionType: isEdit ? 'update' : 'create', reportId: newReportId });
             await window.sendSummaryReportNotifications?.(reportData, newReportId, currentUser.name, isEdit ? 'update' : 'create'); 
         }
         
         closeModal();
-        await loadAllSummaryReportsToCache();
+        await loadAllSummaryReportsToCache(true);
         filteredReportsCache = [...allReportsCache];
         totalFilteredCount = filteredReportsCache.length;
         currentPage = 1;
@@ -1630,7 +1802,7 @@ function closeViewModal() { closeModalWithScroll('viewModal'); currentViewReport
 function closeDeleteModal() { closeModalWithScroll('deleteModal'); deleteReportData = null; }
 function openDeleteModal(id) { deleteReportData = id; openModalWithScroll('deleteModal'); }
 
-// ==================== حذف التقرير مع إشعاراته المرتبطة ====================
+// ==================== حذف التقرير ====================
 async function confirmDelete() {
     if(!deleteReportData) return;
     
@@ -1661,9 +1833,13 @@ async function confirmDelete() {
         
         if (error) throw error;
         
+        if (typeof window.removeSummaryReportFromGlobalCache === 'function') {
+            window.removeSummaryReportFromGlobalCache(deleteReportData);
+        }
+        
         showMessage('تم حذف التقرير وجميع إشعاراته بنجاح', 'success');
         closeDeleteModal();
-        await loadAllSummaryReportsToCache();
+        await loadAllSummaryReportsToCache(true);
         filteredReportsCache = [...allReportsCache];
         totalFilteredCount = filteredReportsCache.length;
         currentPage = 1;
@@ -1681,7 +1857,7 @@ async function confirmDelete() {
     }
 }
 
-// ==================== البريد الإلكتروني ====================
+// ==================== البريد الإلكتروني والتصدير ====================
 function generateSummaryReportHTML() {
     if (!currentViewReport) return '';
     const specialistName = currentViewReport.users?.name || '-';
@@ -1722,7 +1898,7 @@ function generateSummaryReportHTML() {
                 <td style="border:1px solid #000;padding:8px;">${a.name || ''}</td>
                 <td style="border:1px solid #000;padding:8px;">${a.topic || ''}</td>
                 <td style="border:1px solid #000;padding:8px;">${a.target || ''}</td>
-            </tr>`;
+            </table>`;
         });
     } else {
         activitiesHtml = '<tr><td colspan="5" style="text-align:center;padding:30px;">لا توجد أنشطة إشرافية<\/tr>';
@@ -1883,7 +2059,7 @@ function executeOpenOutlook() {
     const recipients = [...new Set([...toList, ...ccList])].join(',');
     const subject = (document.getElementById('emailSubject').value || '').trim();
     const body = (document.getElementById('emailBody').value || '').trim();
-    const url = 'https://outlook.cloud.microsoft/mail/0/deeplink/compose?' + 
+    const url = 'https://outlook.cloud.microsoft.com/mail/0/deeplink/compose?' + 
         'to=' + encodeURIComponent(recipients) + 
         '&subject=' + encodeURIComponent(subject) + 
         '&body=' + encodeURIComponent(body);
@@ -1994,57 +2170,86 @@ async function loadNotifications() {
 }
 
 async function handleNotificationClick(notificationId, reportType, reportId) {
-    try { 
-        await window.markNotificationAsRead(notificationId); 
-        await updateUnreadBadge(); 
-        closeNotificationsPanel(); 
-        if(reportId && reportId !== 'null' && reportId !== null) { 
-            await viewReport(reportId); 
-        } else { 
-            showMessage('تم تحديث الإشعار', 'success'); 
-        } 
-    } catch(e) { 
-        console.error(e); 
-        showMessage('حدث خطأ في فتح الإشعار','error'); 
-    } 
+    try {
+        console.log(`🔔 النقر على الإشعار: ${notificationId}, نوع: ${reportType}, معرف: ${reportId}`);
+        
+        await window.markNotificationAsRead(notificationId);
+        await updateUnreadBadge();
+        closeNotificationsPanel();
+        
+        if (reportId && reportId !== 'null' && reportId !== null && reportId !== undefined) {
+            const timestamp = Date.now().toString();
+            localStorage.setItem('pendingReportId', reportId);
+            localStorage.setItem('pendingReportType', reportType);
+            localStorage.setItem('pendingReportTimestamp', timestamp);
+            
+            sessionStorage.setItem('pendingReportId', reportId);
+            sessionStorage.setItem('pendingReportType', reportType);
+            sessionStorage.setItem('pendingReportTimestamp', timestamp);
+            sessionStorage.setItem('openReportOnLoad', 'true');
+            
+            if (typeof viewReport === 'function') {
+                console.log(`📌 فتح التقرير مباشرة: ${reportType} - ${reportId}`);
+                viewReport(reportId);
+            } else {
+                console.log(`🔄 الانتقال إلى summary-reports.html?view=${reportId}&t=${timestamp}`);
+                window.location.href = `summary-reports.html?view=${reportId}&t=${timestamp}`;
+            }
+        } else {
+            showMessage('تم تحديث الإشعار', 'success');
+        }
+    } catch(e) {
+        console.error('خطأ في فتح الإشعار:', e);
+        showMessage('حدث خطأ في فتح الإشعار', 'error');
+    }
 }
 
-async function markAllAsRead() { 
-    try { 
-        await window.markAllNotificationsAsRead(currentUser?.id); 
-        await loadNotifications(); 
-        await updateUnreadBadge(); 
-        showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success'); 
-    } catch(e) { 
-        showMessage('حدث خطأ', 'error'); 
-    } 
+async function markAllAsRead() {
+    try {
+        await window.markAllNotificationsAsRead(currentUser?.id);
+        await loadNotifications();
+        await updateUnreadBadge();
+        showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success');
+    } catch(e) {
+        console.error(e);
+        showMessage('حدث خطأ', 'error');
+    }
 }
 
-function formatTime(dateString) { 
-    const date = new Date(dateString); 
-    const diffMins = Math.floor((new Date() - date) / 60000); 
-    if(diffMins < 1) return 'الآن'; 
-    if(diffMins < 60) return `منذ ${diffMins} دقيقة`; 
-    if(diffMins < 1440) return `منذ ${Math.floor(diffMins / 60)} ساعة`; 
-    return `منذ ${Math.floor(diffMins / 1440)} يوم`; 
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    const diffMins = Math.floor((new Date() - date) / 60000);
+    if (diffMins < 1) return 'الآن';
+    if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
+    if (diffMins < 1440) return `منذ ${Math.floor(diffMins / 60)} ساعة`;
+    return `منذ ${Math.floor(diffMins / 1440)} يوم`;
 }
 
 let notificationInterval = null;
-function startNotificationPolling() { 
-    if(notificationInterval) clearInterval(notificationInterval); 
-    notificationInterval = setInterval(async () => { 
-        if(currentUser && document.hasFocus()) { 
-            const r = await window.getUnreadNotificationsCount(currentUser.id); 
-            if(r && r.success && r.count > 0) updateUnreadBadge(); 
-        } 
-    }, 30000); 
+
+function startNotificationPolling() {
+    if (notificationInterval) clearInterval(notificationInterval);
+    notificationInterval = setInterval(async () => {
+        if (currentUser && document.hasFocus()) {
+            try {
+                const r = await window.getUnreadNotificationsCount(currentUser.id);
+                if (r && r.success && r.count > 0) {
+                    await updateUnreadBadge();
+                }
+            } catch(e) {
+                console.warn('Polling error:', e);
+            }
+        }
+    }, 30000);
 }
+
 function stopNotificationPolling() { 
     if(notificationInterval) { 
         clearInterval(notificationInterval); 
         notificationInterval = null; 
     } 
 }
+
 async function logout() { 
     stopNotificationPolling(); 
     localStorage.removeItem('currentUser'); 
@@ -2075,6 +2280,7 @@ window.addEventListener('load', async () => {
     })();
     if(!currentUser) { window.location.href = 'login.html'; return; }
     if(!canViewSummaryReports(currentUser)) { showMessage('لا تملك صلاحية الوصول لهذه الصفحة', 'error'); setTimeout(() => window.location.href = 'dashboard.html', 2000); return; }
+    if (typeof window.applySidebarPermissions === 'function') window.applySidebarPermissions(currentUser);
     document.getElementById('userNameDisplay').textContent = currentUser.name;
     document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
     document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(currentUser);
@@ -2088,13 +2294,20 @@ window.addEventListener('load', async () => {
     initFilterDatePickers();
     const pageSizeSelect = document.getElementById('pageSizeSelect');
     if(pageSizeSelect) { pageSizeSelect.addEventListener('change', (e) => { pageSize = parseInt(e.target.value); currentPage = 1; displayCurrentPage(); }); }
+    
+    // تحميل التقارير باستخدام الكاش
     await loadAllSummaryReportsToCache();
     filteredReportsCache = [...allReportsCache];
     totalFilteredCount = filteredReportsCache.length;
     currentPage = 1;
     displayCurrentPage();
+    
     await updateUnreadBadge();
     startNotificationPolling();
+    
+    // إعداد مزامنة الكاش
+    setupCacheSync();
+    
     const urlParams = new URLSearchParams(window.location.search);
     const reportIdToView = urlParams.get('view');
     if(reportIdToView) { setTimeout(() => viewReport(reportIdToView), 500); window.history.replaceState({}, document.title, window.location.pathname); }
@@ -2109,7 +2322,35 @@ window.addEventListener('load', async () => {
             }
         }
     });
+
+    await checkForSummaryReportChanges();
 });
+
+// دالة للتعامل مع نوع التقرير الصيفي
+async function onReportTypeChange() {
+    const type = document.getElementById('reportTypeSelect').value;
+    const titleSection = document.getElementById('reportTitleSection');
+    const dynamicTitle = document.getElementById('dynamicReportTitle');
+    const modalTitle = document.getElementById('modalTitle');
+    
+    if(type) {
+        titleSection.style.display = 'block';
+        if(type === 'in_person') {
+            dynamicTitle.textContent='التقرير النصف شهري للمختص التربوي – برنامج التعليم الوجاهي';
+            modalTitle.textContent='إضافة تقرير تجميعي جديد - تعليم وجاهي';
+        } else if(type === 'remote') {
+            dynamicTitle.textContent='التقرير النصف شهري للمختص التربوي – برنامج التعليم عن بعد';
+            modalTitle.textContent='إضافة تقرير تجميعي جديد - تعليم عن بعد';
+        } else if(type === 'summer') {
+            dynamicTitle.textContent='التقرير النصف شهري للمختص التربوي – برنامج الأنشطة الصيفية';
+            modalTitle.textContent='إضافة تقرير تجميعي جديد - تعليم صيفي';
+        }
+    } else {
+        titleSection.style.display='none';
+        modalTitle.textContent='إضافة تقرير تجميعي جديد';
+    }
+    loadVisitsData();
+}
 </script>
 </body>
 </html>

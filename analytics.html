@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+<!-- SYSTEM_FIX_VERSION: 2026-08-11-v5 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -14,14 +15,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/modern-style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+console.log('%c🔖 SYSTEM_FIX_VERSION: 2026-08-11-v5', 'color:#2e9b54;font-weight:bold;font-size:14px');</script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="js/supabase.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
     <style>
-        /* ======= تنسيق القائمة الجانبية المتجاوبة مثل overview ======= */
+        /* ======= تنسيق القائمة الجانبية المتجاوبة ======= */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f5f7fb; overflow-x: hidden; }
 
@@ -30,21 +32,11 @@
             background: white; border-left: 1px solid #eef2f7; transition: right 0.3s ease;
             z-index: 1000; display: flex; flex-direction: column;
         }
-        /* في وضع الجوال: القائمة مخفية تماماً على اليمين */
         @media (max-width: 768px) {
-            .sidebar {
-                right: -280px;
-            }
-            .sidebar.open {
-                right: 0;
-                box-shadow: -5px 0 25px rgba(0,0,0,0.15);
-            }
-            .main-content {
-                margin-right: 0 !important;
-            }
-            .toggle-sidebar {
-                display: flex !important;
-            }
+            .sidebar { right: -280px; }
+            .sidebar.open { right: 0; box-shadow: -5px 0 25px rgba(0,0,0,0.15); }
+            .main-content { margin-right: 0 !important; }
+            .toggle-sidebar { display: flex !important; }
         }
         
         .toggle-sidebar {
@@ -79,10 +71,7 @@
             z-index: 999;
             transition: all 0.3s;
         }
-       /* .sidebar-overlay.active {
-            display: block;
-        }*/
-        
+       
         .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #eef2f7; text-align: center; }
         .sidebar-logo { width: 50px; height: 50px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem; }
         .sidebar-header h2 { font-size: 1.1rem; color: #1e3c72; margin-bottom: 0.25rem; }
@@ -101,6 +90,34 @@
         
         .main-content { margin-right: 280px; min-height: 100vh; padding: 1.5rem; transition: margin-right 0.3s ease; }
         
+        /* ======= مبدل الكيانات ======= */
+        .entity-switcher {
+            background: white; border-radius: 16px; padding: 0.75rem 1.5rem;
+            margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: none; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 0.75rem; border: 1px solid #eef2f7; transition: all 0.3s ease;
+        }
+        .entity-switcher.visible { display: flex; }
+        .entity-switcher .current-entity { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 1rem; background: #f0f4fa; border-radius: 30px; transition: all 0.3s ease; }
+        .entity-switcher .current-entity:hover { background: #e8f0fe; }
+        .entity-switcher .current-entity .entity-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem; flex-shrink: 0; }
+        .entity-switcher .current-entity .entity-icon.district { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .entity-switcher .current-entity .entity-icon.school { background: linear-gradient(135deg, #1e3c72, #2a5298); }
+        .entity-switcher .current-entity .entity-icon.educational_center { background: linear-gradient(135deg, #2e9b54, #1e7b3a); }
+        .entity-switcher .current-entity .entity-details { display: flex; flex-direction: column; line-height: 1.3; }
+        .entity-switcher .current-entity .entity-details .entity-name { font-weight: 600; color: #0b1f35; font-size: 0.95rem; }
+        .entity-switcher .current-entity .entity-details .entity-type { font-size: 0.7rem; color: #6a7f9e; }
+        .entity-switcher .current-entity .entity-details .entity-role { font-size: 0.65rem; color: #1e3c72; background: #e8f0fe; padding: 0.1rem 0.5rem; border-radius: 20px; display: inline-block; margin-top: 0.1rem; }
+
+        .entity-switcher .switch-controls { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+        .entity-switcher .switch-controls select { padding: 0.5rem 2.5rem 0.5rem 1rem; border: 1.5px solid #d7e0ea; border-radius: 30px; font-family: 'Inter', sans-serif; font-size: 0.9rem; background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234e6580' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat left 1rem center; background-size: 12px; appearance: none; -webkit-appearance: none; min-width: 180px; cursor: pointer; transition: all 0.3s ease; color: #0b1f35; }
+        .entity-switcher .switch-controls select:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 3px rgba(30,60,114,0.1); }
+        .entity-switcher .switch-controls select option { padding: 0.5rem; }
+        .entity-switcher .switch-controls .switch-btn { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 30px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
+        .entity-switcher .switch-controls .switch-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30,60,114,0.3); }
+        .entity-switcher .switch-controls .switch-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        .entity-switcher .switch-controls .switch-btn i { font-size: 0.8rem; }
+
         /* باقي التنسيقات الأصلية للتحليلات */
         .stats-grid {
             display: grid;
@@ -510,12 +527,22 @@
         
         @media (max-width: 768px) {
             .main-content { margin-right: 0; }
+            .entity-switcher { flex-direction: column; align-items: stretch; padding: 1rem; }
+            .entity-switcher .current-entity { justify-content: center; padding: 0.5rem 1rem; }
+            .entity-switcher .switch-controls { flex-direction: column; width: 100%; }
+            .entity-switcher .switch-controls select { width: 100%; min-width: unset; }
+            .entity-switcher .switch-controls .switch-btn { width: 100%; justify-content: center; }
             
             #districtsAnalyticsTable th,
             #districtsAnalyticsTable td {
                 padding: 8px 10px;
                 font-size: 0.8rem;
             }
+        }
+        @media (max-width: 480px) {
+            .stat-card { flex-direction: column; text-align: center; padding: 1rem; }
+            .stat-icon { margin: 0 auto; }
+            .entity-switcher .current-entity { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
@@ -548,13 +575,14 @@
     <nav class="sidebar-nav">
         <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
         <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
-        <a href="summary-reports.html" id="summaryReportsLink" style="display: none;"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
-        <a href="analytics.html" class="active"><i class="fas fa-chart-bar"></i> التحليلات</a>
-        <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
-        
+        <a id="navSummerReports" href="summer-reports.html"><i class="fas fa-sun"></i> الأنشطة الصيفية</a>
+        <a href="summary-reports.html" id="navSummaryReports" style="display: none;"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
+        <a id="navAnalytics" href="analytics.html" class="active"><i class="fas fa-chart-bar"></i> التحليلات</a>
+                
         <div id="adminLinks" style="display: none;">
-            <a href="districts-management.html" id="districtsManagementLink"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
-            <a href="users-management.html" id="usersManagementLink"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
+            <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
+            <a href="districts-management.html" id="navDistrictsManagement"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+            <a href="users-management.html" id="navUsersManagement"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
         </div>
     </nav>
 
@@ -578,6 +606,29 @@
                 التحليلات والإحصائيات
             </h1>
             <p style="color: #4e6580;">تحليلات شاملة لأداء المختصين والمدارس مع حساب الفاعلية حسب الهدف الأسبوعي</p>
+        </div>
+
+        <!-- ===== مبدل الكيانات ===== -->
+        <div id="entitySwitcher" class="entity-switcher">
+            <div class="current-entity" id="currentEntityDisplay">
+                <div class="entity-icon district" id="currentEntityIcon">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <div class="entity-details">
+                    <span class="entity-name" id="currentEntityName">تحميل...</span>
+                    <span class="entity-type" id="currentEntityType">منطقة</span>
+                    <span class="entity-role" id="currentEntityRole">مدير منطقة</span>
+                </div>
+            </div>
+
+            <div class="switch-controls">
+                <select id="entitySelect">
+                    <option value="">اختر كيان...</option>
+                </select>
+                <button class="switch-btn" id="switchEntityBtn" onclick="switchEntity()">
+                    <i class="fas fa-exchange-alt"></i> تبديل
+                </button>
+            </div>
         </div>
 
         <div class="filters-bar">
@@ -651,7 +702,7 @@
             <div class="stat-card">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #2e9b54, #1e7b3a);"><i class="fas fa-building"></i></div>
                 <div class="stat-info">
-                    <h3>المدارس التي تمت زيارتها</h3>
+                    <h3>المدارس التي تمت زيارتها (عن بعد)</h3>
                     <div class="stat-number" id="visitedSchools">0</div>
                 </div>
             </div>
@@ -659,7 +710,7 @@
             <div class="stat-card">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #e34f76, #c13b5c);"><i class="fas fa-building"></i></div>
                 <div class="stat-info">
-                    <h3>المدارس التي لم تزر</h3>
+                    <h3>المدارس التي لم تزر (عن بعد)</h3>
                     <div class="stat-number" id="notVisitedSchools">0</div>
                 </div>
             </div>
@@ -676,7 +727,7 @@
             </div>
         </div>
 
-        <!-- جدول تحليلات المناطق - يظهر فقط للإدارة العليا والدعم الفني -->
+        <!-- جدول تحليلات المناطق -->
         <div id="districtsAnalyticsContainer" class="table-container" style="display: none;">
             <h3 class="section-title"><i class="fas fa-map-marked-alt"></i> تحليلات المناطق</h3>
             <div style="overflow-x: auto;">
@@ -687,11 +738,11 @@
                             <th>المنطقة</th>
                             <th style="color: #1e3c72; text-align: center;">زيارات وجاهي</th>
                             <th style="color: #2e9b54; text-align: center;">زيارات عن بعد</th>
-                            <th style="color:  #e34f76; text-align: center;">مجموع الزيارات</th>
+                            <th style="color: #e34f76; text-align: center;">مجموع الزيارات</th>
                         </tr>
                     </thead>
                     <tbody id="districtsTableBody">
-                        <tr><td colspan="5" style="text-align: center; padding: 2rem;"><div class="loader"></div>تحميل الإحصائيات...</tbody>
+                        <tr><td colspan="5" style="text-align: center; padding: 2rem;"><div class="loader"></div>تحميل الإحصائيات...</td></tr>
                     </tbody>
                     <tfoot id="districtsTableFooter" style="background: #f8fafd; font-weight: 600;">
                         <tr>
@@ -700,6 +751,39 @@
                             <td id="totalInPersonDistricts" style="color: #1e3c72; text-align: center;"><strong>0</strong></td>
                             <td id="totalRemoteDistricts" style="color: #2e9b54; text-align: center;"><strong>0</strong></td>
                             <td id="totalVisitsDistricts" style="color: #e34f76; text-align: center;"><strong>0</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- جدول تحليلات المراكز التعليمية -->
+        <div id="centersAnalyticsContainer" class="table-container" style="display: none;">
+            <h3 class="section-title"><i class="fas fa-building"></i> تحليلات المراكز التعليمية</h3>
+            <div style="overflow-x: auto;">
+                <table class="modern-table" id="centersAnalyticsTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>المركز</th>
+                            <th>المنطقة</th>
+                            <th style="color: #1e3c72; text-align: center;">إجمالي الزيارات</th>
+                            <th style="color: #2e9b54; text-align: center;">الأفكار الإبداعية</th>
+                            <th style="color: #f59e0b; text-align: center;">التحديات</th>
+                            <th style="color: #e34f76; text-align: center;">التوصيات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="centersTableBody">
+                        <tr><td colspan="7" style="text-align: center; padding: 2rem;"><div class="loader"></div>تحميل الإحصائيات...</td></tr>
+                    </tbody>
+                    <tfoot id="centersTableFooter" style="background: #f8fafd; font-weight: 600;">
+                        <tr>
+                            <td></td>
+                            <td style="text-align: center;"><strong>المجموع الكلي</strong></td>
+                            <td id="totalCentersCount" style="color: #1e3c72; text-align: center;"><strong>0</strong></td>
+                            <td id="totalCentersCreative" style="color: #2e9b54; text-align: center;"><strong>0</strong></td>
+                            <td id="totalCentersChallenges" style="color: #f59e0b; text-align: center;"><strong>0</strong></td>
+                            <td id="totalCentersRecommendations" style="color: #e34f76; text-align: center;"><strong>0</strong></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -732,8 +816,9 @@
                         </tr>
                     </thead>
                     <tbody id="specialistsTable">
-                        <tr><td colspan="8" style="text-align: center; padding: 2rem;"><div class="loader"></div>تحميل الإحصائيات...</tbody>
-                    </table>
+                        <tr><td colspan="8" style="text-align: center; padding: 2rem;"><div class="loader"></div>تحميل الإحصائيات...</td></tr>
+                    </tbody>
+                </table>
             </div>
             <div class="loading-stats" style="margin-top: 1rem; font-size: 0.7rem;">
                 <i class="fas fa-info-circle"></i> الفاعلية = (الزيارات المحققة ÷ الزيارات المطلوبة) × 100<br>
@@ -742,23 +827,23 @@
         </div>
 
         <div class="table-container">
-            <h3 class="section-title"><i class="fas fa-school"></i> أكثر المدارس زيارة</h3>
+            <h3 class="section-title"><i class="fas fa-school"></i> أكثر المدارس زيارة (عن بعد)</h3>
             <div style="overflow-x: auto;">
                 <table class="modern-table">
                     <thead>
-                        <tr><th>#</th><th>المدرسة</th><th>المنطقة</th><th>إجمالي الزيارات</th><th>زيارات وجاهي</th><th>زيارات عن بعد</th></tr>
+                        <tr><th>#</th><th>المدرسة</th><th>المنطقة</th><th>إجمالي الزيارات (عن بعد)</th></tr>
                     </thead>
-                    <tbody id="schoolsTable"><tr><td colspan="6" style="text-align: center; padding: 2rem;"><div class="loader"></div>تحميل الإحصائيات...</tbody>
+                    <tbody id="schoolsTable"><tr><td colspan="4" style="text-align: center; padding: 2rem;"><div class="loader"></div>تحميل الإحصائيات...</td></tr></tbody>
                 </table>
             </div>
         </div>
 
         <div class="table-container">
-            <h3 class="section-title"><i class="fas fa-building"></i> تفاصيل المدارس</h3>
+            <h3 class="section-title"><i class="fas fa-building"></i> تفاصيل المدارس </h3>
             <div style="overflow-x: auto;">
                 <table class="modern-table">
-                   <thead> <tr><th>#</th><th>المدرسة</th><th>المنطقة</th><th>عدد الزيارات</th><th>زيارات وجاهي</th><th>زيارات عن بعد</th><th>حالة الوجاهي</th><th>حالة عن بعد</th></tr></thead>
-                    <tbody id="allSchoolsTable"><tr><td colspan="7" style="text-align: center; padding: 2rem;"><div class="loader"></div>تحميل الإحصائيات...</tbody>
+                   <thead> <tr><th>#</th><th>المدرسة</th><th>المنطقة</th><th>عدد الزيارات (عن بعد)</th><th>حالة الزيارة</th></tr></thead>
+                    <tbody id="allSchoolsTable"><tr><td colspan="5" style="text-align: center; padding: 2rem;"><div class="loader"></div>تحميل الإحصائيات...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -778,7 +863,7 @@
         </button>
         <button onclick="closeNotificationsPanel()" class="close-panel" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">✕</button>
     </div>
-    <div class="notifications-list" id="notificationsList" style="flex: 1; overflow-y: auto; padding: 1rem;">
+    <div class="notifications-list" id="notificationsList">
         <div class="empty-notifications">
             <i class="fas fa-bell-slash"></i>
             <p>لا توجد إشعارات</p>
@@ -802,6 +887,236 @@
         overlay.classList.remove('active');
     }
 
+    // ==================== دوال استخراج الكيان ====================
+    function parseEntityKey(key) {
+        if (!key) return null;
+        const parts = key.split('_');
+        let type, id;
+        if (parts.length === 3 && parts[0] === 'educational' && parts[1] === 'center') {
+            type = 'educational_center';
+            id = parseInt(parts[2]);
+        } else if (parts.length === 2) {
+            type = parts[0];
+            id = parseInt(parts[1]);
+        } else {
+            return null;
+        }
+        if (isNaN(id)) return null;
+        return { type, id };
+    }
+
+    function buildEntityKey(type, id) {
+        return `${type}_${id}`;
+    }
+
+    function extractNumberFromString(text) {
+        if (!text) return null;
+        const match = text.toString().match(/\d+/);
+        return match ? parseInt(match[0]) : null;
+    }
+
+    // ==================== دوال الكيانات ====================
+    async function getAvailableEntities() {
+        const currentUser = await getCurrentUserFast();
+        if (!currentUser) return [];
+
+        try {
+            if (window.getEntityListWithNames) {
+                const entities = await window.getEntityListWithNames(currentUser);
+                return entities || [];
+            }
+            return [];
+        } catch (error) {
+            console.error('Error getting available entities:', error);
+            return [];
+        }
+    }
+
+    function getCurrentEntityKey() {
+        return localStorage.getItem('currentEntityKey') || null;
+    }
+
+    // ==================== دوال مبدل الكيانات ====================
+    async function updateEntitySwitcher() {
+        const container = document.getElementById('entitySwitcher');
+        const select = document.getElementById('entitySelect');
+        const currentName = document.getElementById('currentEntityName');
+        const currentType = document.getElementById('currentEntityType');
+        const currentRole = document.getElementById('currentEntityRole');
+        const currentIcon = document.getElementById('currentEntityIcon');
+
+        if (!container) return;
+
+        const user = await getCurrentUserFast();
+        if (!user) return;
+
+        // الإدارة العليا والدعم الفني لا يحتاجون مبدل كيانات
+        if (user.role === 'admin' || user.role === 'support') {
+            container.classList.remove('visible');
+            return;
+        }
+
+        const entities = await getAvailableEntities();
+        console.log('📋 الكيانات المتاحة للتحليلات:', entities);
+
+        if (!entities || entities.length <= 1) {
+            container.classList.remove('visible');
+            if (entities && entities.length === 1) {
+                const key = buildEntityKey(entities[0].type, entities[0].id);
+                localStorage.setItem('currentEntityKey', key);
+            }
+            return;
+        }
+
+        container.classList.add('visible');
+
+        const currentKey = getCurrentEntityKey();
+        let currentEntity = null;
+
+        if (currentKey) {
+            const parsed = parseEntityKey(currentKey);
+            if (parsed) {
+                currentEntity = entities.find(e => e.type === parsed.type && e.id === parsed.id);
+            }
+        }
+
+        if (!currentEntity && entities.length > 0) {
+            currentEntity = entities[0];
+            const key = buildEntityKey(currentEntity.type, currentEntity.id);
+            localStorage.setItem('currentEntityKey', key);
+        }
+
+        if (currentEntity) {
+            const entityName = currentEntity.name || 'غير محدد';
+            const entityType = currentEntity.typeLabel || 'كيان';
+            const entityRole = getRoleName(currentEntity.role) || 'مستخدم';
+
+            currentName.textContent = entityName;
+            currentType.textContent = entityType;
+            currentRole.textContent = entityRole;
+
+            currentIcon.className = `entity-icon ${currentEntity.type}`;
+            const iconMap = {
+                'district': 'fa-map-marked-alt',
+                'school': 'fa-school',
+                'educational_center': 'fa-building'
+            };
+            currentIcon.innerHTML = `<i class="fas ${iconMap[currentEntity.type] || 'fa-building'}"></i>`;
+        }
+
+        select.innerHTML = '<option value="">اختر كيان...</option>';
+        entities.forEach(entity => {
+            const option = document.createElement('option');
+            const key = buildEntityKey(entity.type, entity.id);
+            option.value = key;
+            const typeLabel = entity.type === 'educational_center' ? 'مركز' : entity.typeLabel;
+            option.textContent = `${entity.name} (${typeLabel})`;
+            if (currentEntity && entity.type === currentEntity.type && entity.id === currentEntity.id) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+    }
+
+    async function switchEntity() {
+        const select = document.getElementById('entitySelect');
+        const btn = document.getElementById('switchEntityBtn');
+        const selectedValue = select.value;
+
+        if (!selectedValue) {
+            showMessage('الرجاء اختيار كيان', 'error');
+            return;
+        }
+
+        btn.disabled = true;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...';
+
+        try {
+            const parsed = parseEntityKey(selectedValue);
+            if (!parsed) {
+                showMessage('تنسيق الكيان غير صحيح', 'error');
+                return;
+            }
+
+            const entities = await getAvailableEntities();
+            const selectedEntity = entities.find(e => e.type === parsed.type && e.id === parsed.id);
+
+            if (!selectedEntity) {
+                showMessage('الكيان غير موجود', 'error');
+                return;
+            }
+
+            localStorage.setItem('currentEntityKey', selectedValue);
+
+            const user = await getCurrentUserFast();
+            if (user) {
+                const entityDisplayName = selectedEntity.name || selectedEntity.typeLabel || 'غير محدد';
+
+                // تصفير كل معرّفات الكيانات أولًا لمنع بقاء قيم قديمة من كيان سابق
+                user.educational_center_id = null;
+                user.educational_center_name = null;
+                user.school_id = null;
+                user.school_name = null;
+                user.district_id = null;
+                user.district_name = null;
+
+                if (selectedEntity.type === 'educational_center') {
+                    user.educational_center_name = entityDisplayName;
+                    user.educational_center_id = selectedEntity.id;
+                } else if (selectedEntity.type === 'school') {
+                    user.school_name = entityDisplayName;
+                    user.school_id = selectedEntity.id;
+                } else if (selectedEntity.type === 'district') {
+                    user.district_name = entityDisplayName;
+                    user.district_id = selectedEntity.id;
+                }
+
+                // كانت هذه الصفحة لا تحدّث دور المستخدم عند التبديل (خلل)
+                user.role = selectedEntity.role;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                currentUser = user;
+
+                // مسح الكاش الموحد للتقارير حتى تُجلب بيانات جديدة مطابقة للكيان الجديد في أي صفحة أخرى
+                if (typeof window.clearGlobalReportsCache === 'function') window.clearGlobalReportsCache();
+                if (typeof window.clearGlobalSummaryReportsCache === 'function') window.clearGlobalSummaryReportsCache();
+                
+                document.getElementById('userRoleDisplay').textContent = getRoleName(selectedEntity.role);
+                document.getElementById('userDistrictDisplay').textContent = entityDisplayName;
+                updateUIBasedOnRole(user);
+            }
+
+            await updateEntitySwitcher();
+            showMessage(`✅ تم التبديل إلى ${selectedEntity.name} (${selectedEntity.typeLabel})`, 'success');
+
+            // تحديث التحليلات للكيان الجديد
+            await loadAnalytics(true);
+
+        } catch (error) {
+            console.error('Error switching entity:', error);
+            showMessage('حدث خطأ أثناء تبديل الكيان', 'error');
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    }
+
+    async function initEntitySwitcher() {
+        console.log('🔄 تهيئة مبدل الكيانات في التحليلات...');
+        await updateEntitySwitcher();
+        
+        // الاستماع لتغيير الكيان من localStorage
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'currentUser' || event.key === 'currentEntityKey') {
+                console.log(`📢 [Storage] تغيير في ${event.key}`);
+                updateEntitySwitcher();
+                if (event.key === 'currentEntityKey') {
+                    loadAnalytics(true);
+                }
+            }
+        });
+    }
+
     // ==================== المتغيرات العامة ====================
     let analyticsData = null;
     let distributionChart = null;
@@ -809,11 +1124,13 @@
     let currentUser = null;
     let districtsMap = {};
     let allSchoolsList = [];
+    let allCentersList = [];
     let isLoading = false;
     let analyticsCache = { data: null, lastFetch: 0, cacheDuration: 300000 };
     let currentDateFrom = null;
     let currentDateTo = null;
     let specialistsTargets = {};
+    let notificationInterval = null;
 
     // ==================== الدوال الأساسية ====================
     function getRoleName(role) {
@@ -833,6 +1150,16 @@
     function canViewAnalytics(user) {
         if (!user) return false;
         return ['admin', 'support', 'manger'].includes(user.role);
+    }
+
+    function updateUIBasedOnRole(user) {
+        if (typeof window.applySidebarPermissions === 'function') window.applySidebarPermissions(user);
+        if (!user) return;
+        const adminLinks = document.getElementById('adminLinks');
+        const summaryReportsLink = document.getElementById('summaryReportsLink');
+        
+        if (adminLinks) adminLinks.style.display = (user.role === 'admin' || user.role === 'support') ? 'block' : 'none';
+        if (summaryReportsLink) summaryReportsLink.style.display = (user.role !== 'spuser' && user.role !== 'center') ? 'flex' : 'none';
     }
 
     function escapeHtml(text) {
@@ -895,6 +1222,60 @@
         return diffDays;
     }
 
+    // ==================== دوال المستخدم ====================
+    async function getCurrentUserFast() {
+        try {
+            if (window.getCurrentUser) {
+                const user = await window.getCurrentUser();
+                if (user && user.id) return user;
+            }
+            const stored = localStorage.getItem('currentUser');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed && parsed.id) return parsed;
+            }
+            return null;
+        } catch (e) {
+            console.error('Error getting current user:', e);
+            const stored = localStorage.getItem('currentUser');
+            return stored ? JSON.parse(stored) : null;
+        }
+    }
+
+    async function loadUserData() {
+        try {
+            currentUser = await getCurrentUserFast();
+            if (!currentUser) { 
+                window.location.href = 'login.html'; 
+                return null; 
+            }
+            if (!canViewAnalytics(currentUser)) { 
+                showNoAccessMessage(); 
+                return null; 
+            }
+            updateSidebarUI(currentUser);
+            updateUIBasedOnRole(currentUser);
+            return currentUser;
+        } catch (error) {
+            console.error('Error loading user data:', error);
+            return null;
+        }
+    }
+
+    function updateSidebarUI(user) {
+        if (!user) return;
+        document.getElementById('userNameDisplay').textContent = user.name || user.username || 'مستخدم';
+        document.getElementById('userRoleDisplay').textContent = getRoleName(user.role);
+        document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(user);
+    }
+
+    function showNoAccessMessage() {
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.innerHTML = `<div class="no-access-message"><i class="fas fa-lock"></i><h3>غير مصرح بالوصول</h3><p>عذراً، لا تملك صلاحية الوصول إلى صفحة التحليلات.</p><button onclick="window.location.href='dashboard.html'" class="btn-primary" style="margin-top: 1rem;"><i class="fas fa-home"></i> العودة للرئيسية</button></div>`;
+        }
+    }
+
     // ==================== جلب البيانات ====================
     async function loadSpecialistsTargets() {
         try {
@@ -927,11 +1308,48 @@
         
         reports.forEach(r => {
             const specialistId = r.specialist_id;
-            const regionId = r.schools?.district_id;
+            let regionId = null;
+            let regionName = 'غير محدد';
             const specialistName = r.users?.name || 'غير معروف';
-            const regionName = districtsMap[regionId] || 'غير محدد';
             
-            if (!specialistId || !regionId) return;
+            if (r.report_type === 'in_person') {
+                if (r.educational_centers?.district_id) {
+                    regionId = r.educational_centers.district_id;
+                    regionName = districtsMap[regionId] || 'غير محدد';
+                } else if (r.district_name && r.district_name !== '-' && r.district_name !== 'غير محدد') {
+                    for (const [id, name] of Object.entries(districtsMap)) {
+                        if (name === r.district_name) {
+                            regionId = parseInt(id);
+                            regionName = name;
+                            break;
+                        }
+                    }
+                    if (!regionId) {
+                        regionName = r.district_name;
+                    }
+                }
+            } else if (r.report_type === 'remote') {
+                if (r.schools?.district_id) {
+                    regionId = r.schools.district_id;
+                    regionName = districtsMap[regionId] || 'غير محدد';
+                } else if (r.district_name && r.district_name !== '-' && r.district_name !== 'غير محدد') {
+                    for (const [id, name] of Object.entries(districtsMap)) {
+                        if (name === r.district_name) {
+                            regionId = parseInt(id);
+                            regionName = name;
+                            break;
+                        }
+                    }
+                    if (!regionId) {
+                        regionName = r.district_name;
+                    }
+                }
+            }
+            
+            if (!regionId) {
+                regionId = -1;
+                regionName = 'منطقة غير محددة';
+            }
             
             const key = `${specialistId}_${regionId}`;
             
@@ -994,34 +1412,58 @@
         return results;
     }
 
-    async function fetchAllReportsPaginated(tableName, filters = null, onProgress = null) {
-        let allData = [];
-        let from = 0;
-        const pageSize = 1000;
-        let hasMore = true;
-        
-        while (hasMore) {
-            let query = window.supabaseClient.from(tableName).select('*').range(from, from + pageSize - 1);
-            if (filters) query = filters(query);
-            
-            const { data, error } = await query;
-            if (error) {
-                console.error(`Error fetching ${tableName}:`, error);
-                break;
-            }
-            
-            if (data && data.length > 0) {
-                allData = [...allData, ...data];
-                from += pageSize;
-                if (onProgress) onProgress(allData.length, data.length);
-                if (data.length < pageSize) hasMore = false;
-            } else {
-                hasMore = false;
-            }
+    // ==================== فلترة التقارير حسب الكيان ====================
+    function filterReportsByEntity(reports, entityType, entityId) {
+        if (!reports || reports.length === 0) return [];
+        if (!entityType || !entityId) return reports;
+
+        const entityIdNum = parseInt(entityId);
+        if (isNaN(entityIdNum)) {
+            const extracted = extractNumberFromString(entityId);
+            if (extracted) entityIdNum = extracted;
+            else return reports;
         }
-        return allData;
+
+        console.log(`🔍 تصفية التحليلات حسب الكيان: ${entityType} - ID: ${entityIdNum}`);
+
+        const filtered = reports.filter(report => {
+            if (String(report.id).startsWith('pending_')) return false;
+
+            if (entityType === 'district') {
+                if (report.report_type === 'remote') {
+                    const match = report.schools?.district_id === entityIdNum || 
+                                  report.district_id === entityIdNum;
+                    return match;
+                } else if (report.report_type === 'in_person') {
+                    const match = report.educational_centers?.district_id === entityIdNum ||
+                                  report.district_id === entityIdNum;
+                    return match;
+                }
+                return false;
+            } else if (entityType === 'school') {
+                if (report.report_type === 'remote') {
+                    const match = report.school_id === entityIdNum || 
+                                  report.schools?.id === entityIdNum;
+                    return match;
+                }
+                return false;
+            } else if (entityType === 'educational_center') {
+                if (report.report_type === 'in_person') {
+                    const match = report.educational_center_id === entityIdNum ||
+                                  report.educational_centers?.id === entityIdNum ||
+                                  report.center_id === entityIdNum;
+                    return match;
+                }
+                return false;
+            }
+            return true;
+        });
+
+        console.log(`📊 بعد تصفية الكيان: ${filtered.length} تقرير`);
+        return filtered;
     }
 
+    // ==================== جلب التحليلات ====================
     async function fetchAllAnalyticsData(user, dateFrom, dateTo) {
         const progressDiv = document.getElementById('loadingProgress');
         const progressFill = document.getElementById('progressFill');
@@ -1030,77 +1472,34 @@
         progressFill.style.width = '0%';
         
         try {
-            let schoolFilter = null;
-            if (user.role === 'manger' && user.district_id) {
-                const { data: schools } = await window.supabaseClient.from('schools').select('id').eq('district_id', user.district_id);
-                const schoolIds = schools?.map(s => s.id) || [];
-                if (schoolIds.length === 0) {
-                    progressDiv.style.display = 'none';
-                    return [];
-                }
-                schoolFilter = (q) => q.in('school_id', schoolIds);
-            } else if (user.role === 'spuser' && user.school_id) {
-                schoolFilter = (q) => q.eq('school_id', user.school_id);
-            } else if (user.role === 'user') {
-                schoolFilter = (q) => q.eq('specialist_id', user.id);
-            }
+            let result = await window.getFullReportsCache(true);
             
-            let inPersonProgress = 0, remoteProgress = 0;
-            const updateProgress = () => {
-                let total = (inPersonProgress + remoteProgress) / 2;
-                progressFill.style.width = `${total}%`;
-                loadingStats.innerHTML = `جاري تحميل التحليلات... ${Math.round(total)}%`;
-            };
-            
-            const [inPersonReports, remoteReports] = await Promise.all([
-                fetchAllReportsPaginated('in_person_reports', schoolFilter, (total) => {
-                    inPersonProgress = Math.min(100, (total / (total + 500)) * 100);
-                    updateProgress();
-                }),
-                fetchAllReportsPaginated('remote_reports', schoolFilter, (total) => {
-                    remoteProgress = Math.min(100, (total / (total + 500)) * 100);
-                    updateProgress();
-                })
-            ]);
-            
-            let allReports = [
-                ...inPersonReports.map(r => ({ ...r, report_type: 'in_person' })),
-                ...remoteReports.map(r => ({ ...r, report_type: 'remote' }))
-            ];
-            
-            if (dateFrom) allReports = allReports.filter(r => r.visit_date >= dateFrom);
-            if (dateTo) allReports = allReports.filter(r => r.visit_date <= dateTo);
-            
-            const schoolIds = [...new Set(allReports.map(r => r.school_id).filter(id => id))];
-            const specialistIds = [...new Set(allReports.map(r => r.specialist_id).filter(id => id))];
-            
-            let schoolsMap = new Map();
-            let usersMap = new Map();
-            
-            if (schoolIds.length) {
-                const { data: schools } = await window.supabaseClient.from('schools').select('id, name, district_id').in('id', schoolIds);
-                if (schools) schools.forEach(s => schoolsMap.set(s.id, s));
+            if (result.success && result.data) {
+                let reports = result.data;
                 
-                const districtIds = [...new Set(schools?.map(s => s.district_id).filter(id => id))];
-                if (districtIds.length) {
-                    const { data: districts } = await window.supabaseClient.from('districts').select('id, name').in('id', districtIds);
-                    if (districts) districts.forEach(d => districtsMap[d.id] = d.name);
+                // تطبيق فلتر التاريخ
+                if (dateFrom) reports = reports.filter(r => r.visit_date >= dateFrom);
+                if (dateTo) reports = reports.filter(r => r.visit_date <= dateTo);
+                
+                // ====== تصفية حسب الكيان المختار ======
+                const entityKey = localStorage.getItem('currentEntityKey');
+                console.log('📌 الكيان المختار للتحليلات:', entityKey);
+                
+                if (entityKey) {
+                    const parsed = parseEntityKey(entityKey);
+                    if (parsed) {
+                        reports = filterReportsByEntity(reports, parsed.type, parsed.id);
+                    }
                 }
+                
+                progressFill.style.width = '100%';
+                loadingStats.innerHTML = `✅ تم تحميل ${reports.length} تقرير`;
+                setTimeout(() => progressDiv.style.display = 'none', 500);
+                
+                return reports;
+            } else {
+                throw new Error(result.error || 'فشل تحميل البيانات');
             }
-            
-            if (specialistIds.length) {
-                const { data: users } = await window.supabaseClient.from('users').select('id, name').in('id', specialistIds);
-                if (users) users.forEach(u => usersMap.set(u.id, u));
-            }
-            
-            const enrichedReports = allReports.map(r => ({
-                ...r,
-                schools: schoolsMap.get(r.school_id) || { name: 'غير محدد', district_id: null },
-                users: usersMap.get(r.specialist_id) || { name: 'غير معروف' }
-            }));
-            
-            progressDiv.style.display = 'none';
-            return enrichedReports;
             
         } catch (error) {
             console.error('Error fetching analytics:', error);
@@ -1114,7 +1513,7 @@
     function displaySpecialistsStatsWithEfficiency(specialists, sortBy = 'total') {
         const tbody = document.getElementById('specialistsTable');
         if (!specialists.length) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">لا توجد بيانات</tbody>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">لا توجد بيانات</td></tr>';
             return;
         }
         
@@ -1148,26 +1547,24 @@
     function displaySchoolsStats(reports) {
         const schoolStats = {};
         reports.forEach(report => {
-            const schoolId = report.school_id;
-            if (!schoolStats[schoolId]) {
-                schoolStats[schoolId] = {
-                    id: schoolId,
-                    name: report.schools?.name || 'غير معروف',
-                    district_id: report.schools?.district_id,
-                    total: 0,
-                    in_person: 0,
-                    remote: 0
-                };
+            if (report.report_type === 'remote') {
+                const schoolId = report.school_id;
+                if (!schoolStats[schoolId]) {
+                    schoolStats[schoolId] = {
+                        id: schoolId,
+                        name: report.schools?.name || 'غير معروف',
+                        district_id: report.schools?.district_id,
+                        total: 0
+                    };
+                }
+                schoolStats[schoolId].total++;
             }
-            schoolStats[schoolId].total++;
-            if (report.report_type === 'in_person') schoolStats[schoolId].in_person++;
-            else schoolStats[schoolId].remote++;
         });
         
         const schools = Object.values(schoolStats).sort((a, b) => b.total - a.total).slice(0, 20);
         const tbody = document.getElementById('schoolsTable');
         if (!schools.length) {
-            tbody.innerHTML = '</tr><td colspan="6" style="text-align: center;">لا توجد بيانات</tbody>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">لا توجد بيانات</td></tr>';
             return;
         }
         
@@ -1179,47 +1576,38 @@
                     <td><strong>${escapeHtml(s.name)}</strong></td>
                     <td>${escapeHtml(districtName)}</td>
                     <td><strong>${s.total}</strong></td>
-                    <td style="color: #1e3c72;">${s.in_person}</td>
-                    <td style="color: #2e9b54;">${s.remote}</td>
                 </tr>
             `;
         }).join('');
     }
 
-    function displayAllSchoolsDetails(reports, visitedSchoolIds) {
+    function displayAllSchoolsDetails(reports) {
         const tbody = document.getElementById('allSchoolsTable');
         if (!allSchoolsList.length) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد بيانات</tbody>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">لا توجد بيانات</td></tr>';
             return;
         }
         
         const schoolStats = {};
         reports.forEach(report => {
-            const schoolId = report.school_id;
-            if (!schoolStats[schoolId]) {
-                schoolStats[schoolId] = { total: 0, in_person: 0, remote: 0 };
-            }
-            schoolStats[schoolId].total++;
-            if (report.report_type === 'in_person') {
-                schoolStats[schoolId].in_person++;
-            } else {
-                schoolStats[schoolId].remote++;
+            if (report.report_type === 'remote') {
+                const schoolId = report.school_id;
+                if (!schoolStats[schoolId]) {
+                    schoolStats[schoolId] = { total: 0 };
+                }
+                schoolStats[schoolId].total++;
             }
         });
         
-        const visitedInPersonSchools = new Set();
         const visitedRemoteSchools = new Set();
         reports.forEach(report => {
-            if (report.report_type === 'in_person') {
-                visitedInPersonSchools.add(report.school_id);
-            } else if (report.report_type === 'remote') {
+            if (report.report_type === 'remote') {
                 visitedRemoteSchools.add(report.school_id);
             }
         });
         
         const allSchools = allSchoolsList.map(school => {
-            const stats = schoolStats[school.id] || { total: 0, in_person: 0, remote: 0 };
-            const isVisitedInPerson = visitedInPersonSchools.has(school.id);
+            const stats = schoolStats[school.id] || { total: 0 };
             const isVisitedRemote = visitedRemoteSchools.has(school.id);
             return {
                 id: school.id,
@@ -1227,9 +1615,6 @@
                 district_id: school.district_id,
                 district_name: districtsMap[school.district_id] || 'غير محدد',
                 total: stats.total,
-                in_person: stats.in_person,
-                remote: stats.remote,
-                isVisitedInPerson: isVisitedInPerson,
                 isVisitedRemote: isVisitedRemote
             };
         });
@@ -1237,13 +1622,9 @@
         allSchools.sort((a, b) => b.total - a.total);
         
         tbody.innerHTML = allSchools.map((school, index) => {
-            const inPersonStatusBadge = school.isVisitedInPerson 
-                ? '<span class="status-badge status-visited" style="background: #e8f0fe; color: #1e3c72;"><i class="fas fa-check-circle"></i> تمت زيارتها</span>'
-                : '<span class="status-badge status-not-visited" style="background: #fff2f5; color: #e34f76;"><i class="fas fa-times-circle"></i> لم تزر بعد</span>';
-            
             const remoteStatusBadge = school.isVisitedRemote 
-                ? '<span class="status-badge status-visited" style="background: #eef9f0; color: #2e9b54;"><i class="fas fa-check-circle"></i> تمت زيارتها</span>'
-                : '<span class="status-badge status-not-visited" style="background: #fff2f5; color: #e34f76;"><i class="fas fa-times-circle"></i> لم تزر بعد</span>';
+                ? '<span class="status-badge status-visited"><i class="fas fa-check-circle"></i> تمت زيارتها</span>'
+                : '<span class="status-badge status-not-visited"><i class="fas fa-times-circle"></i> لم تزر بعد</span>';
             
             return `
                 <tr>
@@ -1251,9 +1632,6 @@
                     <td><strong>${escapeHtml(school.name)}</strong></td>
                     <td>${escapeHtml(school.district_name)}</td>
                     <td><strong>${school.total}</strong></td>
-                    <td style="color: #1e3c72;">${school.in_person}</td>
-                    <td style="color: #2e9b54;">${school.remote}</td>
-                    <td>${inPersonStatusBadge}</td>
                     <td>${remoteStatusBadge}</td>
                 </tr>
             `;
@@ -1273,8 +1651,18 @@
         const districtsStats = {};
         
         reports.forEach(report => {
-            const districtId = report.schools?.district_id;
-            const districtName = districtsMap[districtId] || 'منطقة غير محددة';
+            let districtId = null;
+            let districtName = '';
+            
+            if (report.report_type === 'in_person') {
+                districtId = report.educational_centers?.district_id;
+                districtName = districtsMap[districtId] || 'منطقة غير محددة';
+            } else {
+                districtId = report.schools?.district_id;
+                districtName = districtsMap[districtId] || 'منطقة غير محددة';
+            }
+            
+            if (!districtId) return;
             
             if (!districtsStats[districtId]) {
                 districtsStats[districtId] = {
@@ -1298,7 +1686,7 @@
         const tbody = document.getElementById('districtsTableBody');
         
         if (!districtsArray.length) {
-            tbody.innerHTML = '</table><td colspan="5" style="text-align: center; padding: 2rem;">لا توجد بيانات للعرض</tbody>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem;">لا توجد بيانات للعرض</td></tr>';
             const footer = document.getElementById('districtsTableFooter');
             if (footer) footer.style.display = 'none';
             return;
@@ -1330,6 +1718,92 @@
         document.getElementById('totalInPersonDistricts').innerHTML = `<strong>${totalInPerson}</strong>`;
         document.getElementById('totalRemoteDistricts').innerHTML = `<strong>${totalRemote}</strong>`;
         document.getElementById('totalVisitsDistricts').innerHTML = `<strong>${totalVisits}</strong>`;
+    }
+
+    function displayCentersAnalytics(reports) {
+        if (!currentUser || !['admin', 'support', 'manger'].includes(currentUser.role)) {
+            const container = document.getElementById('centersAnalyticsContainer');
+            if (container) container.style.display = 'none';
+            return;
+        }
+        
+        const container = document.getElementById('centersAnalyticsContainer');
+        if (container) container.style.display = 'block';
+        
+        const inPersonReports = reports.filter(r => r.report_type === 'in_person');
+        
+        if (inPersonReports.length === 0) {
+            const tbody = document.getElementById('centersTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">لا توجد تقارير وجاهية للعرض</td></tr>';
+            }
+            return;
+        }
+        
+        const centersStats = {};
+        
+        inPersonReports.forEach(report => {
+            const centerId = report.educational_center_id;
+            const centerName = report.educational_centers?.name_en || report.center_name || 'مركز غير محدد';
+            const districtName = report.district_name || '-';
+            
+            if (!centerId) return;
+            
+            if (!centersStats[centerId]) {
+                centersStats[centerId] = {
+                    id: centerId,
+                    name: centerName,
+                    district: districtName,
+                    total: 0,
+                    creative_count: 0,
+                    challenges_count: 0,
+                    recommendations_count: 0
+                };
+            }
+            
+            centersStats[centerId].total++;
+            
+            if (report.positive_aspects) centersStats[centerId].creative_count++;
+            if (report.challenges) centersStats[centerId].challenges_count++;
+            if (report.recommendations) centersStats[centerId].recommendations_count++;
+        });
+        
+        const centersArray = Object.values(centersStats).sort((a, b) => b.total - a.total);
+        const tbody = document.getElementById('centersTableBody');
+        
+        if (!centersArray.length) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">لا توجد بيانات للعرض</td></tr>';
+            return;
+        }
+        
+        let totalVisits = 0;
+        let totalCreative = 0;
+        let totalChallenges = 0;
+        let totalRecommendations = 0;
+        
+        centersArray.forEach(center => {
+            totalVisits += center.total;
+            totalCreative += center.creative_count;
+            totalChallenges += center.challenges_count;
+            totalRecommendations += center.recommendations_count;
+        });
+        
+        tbody.innerHTML = centersArray.map((center, index) => `
+            <tr>
+                <td style="text-align: center;">${index + 1}</td>
+                <td><strong>${escapeHtml(center.name)}</strong></td>
+                <td>${escapeHtml(center.district)}</td>
+                <td style="color: #1e3c72; text-align: center; font-weight: 600;">${center.total}</td>
+                <td style="color: #2e9b54; text-align: center;">${center.creative_count}</td>
+                <td style="color: #f59e0b; text-align: center;">${center.challenges_count}</td>
+                <td style="color: #e34f76; text-align: center;">${center.recommendations_count}</td>
+            </tr>
+        `).join('');
+        
+        document.getElementById('totalCentersCount').innerHTML = `<strong>${totalVisits}</strong>`;
+        document.getElementById('totalCentersCreative').innerHTML = `<strong>${totalCreative}</strong>`;
+        document.getElementById('totalCentersChallenges').innerHTML = `<strong>${totalChallenges}</strong>`;
+        document.getElementById('totalCentersRecommendations').innerHTML = `<strong>${totalRecommendations}</strong>`;
     }
 
     function updateCharts(reports) {
@@ -1366,14 +1840,15 @@
         const inPerson = reports.filter(r => r.report_type === 'in_person').length;
         const remote = total - inPerson;
         const uniqueSpecialists = new Set(reports.map(r => r.specialist_id)).size;
-        const visitedSchoolIds = new Set(reports.map(r => r.school_id));
+        const visitedSchoolIds = new Set(reports.filter(r => r.report_type === 'remote').map(r => r.school_id));
+        const allSchoolIds = new Set(allSchoolsList.map(s => s.id));
         
         document.getElementById('totalVisits').textContent = total;
         document.getElementById('inPersonVisits').textContent = inPerson;
         document.getElementById('remoteVisits').textContent = remote;
         document.getElementById('activeSpecialists').textContent = uniqueSpecialists;
         document.getElementById('visitedSchools').textContent = visitedSchoolIds.size;
-        document.getElementById('notVisitedSchools').textContent = allSchoolsList.length - visitedSchoolIds.size;
+        document.getElementById('notVisitedSchools').textContent = allSchoolIds.size - visitedSchoolIds.size;
         
         updateCharts(reports);
         
@@ -1383,8 +1858,9 @@
         displaySpecialistsStatsWithEfficiency(specialistsWithEff, currentSort);
         
         displaySchoolsStats(reports);
-        displayAllSchoolsDetails(reports, visitedSchoolIds);
+        displayAllSchoolsDetails(reports);
         displayDistrictsAnalytics(reports);
+        displayCentersAnalytics(reports);
         
         const daysCount = getDaysBetweenDates(dateFrom, dateTo);
         const weeksCount = (daysCount / 7).toFixed(1);
@@ -1392,14 +1868,25 @@
         if (periodText) {
             const fromFormatted = dateFrom ? dateFrom : '';
             const toFormatted = dateTo ? dateTo : '';
-            periodText.innerHTML = `فترة التحليل: من ${fromFormatted} إلى ${toFormatted} (${daysCount} يوم - ${weeksCount} أسبوع)`;
+            const entityKey = localStorage.getItem('currentEntityKey');
+            let entityInfo = '';
+            if (entityKey) {
+                const parsed = parseEntityKey(entityKey);
+                if (parsed) {
+                    const entityName = parsed.type === 'district' ? 'منطقة' : parsed.type === 'school' ? 'مدرسة' : 'مركز';
+                    entityInfo = ` - ${entityName}: ${parsed.id}`;
+                }
+            }
+            periodText.innerHTML = `فترة التحليل: من ${fromFormatted} إلى ${toFormatted} (${daysCount} يوم - ${weeksCount} أسبوع)${entityInfo}`;
         }
     }
     
+    // ==================== تحميل المدارس والمناطق ====================
     async function loadAllSchools() {
         try {
             if (!window.supabaseClient) return;
             let query = window.supabaseClient.from('schools').select('id, name, district_id');
+            
             if (currentUser?.role === 'manger' && currentUser?.district_id) {
                 query = query.eq('district_id', currentUser.district_id);
             } else if (currentUser?.role === 'spuser' && currentUser?.school_id) {
@@ -1407,6 +1894,7 @@
                 allSchoolsList = data || [];
                 return;
             }
+            
             const { data, error } = await query;
             if (error) throw error;
             allSchoolsList = data || [];
@@ -1450,6 +1938,7 @@
         }
     }
 
+    // ==================== تحميل التحليلات ====================
     async function loadAnalytics(forceRefresh = false) {
         if (!currentUser || !canViewAnalytics(currentUser)) return;
         if (isLoading) {
@@ -1545,8 +2034,10 @@
             const exportData = analyticsData.map(report => ({
                 'التاريخ': report.visit_date,
                 'النوع': report.report_type === 'in_person' ? 'وجاهي' : 'عن بعد',
-                'المدرسة': report.schools?.name || 'غير محدد',
-                'المنطقة': districtsMap[report.schools?.district_id] || 'غير محدد',
+                'المدرسة/المركز': report.report_type === 'in_person' 
+                    ? (report.educational_centers?.name_en || 'مركز غير محدد')
+                    : (report.schools?.name || 'مدرسة غير محددة'),
+                'المنطقة': report.district_name || 'غير محدد',
                 'المعلم': report.teacher_name || 'غير محدد',
                 'المبحث': report.subject || 'غير محدد',
                 'المختص': report.users?.name || 'غير محدد'
@@ -1565,66 +2056,6 @@
                 exportBtn.disabled = false;
                 exportBtn.innerHTML = '<i class="fas fa-file-excel"></i> تصدير إكسل';
             }, 1000);
-        }
-    }
-
-    // ==================== دوال المستخدم ====================
-    async function getCurrentUserFromSystem() {
-        try {
-            if (window.getCurrentUser) {
-                const user = await window.getCurrentUser();
-                if (user && user.id) return user;
-            }
-            const stored = localStorage.getItem('currentUser');
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                if (parsed && parsed.id) return parsed;
-            }
-            return null;
-        } catch (e) {
-            console.error('Error getting current user:', e);
-            const stored = localStorage.getItem('currentUser');
-            return stored ? JSON.parse(stored) : null;
-        }
-    }
-
-    async function loadUserData() {
-        try {
-            currentUser = await getCurrentUserFromSystem();
-            if (!currentUser) { 
-                window.location.href = 'login.html'; 
-                return null; 
-            }
-            if (!canViewAnalytics(currentUser)) { 
-                showNoAccessMessage(); 
-                return null; 
-            }
-            updateSidebarUI(currentUser);
-            return currentUser;
-        } catch (error) {
-            console.error('Error loading user data:', error);
-            return null;
-        }
-    }
-
-    function updateSidebarUI(user) {
-        if (!user) return;
-        document.getElementById('userNameDisplay').textContent = user.name || user.username || 'مستخدم';
-        document.getElementById('userRoleDisplay').textContent = getRoleName(user.role);
-        document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(user);
-        
-        const adminLinks = document.getElementById('adminLinks');
-        const showAdminLinks = (user.role === 'admin' || user.role === 'support');
-        if (adminLinks) adminLinks.style.display = showAdminLinks ? 'block' : 'none';
-        
-        const summaryReportsLink = document.getElementById('summaryReportsLink');
-        if (summaryReportsLink) summaryReportsLink.style.display = (user.role === 'spuser') ? 'none' : 'flex';
-    }
-
-    function showNoAccessMessage() {
-        const mainContent = document.querySelector('.main-content');
-        if (mainContent) {
-            mainContent.innerHTML = `<div class="no-access-message"><i class="fas fa-lock"></i><h3>غير مصرح بالوصول</h3><p>عذراً، لا تملك صلاحية الوصول إلى صفحة التحليلات.</p><button onclick="window.location.href='dashboard.html'" class="btn-primary" style="margin-top: 1rem;"><i class="fas fa-home"></i> العودة للرئيسية</button></div>`;
         }
     }
 
@@ -1779,15 +2210,30 @@
     }
 
     async function logout() {
-        if (window.logout) {
-            await window.logout();
-        } else {
+        try {
+            if (window.logout) {
+                await window.logout();
+            } else {
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('pendingReportId');
+                localStorage.removeItem('pendingReportType');
+                localStorage.removeItem('pendingReportTimestamp');
+                try {
+                    if (window.supabaseClient) {
+                        await window.supabaseClient.auth.signOut();
+                    }
+                } catch (e) {
+                    console.log('Supabase signout error:', e);
+                }
+                window.location.href = 'login.html';
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
             localStorage.removeItem('currentUser');
             window.location.href = 'login.html';
         }
     }
 
-    let notificationInterval = null;
     function startNotificationPolling() {
         if (notificationInterval) clearInterval(notificationInterval);
         notificationInterval = setInterval(async () => {
@@ -1802,6 +2248,7 @@
         initDatePickers();
         const user = await loadUserData();
         if (user && canViewAnalytics(user)) {
+            await initEntitySwitcher();
             await loadAnalytics();
             await updateUnreadBadge();
             startNotificationPolling();

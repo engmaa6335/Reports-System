@@ -1,0 +1,2828 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<!-- SYSTEM_FIX_VERSION: 2026-08-11-v5 -->
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>تقارير الأنشطة الصيفية - نظام التقارير التربوية</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="lib/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="lib/favicon-16.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/modern-style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+console.log('%c🔖 SYSTEM_FIX_VERSION: 2026-08-11-v5', 'color:#2e9b54;font-weight:bold;font-size:14px');</script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="js/supabase.js?v=20260810-2"></script>
+    
+    <style>
+        /* ======= التنسيقات الأساسية ======= */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', 'Cairo', sans-serif; background: #f5f7fb; direction: rtl; }
+        
+        .sidebar {
+            position: fixed; right: 0; top: 0; width: 280px; height: 100%;
+            background: white; border-left: 1px solid #eef2f7;
+            transition: right 0.3s ease; z-index: 1000;
+            display: flex; flex-direction: column;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+        @media (max-width: 992px) {
+            .sidebar { right: -280px; }
+            .sidebar.open { right: 0; }
+            .main-content { margin-right: 0 !important; }
+            .toggle-sidebar { display: flex !important; }
+        }
+        @media (max-width: 768px) {
+            .filters-bar { flex-direction: column; }
+            .filter-group { width: 100%; }
+            .reports-control-bar { flex-direction: column; align-items: stretch; }
+            .modal-content { margin: 0.5rem !important; width: 95%; }
+            .evaluation-grid { grid-template-columns: 1fr !important; gap: 0.3rem; padding: 0.8rem; }
+            .evaluation-grid .checkbox-group { justify-content: flex-start; }
+            .challenge-row { grid-template-columns: 1fr !important; gap: 0.3rem; }
+            .practice-row { grid-template-columns: 1fr !important; gap: 0.3rem; }
+            .need-row { grid-template-columns: 1fr !important; gap: 0.3rem; }
+        }
+        
+        .toggle-sidebar {
+            display: none;
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #1e3c72;
+            transition: all 0.2s;
+        }
+        .toggle-sidebar:hover { background: #f0f4fa; transform: scale(1.05); }
+        
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            transition: all 0.3s;
+        }
+        .sidebar-overlay.active { display: block; }
+        
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #eef2f7; text-align: center; }
+        .sidebar-logo { width: 50px; height: 50px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem; }
+        .sidebar-header h2 { font-size: 1.1rem; color: #1e3c72; margin-bottom: 0.25rem; }
+        .user-role { font-size: 0.75rem; color: #8ba0bc; }
+        .sidebar-nav { flex: 1; padding: 1rem; }
+        .sidebar-nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: #4e6580; text-decoration: none; border-radius: 12px; margin-bottom: 0.25rem; transition: all 0.2s; }
+        .sidebar-nav a:hover { background: #e8f0fe; color: #1e3c72; }
+        .sidebar-nav a.active { background: linear-gradient(135deg, #1e3c72, #153155); color: white; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid #eef2f7; }
+        .user-info { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+        .user-avatar { width: 45px; height: 45px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+        .user-name { font-size: 0.9rem; font-weight: 600; color: #1e3c72; }
+        .user-district { font-size: 0.7rem; color: #8ba0bc; }
+        .logout-btn { width: 100%; padding: 0.75rem; background: none; border: 1px solid #e34f76; color: #e34f76; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .logout-btn:hover { background: #fff2f5; }
+        
+        .main-content { margin-right: 280px; min-height: 100vh; padding: 1.5rem; transition: margin-right 0.3s ease; }
+        
+        .notifications-container { position: fixed; top: 20px; left: 20px; z-index: 9999; max-width: 350px; }
+        .notification-item { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-right: 4px solid #1e3c72; animation: slideIn 0.3s ease; cursor: pointer; }
+        .notification-item.success { border-right-color: #2e9b54; }
+        .notification-item.error { border-right-color: #e34f76; }
+        .notification-item.info { border-right-color: #1e3c72; }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white; border: none; padding: 0.6rem 1.2rem;
+            border-radius: 12px; cursor: pointer; font-weight: 600;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30,60,114,0.3); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .btn-secondary {
+            background: #f1f5f9; color: #4e6580; border: 1px solid #e2e8f0;
+            padding: 0.6rem 1.2rem; border-radius: 12px; cursor: pointer;
+            font-weight: 600; transition: all 0.2s; white-space: nowrap;
+        }
+        .btn-secondary:hover { background: #eef2ff; color: #1e3c72; }
+        
+        .btn-danger { background: linear-gradient(135deg, #e34f76, #c73e5c); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 12px; cursor: pointer; font-weight: 600; }
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(227,79,118,0.3); }
+        
+        .btn-outlook { background: linear-gradient(135deg, #0078D4, #005a9e); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 12px; cursor: pointer; font-weight: 600; }
+        
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+            z-index: 999999 !important; display: none;
+            align-items: flex-start !important; justify-content: center !important;
+            overflow-y: auto; padding: 1rem;
+        }
+        .modal.active { display: flex !important; }
+        .modal-content {
+            margin: 0.5rem auto 2rem auto !important;
+            max-width: 95%; width: 100%;
+            background: white; border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+            position: relative; z-index: 1000000;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-large { max-width: 1400px; width: 98%; }
+        .modal-header {
+            position: sticky; top: 0; background: white; z-index: 10;
+            border-bottom: 1px solid #eef2f7; padding: 1rem 1.5rem;
+            border-radius: 28px 28px 0 0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #8ba0bc; transition: all 0.2s; }
+        .modal-close:hover { color: #e34f76; }
+        .modal-actions { display: flex; gap: 1rem; justify-content: flex-start; margin-top: 1rem; padding: 1rem 1.5rem; border-top: 1px solid #eef2f7; }
+        
+        .alert-modal-content { max-width: 550px; text-align: center; }
+        .alert-icon { width: 80px; height: 80px; background: linear-gradient(135deg, #eef2ff, #e0e8f5); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+        .alert-icon i { font-size: 2.5rem; color: #1e3c72; }
+        .alert-title { font-size: 1.3rem; font-weight: 700; color: #1e3c72; margin-bottom: 0.75rem; }
+        .alert-message { color: #4e6580; font-size: 0.95rem; line-height: 1.7; margin-bottom: 1rem; text-align: center; }
+        .alert-steps { background: #f8fafd; border-radius: 16px; padding: 1rem; margin: 1rem 0; text-align: right; }
+        .alert-steps p { color: #1e3c72; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .alert-steps ul { margin: 0.5rem 0 0 1.5rem; color: #4e6580; font-size: 0.85rem; line-height: 1.8; }
+        .alert-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .alert-buttons button { flex: 1; padding: 0.85rem; border-radius: 16px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-got-it { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; }
+        
+        .form-input {
+            width: 100%; padding: 0.7rem 1rem;
+            border: 1px solid #e2e8f0; border-radius: 12px;
+            font-family: inherit; font-size: 0.9rem;
+            transition: all 0.2s; background: white;
+        }
+        .form-input:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 3px rgba(30,60,114,0.1); }
+        select.form-input { appearance: auto; }
+        .form-input[readonly] { background: #f8fafd; cursor: default; }
+        textarea.form-input { resize: vertical; min-height: 60px; }
+        
+        .clickable-text {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .clickable-text:hover {
+            border-color: #1e3c72;
+            background: #f8fafd;
+            box-shadow: 0 0 0 2px rgba(30,60,114,0.1);
+        }
+        
+        .form-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .form-group label { font-weight: 600; color: #1e3c72; font-size: 0.85rem; }
+        
+        .form-section-title {
+            color: #1e3c72;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 1.5rem 0 1rem 0;
+            padding: 0.5rem 0;
+            border-bottom: 2px solid #1e3c72;
+        }
+        
+        .evaluation-grid {
+            display: grid;
+            grid-template-columns: 1fr 80px 80px 80px 1fr;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .evaluation-grid.header {
+            background: #f8fafd;
+            font-weight: 600;
+            color: #1e3c72;
+            border-radius: 8px;
+            border-bottom: 2px solid #1e3c72;
+        }
+        .evaluation-grid input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .evaluation-grid input[type="text"] {
+            width: 100%;
+            padding: 0.3rem 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        
+        .staff-grid {
+            grid-template-columns: 1fr 70px 70px 70px 70px 1fr !important;
+        }
+        
+        .need-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 50px;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .need-row.header {
+            background: #f8fafd;
+            font-weight: 600;
+            color: #1e3c72;
+            border-radius: 8px;
+            border-bottom: 2px solid #1e3c72;
+        }
+        .need-row input, .need-row select {
+            padding: 0.3rem 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+        .need-row .clickable-text { cursor: pointer; }
+        .need-row .clickable-text:hover { border-color: #1e3c72; background: #f8fafd; }
+        
+        .challenge-row {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 0.8fr 0.8fr 1.2fr 0.8fr 0.8fr 50px;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .challenge-row.header {
+            background: #f8fafd;
+            font-weight: 600;
+            color: #1e3c72;
+            border-radius: 8px;
+            border-bottom: 2px solid #1e3c72;
+        }
+        .challenge-row input, .challenge-row select {
+            padding: 0.3rem 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+        .challenge-row .clickable-text { cursor: pointer; }
+        .challenge-row .clickable-text:hover { border-color: #1e3c72; background: #f8fafd; }
+        
+        .practice-row {
+            display: grid;
+            grid-template-columns: 1.2fr 1.2fr 1fr 50px;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .practice-row.header {
+            background: #f8fafd;
+            font-weight: 600;
+            color: #1e3c72;
+            border-radius: 8px;
+            border-bottom: 2px solid #1e3c72;
+        }
+        .practice-row textarea {
+            width: 100%;
+            padding: 0.3rem 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            min-height: 50px;
+            resize: vertical;
+        }
+        
+        .remove-btn {
+            background: #fff2f5;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #e34f76;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .remove-btn:hover { background: #ffe8e5; }
+        
+        .add-row-btn {
+            background: linear-gradient(135deg, #1e3c72, #153155);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+        .add-row-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(30,60,114,0.3); }
+        
+        .table-container { overflow-x: auto; border-radius: 16px; background: white; padding: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .modern-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .modern-table th, .modern-table td { padding: 12px 16px; text-align: right; border-bottom: 1px solid #eef2f7; }
+        .modern-table th { background: #f8fafd; font-weight: 600; color: #1e3c72; }
+        .modern-table tr:hover { background: #f8fafd; }
+        
+        .badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 500; }
+        .badge-success { background: #eef9f0; color: #2e9b54; }
+        .badge-primary { background: #e8f0fe; color: #1e3c72; }
+        .badge-warning { background: #fef3e2; color: #d97706; }
+        
+        .action-link { text-decoration: none; margin: 0 0.25rem; font-size: 1.1rem; transition: all 0.2s; }
+        .action-link:hover { opacity: 0.7; }
+        .action-link.view { color: #1e3c72; }
+        .action-link.edit { color: #f59e0b; }
+        .action-link.delete { color: #e34f76; }
+        
+        .filters-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            background: #f8fafd;
+            padding: 1.25rem;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            align-items: flex-end;
+        }
+        .filter-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .filter-group label { font-size: 0.8rem; font-weight: 600; color: #1e3c72; }
+        .filter-buttons { display: flex; gap: 0.5rem; align-items: flex-end; flex-wrap: wrap; }
+        
+        .reports-control-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f8fafd; padding: 0.75rem 1.25rem;
+            border-radius: 16px; margin-bottom: 1rem;
+            flex-wrap: wrap; gap: 1rem;
+        }
+        .reports-info { color: #4e6580; font-size: 0.85rem; background: white; padding: 0.4rem 1rem; border-radius: 30px; border: 1px solid #e2e8f0; }
+        .page-size-selector { display: flex; align-items: center; gap: 0.5rem; background: #f8fafd; padding: 0.3rem 0.8rem; border-radius: 30px; }
+        .page-size-selector select { padding: 0.3rem 0.5rem; border-radius: 8px; border: 1px solid #e2e8f0; background: white; }
+        
+        .pagination-container { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap; }
+        .pagination-btn { background: white; border: 1px solid #e2e8f0; padding: 0.5rem 0.9rem; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #1e3c72; transition: all 0.2s; }
+        .pagination-btn:hover:not(:disabled) { background: #1e3c72; color: white; border-color: #1e3c72; }
+        .pagination-btn.active { background: #1e3c72; color: white; border-color: #1e3c72; }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-info { background: #f8fafd; padding: 0.5rem 1rem; border-radius: 30px; font-size: 0.85rem; color: #4e6580; }
+        
+        .loading-progress { background: white; border-radius: 16px; padding: 0.75rem 1rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .progress-bar-bg { background: #eef2f7; border-radius: 30px; height: 8px; overflow: hidden; margin: 0.5rem 0; }
+        .progress-bar-fill { background: linear-gradient(90deg, #1e3c72, #2e9b54); width: 0%; height: 100%; border-radius: 30px; transition: width 0.3s ease; }
+        .loading-stats { font-size: 0.8rem; color: #4e6580; text-align: center; margin-top: 0.5rem; }
+        
+        .loader { border: 3px solid #eef2f7; border-top: 3px solid #1e3c72; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        .loader-small { border: 2px solid #eef2f7; border-top: 2px solid #1e3c72; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; margin-left: 0.5rem; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .flatpickr-calendar { z-index: 9999999 !important; }
+        .flatpickr-input[readonly] { background-color: white; cursor: pointer !important; }
+        .filter-date-picker { cursor: pointer !important; background-color: white; }
+        
+        .notifications-trigger button {
+            background: none; border: none; width: 100%; text-align: center;
+            padding: 0.75rem 1rem; border-radius: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+            color: #4e6580; transition: all 0.2s; position: relative;
+        }
+        .notification-badge { position: relative; }
+        .badge-count {
+            position: absolute; top: -8px; right: 20px;
+            background: #e34f76; color: white; font-size: 0.65rem;
+            font-weight: 600; min-width: 18px; height: 18px;
+            border-radius: 10px; display: flex; align-items: center;
+            justify-content: center; padding: 0 4px;
+        }
+        
+        .notifications-panel {
+            position: fixed; top: 0; left: -380px; width: 380px;
+            height: 100vh; background: white;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.1); z-index: 10000;
+            transition: left 0.3s ease; display: flex; flex-direction: column;
+        }
+        .notifications-panel.open { left: 0; }
+        .notifications-panel-header {
+            padding: 1.25rem; border-bottom: 1px solid #eef2f7;
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f8fafd;
+        }
+        .notifications-list { flex: 1; overflow-y: auto; padding: 1rem; }
+        .notification-list-item {
+            background: #f8fafd; border-radius: 12px; padding: 1rem;
+            margin-bottom: 0.75rem; cursor: pointer; transition: all 0.2s;
+            border-right: 3px solid transparent; position: relative;
+        }
+        .notification-list-item.unread { background: white; border-right-color: #1e3c72; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .notification-list-item:hover { transform: translateX(-3px); }
+        .notification-list-item .delete-notification {
+            position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: #e34f76; cursor: pointer;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .notification-list-item:hover .delete-notification { opacity: 1; }
+        .panel-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: none; }
+        .panel-overlay.open { display: block; }
+        .mark-all-read { background: none; border: none; color: #1e3c72; cursor: pointer; font-size: 0.8rem; padding: 0.3rem 0.6rem; border-radius: 8px; }
+        .mark-all-read:hover { background: #eef2ff; }
+        .close-panel { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #8ba0bc; padding: 0.3rem 0.6rem; border-radius: 8px; }
+        .close-panel:hover { background: #eef2ff; color: #1e3c72; }
+        .empty-notifications { text-align: center; padding: 2rem; color: #8ba0bc; }
+        .empty-notifications i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+        
+        .email-modal-content { max-width: 600px; width: 90%; }
+        .email-group { margin-bottom: 1.2rem; }
+        .email-group label { display: block; font-weight: 600; color: #1e3c72; margin-bottom: 0.4rem; font-size: 0.85rem; }
+        .email-group input, .email-group textarea { width: 100%; padding: 0.7rem 1rem; border: 1px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 0.9rem; background: #f8fafd; }
+        .email-actions { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+        
+        .confirm-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            z-index: 100000; display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        .confirm-modal-overlay.active { opacity: 1; visibility: visible; z-index: 1000000000; }
+        .confirm-modal {
+            background: white; border-radius: 24px; width: 90%; max-width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            transform: scale(0.9); transition: transform 0.3s ease; overflow: hidden;
+        }
+        .confirm-modal-overlay.active .confirm-modal { transform: scale(1); }
+        .confirm-modal-header { padding: 1.5rem 1.5rem 0 1.5rem; text-align: center; }
+        .confirm-modal-icon { width: 70px; height: 70px; background: linear-gradient(135deg, #fff2f0, #ffe8e5); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+        .confirm-modal-icon i { font-size: 2.5rem; color: #e34f76; }
+        .confirm-modal-header h3 { font-size: 1.4rem; color: #1e3c72; margin-bottom: 0.5rem; }
+        .confirm-modal-header p { color: #4e6580; font-size: 0.95rem; line-height: 1.5; }
+        .confirm-modal-options { display: flex; gap: 1rem; margin-top: 1rem; padding: 1rem 1.5rem; }
+        .confirm-modal-options button { flex: 1; padding: 0.85rem; border: none; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-confirm-yes { background: linear-gradient(135deg, #2e9b54, #257a44); color: white; }
+        .btn-confirm-no { background: #f1f5f9; color: #4e6580; border: 1px solid #e2e8f0; }
+        .download-note { font-size: 14px; color: #fff; background: #e34f76; margin-top: 15px; text-align: center; animation: fadeLoop 3s infinite; padding: 15px; font-weight: bold; border-radius: 15px; }
+        @keyframes fadeLoop { 0% { opacity: 0; } 25% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+        
+        .preview-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .preview-table th, .preview-table td { border: 1px solid #dee2e6; padding: 10px 8px; text-align: center; vertical-align: top; }
+        .preview-table th { background: linear-gradient(135deg, #1e3c72, #153155); color: white; font-weight: 600; }
+        
+        .info-display {
+            display: flex; flex-wrap: wrap; gap: 15px;
+            background: #f8fafd; padding: 18px; border-radius: 16px;
+            margin-bottom: 25px; border: 1px solid #e2e8f0;
+        }
+        .info-display .item { flex: 1; min-width: 180px; }
+        .info-display .item strong { color: #1e3c72; }
+        
+        .note-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 9999999;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .note-modal-overlay.active { display: flex; }
+        .note-modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+        }
+        .note-modal-content h4 {
+            color: #1e3c72;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        .note-modal-content textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+        }
+        .note-modal-content textarea:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30,60,114,0.1);
+        }
+        .note-modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .note-modal-actions button { flex: 1; }
+    </style>
+</head>
+<body>
+
+<button class="toggle-sidebar" id="toggleSidebarBtn" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+</button>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
+        <h2>نظام التقارير التربوية</h2>
+        <p class="user-role" id="userRoleDisplay">...</p>
+    </div>
+    <div class="notifications-trigger" style="margin: 0.5rem 1rem;">
+        <button onclick="toggleNotificationsPanel()" class="notification-badge">
+            <i class="fas fa-bell" style="font-size: 1.1rem;"></i>
+            <span>الإشعارات</span>
+            <span id="unreadBadge" class="badge-count" style="display: none;">0</span>
+        </button>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
+        <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
+        <a id="navSummerReports" href="summer-reports.html" class="active"><i class="fas fa-sun"></i> الأنشطة الصيفية</a>
+        <a id="navSummaryReports" href="summary-reports.html"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
+        <a href="analytics.html" id="navAnalytics" style="display: none;"><i class="fas fa-chart-bar"></i> التحليلات</a>
+        <div id="adminLinks" style="display: none;">
+            <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
+            <a id="navDistrictsManagement" href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+            <a id="navUsersManagement" href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
+        </div>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="user-info">
+            <div class="user-avatar"><i class="fas fa-user"></i></div>
+            <div>
+                <h4 class="user-name" id="userNameDisplay">...</h4>
+                <p class="user-district" id="userDistrictDisplay">...</p>
+            </div>
+        </div>
+        <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="margin-bottom: 0.5rem; color: #1e3c72;"><i class="fas fa-sun"></i> تقارير الأنشطة الصيفية</h1>
+            <p style="color: #4e6580;">إدارة التقارير الأسبوعية الشاملة للأنشطة الصيفية - إجمالي <span id="totalReportsHint">0</span> تقرير</p>
+        </div>
+        <div>
+            <button onclick="openAddReportModal()" class="btn-primary" id="addReportBtn" style="display: none;">
+                <i class="fas fa-plus"></i> إضافة تقرير نشاط صيفي جديد
+            </button>
+        </div>
+    </div>
+
+    <div class="filters-bar">
+        <div class="filter-group"><label><i class="fas fa-search"></i> بحث</label><input type="text" id="searchInput" class="form-input" placeholder="منطقة / مختص"></div>
+        <div class="filter-group"><label><i class="fas fa-hashtag"></i> رقم الأسبوع</label>
+            <select id="weekFilter" class="form-input">
+                <option value="">الكل</option>
+                <option value="1">الأسبوع الأول</option>
+                <option value="2">الأسبوع الثاني</option>
+                <option value="3">الأسبوع الثالث</option>
+                <option value="4">الأسبوع الرابع</option>
+                <option value="5">الأسبوع الخامس</option>
+                <option value="6">الأسبوع السادس</option>
+                <option value="7">الأسبوع السابع</option>
+                <option value="8">الأسبوع الثامن</option>
+            </select>
+        </div>
+        <div class="filter-group"><label><i class="fas fa-calendar"></i> من تاريخ</label><input type="text" id="dateFrom" class="form-input filter-date-picker" placeholder="dd/mm/yyyy" readonly></div>
+        <div class="filter-group"><label><i class="fas fa-calendar"></i> إلى تاريخ</label><input type="text" id="dateTo" class="form-input filter-date-picker" placeholder="dd/mm/yyyy" readonly></div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button onclick="applyFilters()" class="btn-primary"><i class="fas fa-search"></i> بحث</button>
+            <button onclick="clearFilters()" class="btn-secondary"><i class="fas fa-eraser"></i> مسح</button>
+            <button onclick="exportToExcel()" class="btn-secondary" style="background: #2e9b54; color: white;"><i class="fas fa-file-excel"></i> تصدير إكسل</button>
+        </div>
+    </div>
+
+    <div class="reports-control-bar">
+        <div class="reports-info">
+            <i class="fas fa-chart-line"></i> إجمالي التقارير: <strong id="totalCountDisplay">0</strong>
+        </div>
+        <div class="page-size-selector">
+            <span style="color:#1e3c72;">عرض:</span>
+            <select id="pageSizeSelect">
+                <option value="10">10</option>
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <span style="color:#1e3c72;">تقرير لكل صفحة</span>
+        </div>
+    </div>
+
+    <div id="loadingProgress" class="loading-progress" style="display: none;">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <div class="loading-stats" id="loadingStats"></div>
+    </div>
+
+    <div class="table-container">
+        <div style="overflow-x: auto;">
+            <table class="modern-table">
+                <thead>
+                    <tr><th>#</th><th>تاريخ الإنشاء</th><th>الأسبوع</th><th>الفترة</th><th>المنطقة</th><th>المختص</th><th>الحالة</th><th>الإجراءات</th></tr>
+                </thead>
+                <tbody id="reportsTableBody">
+                    <tr><td colspan="8" style="text-align: center; padding: 3rem;"><div class="loader"></div><p>جاري تحميل التقارير...</p></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="paginationContainer" class="pagination-container"></div>
+        <div style="margin-top: 1rem; color: #4e6580; text-align: center;" id="resultsCount"></div>
+    </div>
+</main>
+
+<!-- ===================== مودال إضافة/تعديل التقرير ===================== -->
+<div id="summerReportModal" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2 id="modalTitle">إضافة تقرير أسبوعي شامل للأنشطة الصيفية</h2>
+            <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="summerReportForm" style="padding: 1rem 1.5rem;">
+            <input type="hidden" id="reportId">
+            
+            <!-- ============================================================ -->
+            <!-- أولاً: المعلومات الأساسية -->
+            <!-- ============================================================ -->
+            <h3 class="form-section-title">أولاً: المعلومات الأساسية</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt"></i> المنطقة التعليمية *</label>
+                    <select id="districtId" class="form-input" required>
+                        <option value="">اختر المنطقة</option>
+                    </select>
+                    <input type="hidden" id="districtManager">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-hashtag"></i> رقم الأسبوع *</label>
+                    <select id="weekNumber" class="form-input" required onchange="updatePeriodDates()">
+                        <option value="">اختر رقم الأسبوع</option>
+                        <option value="1">الأسبوع الأول (18/7 - 23/7)</option>
+                        <option value="2">الأسبوع الثاني (25/7 - 30/7)</option>
+                        <option value="3">الأسبوع الثالث (1/8 - 6/8)</option>
+                        <option value="4">الأسبوع الرابع (8/8 - 13/8)</option>
+                        <option value="5">الأسبوع الخامس (15/8 - 20/8)</option>
+                        <option value="6">الأسبوع السادس (22/8 - 27/8)</option>
+                        <option value="7">الأسبوع السابع (29/8 - 3/9)</option>
+                        <option value="8">الأسبوع الثامن (5/9 - 10/9)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-calendar-alt"></i> الفترة من *</label>
+                    <input type="text" id="periodFrom" class="form-input" placeholder="dd/mm/yyyy" required readonly>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-calendar-alt"></i> الفترة إلى *</label>
+                    <input type="text" id="periodTo" class="form-input" placeholder="dd/mm/yyyy" required readonly>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-user-tie"></i> مدير المنطقة التعليمية</label>
+                    <input type="text" id="districtManagerDisplay" class="form-input" readonly placeholder="سيتم جلب الاسم تلقائياً" style="background:#f8fafd;">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-user-edit"></i> منسق/معد التقرير</label>
+                    <input type="text" id="reportCoordinator" class="form-input" placeholder="اسم المنسق">
+                    <small style="color:#4e6580;font-size:0.75rem;">في حالة الدعم الفني يمكن كتابة اسم المنسق</small>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-calendar-day"></i> تاريخ الإعداد</label>
+                    <input type="text" id="reportDate" class="form-input date-picker" placeholder="dd/mm/yyyy">
+                </div>
+            </div>
+            
+            <!-- ============================================================ -->
+            <!-- ثانياً: الملخص التنفيذي -->
+            <!-- ============================================================ -->
+            <h3 class="form-section-title">ثانياً: الملخص التنفيذي</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>مستوى التنفيذ العام</label>
+                    <textarea id="execSummary" class="form-input" rows="2" placeholder="ملخص مستوى التنفيذ العام..."></textarea>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>أبرز إنجاز تعليمي</label>
+                    <textarea id="topEducationalAchievement" class="form-input" rows="2" placeholder="أبرز الإنجازات التعليمية..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>أبرز إنجاز ترفيهي/نفسي اجتماعي</label>
+                    <textarea id="topRecreationalAchievement" class="form-input" rows="2" placeholder="أبرز الإنجازات الترفيهية..."></textarea>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>أهم تحدٍ أو خطر</label>
+                    <textarea id="mainChallenge" class="form-input" rows="2" placeholder="أهم التحديات..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>أولوية الأسبوع القادم</label>
+                    <textarea id="nextWeekPriority" class="form-input" rows="2" placeholder="أولويات الأسبوع القادم..."></textarea>
+                </div>
+            </div>
+            
+            <!-- ============================================================ -->
+            <!-- ثالثاً: انتظام التنفيذ وجودة التخطيط -->
+            <!-- ============================================================ -->
+            <h3 class="form-section-title">ثالثاً: انتظام التنفيذ وجودة التخطيط</h3>
+            
+            <div class="evaluation-grid header">
+                <span>معيار المتابعة</span>
+                <span style="text-align:center;">متحقق</span>
+                <span style="text-align:center;">متحقق جزئياً</span>
+                <span style="text-align:center;">غير متحقق</span>
+                <span>الشاهد/الملاحظة</span>
+            </div>
+            <div id="implementationQualityContainer"></div>
+            
+            <!-- ============================================================ -->
+            <!-- رابعاً: أداء العاملين -->
+            <!-- ============================================================ -->
+            <h3 class="form-section-title">رابعاً: أداء العاملين</h3>
+            
+            <div class="evaluation-grid header staff-grid">
+                <span>معيار الأداء</span>
+                <span style="text-align:center;">ممتاز</span>
+                <span style="text-align:center;">جيد جداً</span>
+                <span style="text-align:center;">جيد</span>
+                <span style="text-align:center;">يحتاج تحسين</span>
+                <span>الشاهد/الدعم المطلوب</span>
+            </div>
+            <div id="staffPerformanceContainer"></div>
+            
+            <!-- ============================================================ -->
+            <!-- خامساً: الاحتياجات المهنية للعاملين -->
+            <!-- ============================================================ -->
+            <h3 class="form-section-title">خامساً: الاحتياجات المهنية للعاملين</h3>
+            
+            <div class="need-row header">
+                <span>احتياج مهني محدد</span>
+                <span>نوع الدعم/التدريب</span>
+                <span>الفئة المستهدفة</span>
+                <span>المسؤول</span>
+                <span>موعد التنفيذ</span>
+                <span>دليل الإنجاز</span>
+                <span></span>
+            </div>
+            <div id="professionalNeedsContainer"></div>
+            <button type="button" class="add-row-btn" onclick="addProfessionalNeed()"><i class="fas fa-plus"></i> إضافة احتياج مهني</button>
+            
+            <!-- ============================================================ -->
+            <!-- سادساً: البيئة المدرسية -->
+            <!-- ============================================================ -->
+            <h3 class="form-section-title">سادساً: البيئة المدرسية</h3>
+            
+            <div class="evaluation-grid header">
+                <span>المعيار</span>
+                <span style="text-align:center;">متوفر</span>
+                <span style="text-align:center;">جزئياً</span>
+                <span style="text-align:center;">غير متوفر</span>
+                <span>الإجراء العاجل/الملاحظة</span>
+            </div>
+            <div id="schoolEnvironmentContainer"></div>
+            
+            <!-- ============================================================ -->
+            <!-- سابعاً: التحديات والمخاطر والإجراءات التصحيحية -->
+            <!-- ============================================================ -->
+            <h3 class="form-section-title">سابعاً: التحديات والمخاطر والإجراءات التصحيحية</h3>
+            
+            <div class="challenge-row header">
+                <span>التحدي/الخطر</span>
+                <span>الأثر</span>
+                <span>الاحتمالية</span>
+                <span>مستوى الأولوية</span>
+                <span>الإجراء المتخذ/المقترح</span>
+                <span>المسؤول</span>
+                <span>الحالة</span>
+                <span></span>
+            </div>
+            <div id="challengesContainer"></div>
+            <button type="button" class="add-row-btn" onclick="addChallengeRow()"><i class="fas fa-plus"></i> إضافة تحدي/خطر</button>
+            
+            <!-- ============================================================ -->
+            <!-- ثامناً: الممارسات المتميزة والدروس المستفادة -->
+            <!-- ============================================================ -->
+            <h3 class="form-section-title">ثامناً: الممارسات المتميزة والدروس المستفادة</h3>
+            
+            <div class="practice-row header">
+                <span>الممارسة/النشاط المتميز واسم المساحة</span>
+                <span>كيفية التنفيذ وعوامل النجاح</span>
+                <span>الأثر المدعوم بشاهد أو بيانات</span>
+                <span></span>
+            </div>
+            <div id="bestPracticesContainer"></div>
+            <button type="button" class="add-row-btn" onclick="addBestPractice()"><i class="fas fa-plus"></i> إضافة ممارسة متميزة</button>
+            
+            <!-- ============================================================ -->
+            <!-- أزرار الحفظ والإلغاء -->
+            <!-- ============================================================ -->
+            <div style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #eef2f7;">
+                <button type="submit" id="saveReportBtn" class="btn-primary" style="flex: 2;"><i class="fas fa-save"></i> حفظ التقرير</button>
+                <button type="button" onclick="closeModal()" class="btn-secondary" style="flex: 1;"><i class="fas fa-times"></i> إلغاء</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===================== مودال TextArea المنبثقة ===================== -->
+<div id="noteModal" class="note-modal-overlay">
+    <div class="note-modal-content">
+        <h4><i class="fas fa-edit"></i> إدخال النص</h4>
+        <textarea id="noteTextarea" placeholder="أدخل النص هنا..."></textarea>
+        <div class="note-modal-actions">
+            <button type="button" onclick="saveNote()" class="btn-primary"><i class="fas fa-save"></i> حفظ</button>
+            <button type="button" onclick="closeNoteModal()" class="btn-secondary"><i class="fas fa-times"></i> إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== باقي المودالات ===================== -->
+<div id="viewModal" class="modal">
+    <div class="modal-content" style="max-width: 1200px; max-height: 85vh; overflow-y: auto;">
+        <div class="modal-header"><h2>تفاصيل تقرير الأنشطة الصيفية</h2><button class="modal-close" onclick="closeViewModal()"><i class="fas fa-times"></i></button></div>
+        <div id="reportDetails" style="padding: 1rem;"></div>
+        <div class="modal-actions">
+            <button onclick="exportReportToPDF()" class="btn-primary"><i class="fas fa-print"></i> حفظ التقرير PDF</button>
+            <button onclick="openOutlookForSummerReport()" id="emailSummerBtn" class="btn-primary" style="background: #2e9b54; display: none;"><i class="fas fa-envelope"></i> إرسال التقرير بالبريد الإلكتروني</button>
+            <button onclick="closeViewModal()" class="btn-secondary">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<div id="emailModal" class="modal">
+    <div class="modal-content email-modal-content">
+        <div class="modal-header"><h2><i class="fas fa-envelope"></i> إرسال التقرير عبر البريد الإلكتروني</h2><button class="modal-close" onclick="closeEmailModal()"><i class="fas fa-times"></i></button></div>
+        <div style="padding: 0.5rem 0 1rem 0;">
+            <div class="email-group"><label><i class="fas fa-user"></i> إلى (To):</label><input type="text" id="emailTo" class="form-input" readonly style="background: #f8fafd;"></div>
+            <div class="email-group"><label><i class="fas fa-copy"></i> نسخة (Cc):</label><input type="text" id="emailCc" class="form-input" readonly style="background: #f8fafd;"></div>
+            <div class="email-group"><label><i class="fas fa-tag"></i> الموضوع:</label><input type="text" id="emailSubject" class="form-input" readonly style="background: #f8fafd;"></div>
+            <div class="email-group"><label><i class="fas fa-align-left"></i> نص الرسالة:</label><textarea id="emailBody" rows="6" class="form-input" readonly style="background: #f8fafd;"></textarea></div>
+            <div class="email-actions"><button onclick="openOutlookWithConfirmation()" class="btn-outlook"><i class="fab fa-windows"></i> فتح Outlook</button><button onclick="closeEmailModal()" class="btn-secondary">إلغاء</button></div>
+            <p style="font-size: 12px; color: #e34f76; margin-top: 15px; text-align: center;"><i class="fas fa-info-circle"></i> يرجى تحميل التقرير PDF قبل إرسال البريد</p>
+        </div>
+    </div>
+</div>
+
+<div id="sendEmailAlertModal" class="modal">
+    <div class="modal-content alert-modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-info-circle"></i> تذكير هام</h2>
+            <button class="modal-close" onclick="closeSendEmailAlertModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="padding: 1.5rem;">
+            <div class="alert-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="alert-title">✅ تم حفظ التقرير بنجاح</div>
+            <div class="alert-message">تم حفظ تقرير الأنشطة الصيفية في النظام بنجاح.</div>
+            <div class="alert-steps">
+                <p><i class="fas fa-lightbulb"></i> ملاحظات هامة:</p>
+                <ul>
+                    <li><i class="fas fa-user-graduate"></i> يمكن لمدير المنطقة الإطلاع على التقرير من خلال حسابه على النظام</li>
+                    <li><i class="fas fa-envelope"></i> من أجل التوثيق / يرجى إرسال التقرير الأسبوعي على البريد</li>
+                </ul>
+            </div>
+            <div class="alert-buttons"><button onclick="closeSendEmailAlertModal()" class="btn-got-it"><i class="fas fa-check"></i> حسناً</button></div>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div style="text-align:center;">
+            <div style="width:70px;height:70px;background:#fff2f5;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;"><i class="fas fa-exclamation-triangle" style="font-size:2rem;color:#e34f76;"></i></div>
+            <h3>تأكيد الحذف</h3>
+            <p>هل أنت متأكد من حذف هذا التقرير؟</p>
+        </div>
+        <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+            <button onclick="confirmDelete()" class="btn-danger" style="flex:1;">حذف</button>
+            <button onclick="closeDeleteModal()" class="btn-secondary" style="flex:1;">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<div id="emailConfirmModal" class="confirm-modal-overlay">
+    <div class="confirm-modal">
+        <div class="confirm-modal-header">
+            <div class="confirm-modal-icon"><i class="fas fa-envelope"></i></div>
+            <h3>تأكيد إرسال البريد</h3>
+            <p>هل قمت بتحميل ملف التقرير (PDF) على جهازك؟</p>
+        </div>
+        <div class="confirm-modal-options">
+            <button class="btn-confirm-yes" id="confirmYesBtn"><i class="fas fa-check-circle"></i> نعم، قمت بالتحميل</button>
+            <button class="btn-confirm-no" id="confirmNoBtn"><i class="fas fa-download"></i> لا، أحتاج للتحميل</button>
+        </div>
+    </div>
+</div>
+
+<div class="notifications-container" id="notificationsContainer"></div>
+<div id="panelOverlay" class="panel-overlay" onclick="closeNotificationsPanel()"></div>
+<div id="notificationsPanel" class="notifications-panel">
+    <div class="notifications-panel-header"><h3>الإشعارات</h3><button onclick="markAllAsRead()" class="mark-all-read" id="markAllReadBtn" style="display: none;">تعيين الكل كمقروء</button><button onclick="closeNotificationsPanel()" class="close-panel"><i class="fas fa-times"></i></button></div>
+    <div class="notifications-list" id="notificationsList"><div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div></div>
+</div>
+
+<script>
+// ==================== بيانات المعايير ====================
+
+const implementationQualityItems = [
+    { id: 'plan_execution', label: 'تنفيذ الخطة الأسبوعية ضمن الجدول المعتمد' },
+    { id: 'activities_balance', label: 'التوازن بين الأنشطة التعليمية والترفيهية' },
+    { id: 'materials_availability', label: 'توافر المواد قبل بدء النشاط' },
+    { id: 'time_suitability', label: 'ملاءمة زمن النشاط للفئة العمرية والظروف' },
+    { id: 'roles_distribution', label: 'توزيع الأدوار بوضوح بين الفريق' },
+    { id: 'curriculum_adherence', label: 'الالتزام بتنفيذ المواد التعليمية المعتمدة' },
+    { id: 'principles_compliance', label: 'الأنشطة التعليمية والترفيهية لا تتعارض مع مبادئ الأونروا' },
+    { id: 'documentation', label: 'توثيق التنفيذ والحضور والنتائج' }
+];
+
+const staffPerformanceItems = [
+    { id: 'attendance', label: 'الالتزام بالحضور والوقت والخطة' },
+    { id: 'classroom_management', label: 'إدارة الصف بصورة إيجابية' },
+    { id: 'strategies_diversity_edu', label: 'تنويع الاستراتيجيات والأنشطة التعليمية' },
+    { id: 'strategies_diversity_rec', label: 'تنويع الاستراتيجيات والأنشطة الترفيهية' },
+    { id: 'individual_differences', label: 'مراعاة الفروق الفردية' },
+    { id: 'inclusion', label: 'دمج الطلبة من ذوي الإعاقة' },
+    { id: 'assessment_feedback', label: 'التقويم وتقديم التغذية الراجعة' },
+    { id: 'team_coordination', label: 'التنسيق والعمل ضمن الفريق' }
+];
+
+const schoolEnvironmentItems = [
+    { id: 'water_sanitation', label: 'المياه ومرافق الصرف الصحي والنظافة' },
+    { id: 'ventilation_shade', label: 'التهوية والظل وأماكن الجلوس' },
+    { id: 'first_aid', label: 'توفر الإسعافات الأولية وإجراءات الطوارئ' },
+    { id: 'child_protection', label: 'تطبيق مبادئ حماية الطفل والسلوك المهني' },
+    { id: 'complaint_mechanism', label: 'وجود آلية آمنة للشكاوى والإحالة' },
+    { id: 'disability_access', label: 'إتاحة الأنشطة للطلبة ذوي الإعاقة' },
+    { id: 'privacy_dignity', label: 'خصوصية وكرامة الطلبة وعدم التمييز' }
+];
+
+// ==================== بيانات الفترات الزمنية ====================
+const summerPeriods = {
+    1: { from: '2026-07-18', to: '2026-07-23' },
+    2: { from: '2026-07-25', to: '2026-07-30' },
+    3: { from: '2026-08-01', to: '2026-08-06' },
+    4: { from: '2026-08-08', to: '2026-08-13' },
+    5: { from: '2026-08-15', to: '2026-08-20' },
+    6: { from: '2026-08-22', to: '2026-08-27' },
+    7: { from: '2026-08-29', to: '2026-09-03' },
+    8: { from: '2026-09-05', to: '2026-09-10' }
+};
+
+// ==================== متغيرات عامة ====================
+let currentUser = null;
+let allReportsCache = [];
+let filteredReportsCache = [];
+let currentPage = 1;
+let pageSize = 25;
+let totalFilteredCount = 0;
+let currentViewReport = null;
+let deleteReportData = null;
+let districtsList = [];
+let isSaving = false;
+let periodFromPicker = null, periodToPicker = null, filterDateFromPicker = null, filterDateToPicker = null, reportDatePicker = null;
+let isRefreshing = false;
+let notificationInterval = null;
+let currentNoteFieldId = null;
+let currentNoteFieldType = null;
+
+// ==================== دوال القائمة الجانبية ====================
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('active');
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+}
+
+// ==================== دوال المساعدة ====================
+function getRoleName(role) {
+    const roles = { 'admin':'مدير النظام', 'support':'دعم فني', 'manger':'مدير منطقة', 'spuser':'مدير مدرسة', 'user':'مختص تربوي' };
+    return roles[role] || role;
+}
+
+function getUserSubtitle(user) {
+    if(!user) return '';
+    if(user.role==='admin'||user.role==='support') return 'مدير نظام';
+    if(user.role==='manger') return user.district_name || user.district || 'مدير منطقة';
+    if(user.role==='spuser') return user.school_name || user.school || 'مدير مدرسة';
+    if(user.role==='center') return user.educational_center_name || 'مدير مركز تعليمي';
+    if(user.role==='user') return 'مشرف تربوي';
+    return '';
+}
+
+function canViewSummerReports(user) {
+    // مدير المركز (center) يرى الأنشطة الصيفية الخاصة بمنطقة مركزه (معاينة فقط، بدون إضافة/تعديل/حذف)
+    return user && ['admin', 'support', 'manger', 'user', 'center'].includes(user.role);
+}
+
+function canCreateSummerReport(user) {
+    return user && ['admin', 'support', 'user'].includes(user.role);
+}
+
+function canEditSummerReport(user, report) {
+    if(!user || !report) return false;
+    if(['admin','support'].includes(user.role)) return true;
+    return user.role==='user' && report.created_by == user.id;
+}
+
+function canDeleteSummerReport(user, report) {
+    return user && report && ['admin','support'].includes(user.role);
+}
+
+function canEmailSummerReport(user) {
+    return user && ['user', 'support'].includes(user.role);
+}
+
+function escapeHtml(text) {
+    if(!text) return '';
+    const div=document.createElement('div');
+    div.textContent=text;
+    return div.innerHTML;
+}
+
+function escapeHtmlAttribute(text) {
+    if(!text) return '';
+    return text.replace(/[&<>]/g, m=> m==='&'?'&amp;':m==='<'?'&lt;':'&gt;');
+}
+
+function formatDateToYMD(date) {
+    if (!date) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function getDateFromPicker(picker) {
+    if(picker && picker.selectedDates && picker.selectedDates[0]) {
+        return formatDateToYMD(picker.selectedDates[0]);
+    }
+    return null;
+}
+
+function setPickerDate(picker, dateValue) {
+    if(picker && dateValue) {
+        try {
+            const date = new Date(dateValue);
+            picker.setDate(date);
+        } catch(e) {
+            console.warn('⚠️ خطأ في تعيين التاريخ:', e);
+        }
+    }
+}
+
+function showMessage(msg, type) {
+    const container=document.getElementById('notificationsContainer');
+    if(!container) return;
+    const el=document.createElement('div');
+    el.className=`notification-item ${type}`;
+    el.innerHTML=`<i class="fas fa-${type==='success'?'check-circle':type==='info'?'info-circle':'exclamation-circle'}"></i> <span>${msg}</span>`;
+    container.appendChild(el);
+    setTimeout(()=>el.remove(),3000);
+}
+
+function openModalWithScroll(modalId) {
+    const modal = document.getElementById(modalId);
+    if(modal) {
+        document.body.style.overflow = 'hidden';
+        modal.classList.add('active');
+    }
+}
+
+function closeModalWithScroll(modalId) {
+    const modal = document.getElementById(modalId);
+    if(modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+function closeModal() {
+    closeModalWithScroll('summerReportModal');
+}
+
+function closeViewModal() {
+    closeModalWithScroll('viewModal');
+    currentViewReport = null;
+}
+
+function closeDeleteModal() {
+    closeModalWithScroll('deleteModal');
+    deleteReportData = null;
+}
+
+function closeEmailModal() {
+    closeModalWithScroll('emailModal');
+}
+
+function closeSendEmailAlertModal() {
+    closeModalWithScroll('sendEmailAlertModal');
+}
+
+// ===================== مودال TextArea المنبثقة =====================
+function openNoteModal(fieldId, currentValue, fieldType) {
+    currentNoteFieldId = fieldId;
+    currentNoteFieldType = fieldType || 'text';
+    const modal = document.getElementById('noteModal');
+    const textarea = document.getElementById('noteTextarea');
+    if (modal && textarea) {
+        textarea.value = currentValue || '';
+        modal.classList.add('active');
+        setTimeout(() => textarea.focus(), 100);
+    }
+}
+
+function closeNoteModal() {
+    const modal = document.getElementById('noteModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    currentNoteFieldId = null;
+    currentNoteFieldType = null;
+}
+
+function saveNote() {
+    const textarea = document.getElementById('noteTextarea');
+    const modal = document.getElementById('noteModal');
+    if (textarea && currentNoteFieldId) {
+        const value = textarea.value;
+        if (currentNoteFieldType === 'evaluation') {
+            const input = document.querySelector(`input[data-field-id="${currentNoteFieldId}"]`);
+            if (input) input.value = value;
+        } else if (currentNoteFieldType === 'need') {
+            const input = document.querySelector(`input[data-need-field="${currentNoteFieldId}"]`);
+            if (input) input.value = value;
+        } else if (currentNoteFieldType === 'challenge') {
+            const input = document.querySelector(`input[data-challenge-field="${currentNoteFieldId}"]`);
+            if (input) input.value = value;
+        } else {
+            const input = document.getElementById(currentNoteFieldId);
+            if (input) input.value = value;
+        }
+        modal.classList.remove('active');
+        currentNoteFieldId = null;
+        currentNoteFieldType = null;
+    }
+}
+
+// ==================== منتقي التواريخ ====================
+function initFilterDatePickers() {
+    if(filterDateFromPicker) filterDateFromPicker.destroy();
+    if(filterDateToPicker) filterDateToPicker.destroy();
+    
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    
+    filterDateFromPicker = flatpickr("#dateFrom", {
+        locale: "ar",
+        dateFormat: "d/m/Y",
+        altInput: true,
+        altFormat: "d/m/Y",
+        placeholder: "dd/mm/yyyy",
+        maxDate: today,
+        onChange: function() { applyFilters(); }
+    });
+    
+    filterDateToPicker = flatpickr("#dateTo", {
+        locale: "ar",
+        dateFormat: "d/m/Y",
+        altInput: true,
+        altFormat: "d/m/Y",
+        placeholder: "dd/mm/yyyy",
+        maxDate: today,
+        onChange: function() { applyFilters(); }
+    });
+}
+
+function initModalDatePickers() {
+    // تدمير الـ pickers القديمة (بما فيها تاريخ الإعداد) لتجنب تسرب النسخ القديمة
+    if(periodFromPicker) {
+        periodFromPicker.destroy();
+        periodFromPicker = null;
+    }
+    if(periodToPicker) {
+        periodToPicker.destroy();
+        periodToPicker = null;
+    }
+    if(reportDatePicker) {
+        reportDatePicker.destroy();
+        reportDatePicker = null;
+    }
+    
+    // تاريخ "من" - بدون حد أقصى لأن فترات الأسابيع مضبوطة مسبقاً وقد تقع بعد تاريخ اليوم
+    periodFromPicker = flatpickr("#periodFrom", {
+        locale: "ar",
+        dateFormat: "d/m/Y",
+        altInput: true,
+        altFormat: "d/m/Y",
+        placeholder: "dd/mm/yyyy",
+        clickOpens: true
+    });
+    
+    // تاريخ "إلى" - بدون حد أقصى لنفس السبب
+    periodToPicker = flatpickr("#periodTo", {
+        locale: "ar",
+        dateFormat: "d/m/Y",
+        altInput: true,
+        altFormat: "d/m/Y",
+        placeholder: "dd/mm/yyyy",
+        clickOpens: true
+    });
+    
+    // تاريخ الإعداد - نترك flatpickr يضبط تاريخ اليوم بنفسه عبر defaultDate
+    // (سابقاً كان يتم كتابة تاريخ بصيغة ar-SA في الحقل قبل تهيئة flatpickr بصيغة d/m/Y
+    //  فيفشل flatpickr في قراءته ويُفرغ الحقل - وهذا سبب عدم ظهور تاريخ اليوم)
+    reportDatePicker = flatpickr("#reportDate", {
+        locale: "ar",
+        dateFormat: "d/m/Y",
+        altInput: true,
+        altFormat: "d/m/Y",
+        placeholder: "dd/mm/yyyy",
+        maxDate: new Date(),
+        defaultDate: new Date(),
+        clickOpens: true
+    });
+}
+
+// ==================== تحديث التواريخ بناءً على الأسبوع ====================
+function updatePeriodDates() {
+    const weekNumber = parseInt(document.getElementById('weekNumber').value);
+    console.log('🔄 تحديث التواريخ للأسبوع:', weekNumber);
+    
+    if (!weekNumber || !summerPeriods[weekNumber]) return;
+    
+    // حماية: إن لم تكن منتقيات التاريخ مهيأة بعد (مثلاً بسبب تغيير سريع للأسبوع
+    // قبل اكتمال تهيئة النافذة المنبثقة) نعيد تهيئتها بدل ترك الحقول فارغة بصمت
+    if (!periodFromPicker || !periodToPicker) {
+        console.warn('⚠️ منتقيات الفترة غير مهيأة، تتم إعادة التهيئة...');
+        initModalDatePickers();
+    }
+    
+    const period = summerPeriods[weekNumber];
+    const fromDate = new Date(period.from + 'T00:00:00');
+    const toDate = new Date(period.to + 'T00:00:00');
+    
+    console.log('📅 من:', fromDate, 'إلى:', toDate);
+    
+    try {
+        if (periodFromPicker) periodFromPicker.setDate(fromDate, true);
+        if (periodToPicker) periodToPicker.setDate(toDate, true);
+        
+        if (!periodFromPicker || !periodToPicker) {
+            throw new Error('تعذر تهيئة منتقيات التاريخ');
+        }
+    } catch (e) {
+        console.error('❌ خطأ في تعبئة فترة الأسبوع:', e);
+        showMessage('حدث خطأ أثناء تعبئة فترة الأسبوع، يرجى اختيار الأسبوع مرة أخرى', 'error');
+    }
+}
+
+// ==================== دوال إنشاء عناصر النموذج ====================
+
+function createEvaluationGrid(containerId, items, columns, isStaff = false) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const colCount = columns.length;
+    const gridClass = isStaff ? 'evaluation-grid staff-grid' : 'evaluation-grid';
+    
+    container.innerHTML = items.map((item) => {
+        let cells = '';
+        columns.forEach((col, colIndex) => {
+            if (colIndex === 0) {
+                cells += `<span>${item.label}</span>`;
+            } else if (colIndex === colCount - 1) {
+                const fieldId = `note_${item.id}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+                cells += `
+                    <input type="text" class="form-input clickable-text" placeholder="اضغط لإدخال الملاحظة..." 
+                           data-field-id="${fieldId}" data-item-id="${item.id}" data-field="notes"
+                           style="font-size:0.8rem;padding:0.3rem 0.5rem;"
+                           readonly onclick="openNoteModal('${fieldId}', this.value, 'evaluation')">
+                `;
+            } else {
+                const value = columns[colIndex];
+                cells += `
+                    <div style="text-align:center;">
+                        <input type="radio" name="eval_${item.id}" value="${value}" data-item-id="${item.id}" data-field="value">
+                    </div>
+                `;
+            }
+        });
+        
+        return `<div class="${gridClass}" data-item-id="${item.id}">${cells}</div>`;
+    }).join('');
+}
+
+function createProfessionalNeedRow(data) {
+    data = data || {};
+    const fieldId = `need_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    return `
+        <div class="need-row" data-need-id="${data.id || Date.now()}">
+            <input type="text" class="form-input clickable-text" placeholder="الاحتياج المهني" 
+                   data-need-field="${fieldId}" value="${escapeHtmlAttribute(data.need || '')}" 
+                   style="font-size:0.85rem;" readonly onclick="openNoteModal('${fieldId}', this.value, 'need')">
+            <select class="form-input" style="font-size:0.85rem;">
+                <option value="">اختر النوع</option>
+                <option value="تدريب" ${data.type === 'تدريب' ? 'selected' : ''}>تدريب</option>
+                <option value="دعم فني" ${data.type === 'دعم فني' ? 'selected' : ''}>دعم فني</option>
+                <option value="مواد" ${data.type === 'مواد' ? 'selected' : ''}>مواد</option>
+                <option value="أخرى" ${data.type === 'أخرى' ? 'selected' : ''}>أخرى</option>
+            </select>
+            <input type="text" class="form-input clickable-text" placeholder="الفئة المستهدفة" 
+                   data-need-field="${fieldId}_target" value="${escapeHtmlAttribute(data.target || '')}" 
+                   style="font-size:0.85rem;" readonly onclick="openNoteModal('${fieldId}_target', this.value, 'need')">
+            <input type="text" class="form-input clickable-text" placeholder="المسؤول" 
+                   data-need-field="${fieldId}_responsible" value="${escapeHtmlAttribute(data.responsible || '')}" 
+                   style="font-size:0.85rem;" readonly onclick="openNoteModal('${fieldId}_responsible', this.value, 'need')">
+            <input type="text" class="form-input date-picker-need" placeholder="موعد التنفيذ" value="${data.deadline || ''}" style="font-size:0.85rem;">
+            <input type="text" class="form-input clickable-text" placeholder="دليل الإنجاز" 
+                   data-need-field="${fieldId}_evidence" value="${escapeHtmlAttribute(data.evidence || '')}" 
+                   style="font-size:0.85rem;" readonly onclick="openNoteModal('${fieldId}_evidence', this.value, 'need')">
+            <button type="button" class="remove-btn" onclick="this.closest('.need-row').remove()"><i class="fas fa-trash"></i></button>
+        </div>
+    `;
+}
+
+function createChallengeRow(data) {
+    data = data || {};
+    const fieldId1 = `challenge_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    const fieldId2 = `challenge_impact_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    const fieldId3 = `challenge_action_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    const fieldId4 = `challenge_responsible_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    
+    return `
+        <div class="challenge-row" data-challenge-id="${data.id || Date.now()}">
+            <input type="text" class="form-input clickable-text" placeholder="التحدي/الخطر" 
+                   data-challenge-field="${fieldId1}" value="${escapeHtmlAttribute(data.challenge || '')}" 
+                   style="font-size:0.85rem;" readonly onclick="openNoteModal('${fieldId1}', this.value, 'challenge')">
+            <input type="text" class="form-input clickable-text" placeholder="الأثر" 
+                   data-challenge-field="${fieldId2}" value="${escapeHtmlAttribute(data.impact || '')}" 
+                   style="font-size:0.85rem;" readonly onclick="openNoteModal('${fieldId2}', this.value, 'challenge')">
+            <select class="form-input" style="font-size:0.85rem;">
+                <option value="">الاحتمالية</option>
+                <option value="عالية" ${data.probability === 'عالية' ? 'selected' : ''}>عالية</option>
+                <option value="متوسطة" ${data.probability === 'متوسطة' ? 'selected' : ''}>متوسطة</option>
+                <option value="منخفضة" ${data.probability === 'منخفضة' ? 'selected' : ''}>منخفضة</option>
+            </select>
+            <select class="form-input" style="font-size:0.85rem;">
+                <option value="">مستوى الأولوية</option>
+                <option value="عالٍ" ${data.priority === 'عالٍ' ? 'selected' : ''}>عالٍ</option>
+                <option value="متوسط" ${data.priority === 'متوسط' ? 'selected' : ''}>متوسط</option>
+                <option value="منخفض" ${data.priority === 'منخفض' ? 'selected' : ''}>منخفض</option>
+            </select>
+            <input type="text" class="form-input clickable-text" placeholder="الإجراء المتخذ/المقترح" 
+                   data-challenge-field="${fieldId3}" value="${escapeHtmlAttribute(data.action || '')}" 
+                   style="font-size:0.85rem;" readonly onclick="openNoteModal('${fieldId3}', this.value, 'challenge')">
+            <input type="text" class="form-input clickable-text" placeholder="المسؤول" 
+                   data-challenge-field="${fieldId4}" value="${escapeHtmlAttribute(data.responsible || '')}" 
+                   style="font-size:0.85rem;" readonly onclick="openNoteModal('${fieldId4}', this.value, 'challenge')">
+            <select class="form-input" style="font-size:0.85rem;">
+                <option value="">الحالة</option>
+                <option value="مفتوح" ${data.status === 'مفتوح' ? 'selected' : ''}>مفتوح</option>
+                <option value="مغلق" ${data.status === 'مغلق' ? 'selected' : ''}>مغلق</option>
+            </select>
+            <button type="button" class="remove-btn" onclick="this.closest('.challenge-row').remove()"><i class="fas fa-trash"></i></button>
+        </div>
+    `;
+}
+
+function createBestPracticeRow(data) {
+    data = data || {};
+    return `
+        <div class="practice-row" data-practice-id="${data.id || Date.now()}">
+            <textarea class="form-input" placeholder="الممارسة/النشاط المتميز واسم المساحة" style="min-height:40px;font-size:0.85rem;">${escapeHtml(data.practice || '')}</textarea>
+            <textarea class="form-input" placeholder="كيفية التنفيذ وعوامل النجاح" style="min-height:40px;font-size:0.85rem;">${escapeHtml(data.implementation || '')}</textarea>
+            <textarea class="form-input" placeholder="الأثر المدعوم بشاهد أو بيانات" style="min-height:40px;font-size:0.85rem;">${escapeHtml(data.impact || '')}</textarea>
+            <button type="button" class="remove-btn" onclick="this.closest('.practice-row').remove()" style="align-self:center;"><i class="fas fa-trash"></i></button>
+        </div>
+    `;
+}
+
+// ==================== دوال إضافة الصفوف ====================
+function addProfessionalNeed() {
+    const container = document.getElementById('professionalNeedsContainer');
+    if (container) {
+        container.insertAdjacentHTML('beforeend', createProfessionalNeedRow({}));
+        setTimeout(() => {
+            container.querySelectorAll('.need-row:last-child .date-picker-need').forEach(input => {
+                if (input && !input._flatpickr) {
+                    const today = new Date();
+                    today.setHours(23, 59, 59, 999);
+                    flatpickr(input, {
+                        locale: "ar",
+                        dateFormat: "d/m/Y",
+                        altInput: true,
+                        altFormat: "d/m/Y",
+                        placeholder: "dd/mm/yyyy",
+                        maxDate: today
+                    });
+                }
+            });
+        }, 100);
+    }
+}
+
+function addChallengeRow() {
+    const container = document.getElementById('challengesContainer');
+    if (container) {
+        container.insertAdjacentHTML('beforeend', createChallengeRow({}));
+    }
+}
+
+function addBestPractice() {
+    const container = document.getElementById('bestPracticesContainer');
+    if (container) {
+        container.insertAdjacentHTML('beforeend', createBestPracticeRow({}));
+    }
+}
+
+// ==================== جمع البيانات من النموذج ====================
+
+function collectEvaluationData(containerId, items) {
+    const container = document.getElementById(containerId);
+    if (!container) return {};
+    
+    const result = {};
+    const rows = container.querySelectorAll('.evaluation-grid');
+    
+    rows.forEach((row, index) => {
+        if (index < items.length) {
+            const item = items[index];
+            const selectedRadio = row.querySelector('input[type="radio"]:checked');
+            const notesInput = row.querySelector('input[data-field="notes"]');
+            
+            result[item.id] = {
+                value: selectedRadio ? selectedRadio.value : '',
+                notes: notesInput ? notesInput.value : ''
+            };
+        }
+    });
+    
+    return result;
+}
+
+function collectProfessionalNeeds() {
+    const rows = document.querySelectorAll('#professionalNeedsContainer .need-row');
+    const needs = [];
+    rows.forEach(row => {
+        const inputs = row.querySelectorAll('input, select');
+        if (inputs.length >= 6) {
+            const need = inputs[0].value.trim();
+            const type = inputs[1].value;
+            const target = inputs[2].value.trim();
+            const responsible = inputs[3].value.trim();
+            const deadlineInput = inputs[4];
+            let deadline = deadlineInput.value;
+            if (deadlineInput._flatpickr && deadlineInput._flatpickr.selectedDates[0]) {
+                const date = deadlineInput._flatpickr.selectedDates[0];
+                deadline = formatDateToYMD(date);
+            }
+            const evidence = inputs[5].value.trim();
+            
+            if (need || type || target || responsible || deadline || evidence) {
+                needs.push({ need, type, target, responsible, deadline, evidence });
+            }
+        }
+    });
+    return needs;
+}
+
+function collectChallenges() {
+    const rows = document.querySelectorAll('#challengesContainer .challenge-row');
+    const challenges = [];
+    rows.forEach(row => {
+        const inputs = row.querySelectorAll('input, select');
+        if (inputs.length >= 7) {
+            const challenge = inputs[0].value.trim();
+            const impact = inputs[1].value.trim();
+            const probability = inputs[2].value;
+            const priority = inputs[3].value;
+            const action = inputs[4].value.trim();
+            const responsible = inputs[5].value.trim();
+            const status = inputs[6].value;
+            
+            if (challenge || impact || probability || priority || action || responsible || status) {
+                challenges.push({ challenge, impact, probability, priority, action, responsible, status });
+            }
+        }
+    });
+    return challenges;
+}
+
+function collectBestPractices() {
+    const rows = document.querySelectorAll('#bestPracticesContainer .practice-row');
+    const practices = [];
+    rows.forEach(row => {
+        const textareas = row.querySelectorAll('textarea');
+        if (textareas.length >= 3) {
+            const practice = textareas[0].value.trim();
+            const implementation = textareas[1].value.trim();
+            const impact = textareas[2].value.trim();
+            
+            if (practice || implementation || impact) {
+                practices.push({ practice, implementation, impact });
+            }
+        }
+    });
+    return practices;
+}
+
+function collectFormData() {
+    const districtId = document.getElementById('districtId').value;
+    const districtManager = document.getElementById('districtManager').value;
+    const weekNumber = parseInt(document.getElementById('weekNumber').value);
+    const periodFrom = getDateFromPicker(periodFromPicker);
+    const periodTo = getDateFromPicker(periodToPicker);
+    
+    if (!districtId || !weekNumber || !periodFrom || !periodTo) {
+        showMessage('الرجاء ملء جميع الحقول المطلوبة (*)', 'error');
+        return null;
+    }
+    
+    const implementationQuality = collectEvaluationData('implementationQualityContainer', implementationQualityItems);
+    const staffPerformance = collectEvaluationData('staffPerformanceContainer', staffPerformanceItems);
+    const schoolEnvironment = collectEvaluationData('schoolEnvironmentContainer', schoolEnvironmentItems);
+    const professionalNeeds = collectProfessionalNeeds();
+    const challengesRisks = collectChallenges();
+    const bestPractices = collectBestPractices();
+    
+    return {
+        district_id: parseInt(districtId),
+        district_manager: districtManager || null,
+        week_number: weekNumber,
+        period_from: periodFrom,
+        period_to: periodTo,
+        report_date: getDateFromPicker(reportDatePicker) || formatDateToYMD(new Date()),
+        report_coordinator: document.getElementById('reportCoordinator').value.trim() || null,
+        exec_summary: document.getElementById('execSummary').value.trim() || null,
+        top_educational_achievement: document.getElementById('topEducationalAchievement').value.trim() || null,
+        top_recreational_achievement: document.getElementById('topRecreationalAchievement').value.trim() || null,
+        main_challenge: document.getElementById('mainChallenge').value.trim() || null,
+        next_week_priority: document.getElementById('nextWeekPriority').value.trim() || null,
+        implementation_quality: implementationQuality,
+        staff_performance: staffPerformance,
+        professional_needs: professionalNeeds,
+        school_environment: schoolEnvironment,
+        challenges_risks: challengesRisks,
+        best_practices: bestPractices,
+        created_by: currentUser?.id
+    };
+}
+
+// ==================== تحميل البيانات ====================
+
+async function loadDistricts() {
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('districts')
+            .select('id, name, manger, mangerEmail, supportEmail')
+            .order('name');
+        
+        if (error) throw error;
+        districtsList = data || [];
+        
+        const select = document.getElementById('districtId');
+        if (select) {
+            select.innerHTML = '<option value="">اختر المنطقة</option>' +
+                districtsList.map(d => 
+                    `<option value="${d.id}" data-manager="${d.manger || ''}" data-manager-email="${d.mangerEmail || ''}">
+                        ${d.name}
+                    </option>`
+                ).join('');
+        }
+        
+        select.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const managerDisplay = document.getElementById('districtManagerDisplay');
+            const managerHidden = document.getElementById('districtManager');
+            
+            if (selectedOption && selectedOption.value) {
+                const managerName = selectedOption.getAttribute('data-manager') || '';
+                if (managerDisplay) managerDisplay.value = managerName || 'غير محدد';
+                if (managerHidden) managerHidden.value = managerName;
+            } else {
+                if (managerDisplay) managerDisplay.value = '';
+                if (managerHidden) managerHidden.value = '';
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error loading districts:', error);
+        showMessage('حدث خطأ في تحميل المناطق', 'error');
+    }
+}
+
+// ==================== تحميل التقارير ====================
+
+async function loadAllSummerReports(forceRefresh = false) {
+    if (isRefreshing && !forceRefresh) return allReportsCache;
+    
+    const progressDiv = document.getElementById('loadingProgress');
+    const progressFill = document.getElementById('progressFill');
+    const loadingStats = document.getElementById('loadingStats');
+    
+    if (progressDiv && forceRefresh) progressDiv.style.display = 'block';
+    if (progressFill && forceRefresh) progressFill.style.width = '10%';
+    if (loadingStats && forceRefresh) loadingStats.innerHTML = '📡 جاري تحميل التقارير...';
+    
+    isRefreshing = true;
+    
+    try {
+        if (typeof window.getSummerActivityReports !== 'function') {
+            throw new Error('window.getSummerActivityReports غير معرفة');
+        }
+        
+        const result = await window.getSummerActivityReports();
+        
+        if (progressFill && forceRefresh) progressFill.style.width = '70%';
+        
+        if (result.success && result.data) {
+            allReportsCache = result.data.map(report => {
+                const district = districtsList.find(d => d.id === report.district_id);
+                return {
+                    ...report,
+                    district_name: district ? district.name : '-'
+                };
+            });
+            
+            filteredReportsCache = [...allReportsCache];
+            totalFilteredCount = filteredReportsCache.length;
+            
+            if (progressFill && forceRefresh) progressFill.style.width = '100%';
+            if (loadingStats && forceRefresh) {
+                loadingStats.innerHTML = `✅ تم تحميل ${allReportsCache.length.toLocaleString()} تقرير`;
+            }
+            
+            document.getElementById('totalCountDisplay').textContent = allReportsCache.length.toLocaleString();
+            document.getElementById('totalReportsHint').textContent = allReportsCache.length.toLocaleString();
+            
+            console.log(`✅ تم تحميل ${allReportsCache.length} تقرير نشاط صيفي`);
+            return allReportsCache;
+        } else {
+            throw new Error(result.error || 'فشل تحميل التقارير');
+        }
+    } catch (error) {
+        console.error('❌ خطأ في تحميل التقارير:', error);
+        if (loadingStats && forceRefresh) loadingStats.innerHTML = '❌ حدث خطأ في تحميل التقارير: ' + error.message;
+        return allReportsCache || [];
+    } finally {
+        if (progressDiv && forceRefresh) {
+            setTimeout(() => { progressDiv.style.display = 'none'; }, 500);
+        }
+        isRefreshing = false;
+    }
+}
+
+// ==================== عرض الصفحة الحالية ====================
+
+function displayCurrentPage() {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const pageReports = filteredReportsCache.slice(startIndex, endIndex);
+    const tbody = document.getElementById('reportsTableBody');
+    
+    if (!pageReports || pageReports.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>';
+        document.getElementById('resultsCount').innerHTML = 'عدد النتائج: 0';
+        document.getElementById('paginationContainer').innerHTML = '';
+        return;
+    }
+    
+    tbody.innerHTML = pageReports.map((report, idx) => {
+        const globalIndex = startIndex + idx + 1;
+        const canEdit = canEditSummerReport(currentUser, report);
+        const canDelete = canDeleteSummerReport(currentUser, report);
+        const periodFrom = new Date(report.period_from).toLocaleDateString('ar-SA');
+        const periodTo = new Date(report.period_to).toLocaleDateString('ar-SA');
+        const createdAt = new Date(report.created_at).toLocaleDateString('ar-SA');
+        
+        const isComplete = report.exec_summary && report.exec_summary.length > 0;
+        const statusBadge = isComplete 
+            ? '<span class="badge badge-success">مكتمل</span>' 
+            : '<span class="badge badge-warning">قيد الإعداد</span>';
+        
+        let actionsHtml = `<a href="#" onclick="viewReport('${report.id}')" class="action-link view" title="معاينة"><i class="fas fa-eye"></i></a>`;
+        if (canEdit) actionsHtml += `<a href="#" onclick="editReport('${report.id}')" class="action-link edit" title="تعديل"><i class="fas fa-edit"></i></a>`;
+        if (canDelete) actionsHtml += `<a href="#" onclick="openDeleteModal('${report.id}')" class="action-link delete" title="حذف"><i class="fas fa-trash"></i></a>`;
+        
+        return `<tr>
+            <td style="padding:12px">${globalIndex}</td>
+            <td style="padding:12px">${createdAt}</td>
+            <td style="padding:12px">الأسبوع ${report.week_number}</td>
+            <td style="padding:12px">${periodFrom} - ${periodTo}</td>
+            <td style="padding:12px">${report.district_name || '-'}</td>
+            <td style="padding:12px">${report.users?.name || '-'}</td>
+            <td style="padding:12px">${statusBadge}</td>
+            <td style="padding:12px"><div style="display:flex;gap:0.5rem;">${actionsHtml}</div></td>
+        </tr>`;
+    }).join('');
+    
+    const fromNum = ((currentPage-1)*pageSize)+1;
+    const toNum = Math.min(currentPage*pageSize, totalFilteredCount);
+    document.getElementById('resultsCount').innerHTML = `عرض ${fromNum.toLocaleString()} - ${toNum.toLocaleString()} من ${totalFilteredCount.toLocaleString()} تقرير`;
+    buildPaginationButtons();
+}
+
+function buildPaginationButtons() {
+    const container = document.getElementById('paginationContainer');
+    if (!container) return;
+    const totalPages = Math.ceil(totalFilteredCount / pageSize);
+    if (totalPages <= 1) { container.innerHTML = ''; return; }
+    
+    let html = '';
+    html += `<button class="pagination-btn" onclick="goToPage(1)" ${currentPage===1?'disabled':''}><i class="fas fa-angle-double-right"></i></button>`;
+    html += `<button class="pagination-btn" onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled':''}><i class="fas fa-angle-right"></i></button>`;
+    
+    let startPage = Math.max(1, currentPage-2);
+    let endPage = Math.min(totalPages, currentPage+2);
+    
+    if (startPage > 1) {
+        html += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+        if(startPage > 2) html += `<span class="page-info">...</span>`;
+    }
+    for(let i=startPage; i<=endPage; i++) {
+        html += `<button class="pagination-btn ${i===currentPage?'active':''}" onclick="goToPage(${i})">${i.toLocaleString()}</button>`;
+    }
+    if(endPage < totalPages) {
+        if(endPage < totalPages-1) html += `<span class="page-info">...</span>`;
+        html += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages.toLocaleString()}</button>`;
+    }
+    
+    html += `<button class="pagination-btn" onclick="goToPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}><i class="fas fa-angle-left"></i></button>`;
+    html += `<button class="pagination-btn" onclick="goToPage(${totalPages})" ${currentPage===totalPages?'disabled':''}><i class="fas fa-angle-double-left"></i></button>`;
+    container.innerHTML = html;
+}
+
+function goToPage(page) {
+    const totalPages = Math.ceil(totalFilteredCount / pageSize);
+    if(page<1 || page>totalPages) return;
+    currentPage = page;
+    displayCurrentPage();
+    document.querySelector('.table-container')?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ==================== التصفية ====================
+
+function normalizeToYMD(value) {
+    if (!value) return null;
+    if (value instanceof Date) return formatDateToYMD(value);
+    // نأخذ أول 10 خانات فقط (YYYY-MM-DD) بغض النظر عن وجود وقت/منطقة زمنية لاحقة
+    // في القيمة القادمة من قاعدة البيانات (مثل "2026-08-13T00:00:00+00:00")
+    return String(value).slice(0, 10);
+}
+
+function applyFilters() {
+    const search = document.getElementById('searchInput').value.trim().toLowerCase();
+    const week = document.getElementById('weekFilter').value;
+    let fromDate = getDateFromPicker(filterDateFromPicker);
+    let toDate = getDateFromPicker(filterDateToPicker);
+    
+    // التأكد من صحة التواريخ
+    if (fromDate && toDate && fromDate > toDate) {
+        showMessage('⚠️ تاريخ "من" يجب أن يكون أقدم من تاريخ "إلى"', 'error');
+        return;
+    }
+    
+    let filtered = allReportsCache.filter(r => {
+        if (week && r.week_number != week) return false;
+        // منطق التقاطع (Overlap): يظهر أي تقرير تتقاطع فترته مع المدى الزمني
+        // المختار، حتى لو لم تكن فترته بالكامل محصورة داخله
+        if (fromDate) {
+            const reportTo = normalizeToYMD(r.period_to) || normalizeToYMD(r.period_from);
+            if (reportTo && reportTo < fromDate) return false;
+        }
+        if (toDate) {
+            const reportFrom = normalizeToYMD(r.period_from);
+            if (reportFrom && reportFrom > toDate) return false;
+        }
+        if (search) {
+            const districtName = (r.district_name || '').toLowerCase();
+            const specialistName = (r.users?.name || '').toLowerCase();
+            if (!districtName.includes(search) && !specialistName.includes(search)) {
+                return false;
+            }
+        }
+        return true;
+    });
+    
+    filteredReportsCache = filtered;
+    totalFilteredCount = filtered.length;
+    currentPage = 1;
+    displayCurrentPage();
+    showMessage(`تم العثور على ${filtered.length.toLocaleString()} تقرير مطابق`, filtered.length > 0 ? 'success' : 'info');
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('weekFilter').value = '';
+    if(filterDateFromPicker) filterDateFromPicker.clear();
+    if(filterDateToPicker) filterDateToPicker.clear();
+    filteredReportsCache = [...allReportsCache];
+    totalFilteredCount = filteredReportsCache.length;
+    currentPage = 1;
+    displayCurrentPage();
+    showMessage('تم مسح جميع الفلاتر', 'success');
+}
+
+// ==================== فتح وإغلاق المودالات ====================
+
+function openAddReportModal() {
+    if(!canCreateSummerReport(currentUser)) {
+        showMessage('لا تملك صلاحية إضافة تقارير', 'error');
+        return;
+    }
+    
+    document.getElementById('summerReportForm').reset();
+    document.getElementById('reportId').value = '';
+    document.getElementById('modalTitle').textContent = 'إضافة تقرير أسبوعي شامل للأنشطة الصيفية';
+    document.getElementById('districtManagerDisplay').value = '';
+    document.getElementById('districtManager').value = '';
+    
+    // تهيئة منتقيات التواريخ (تضبط تاريخ الإعداد على تاريخ اليوم تلقائياً)
+    initModalDatePickers();
+    
+    // تعيين المنسق
+    if (currentUser.role === 'user') {
+        document.getElementById('reportCoordinator').value = currentUser.name || '';
+        document.getElementById('reportCoordinator').readOnly = true;
+        document.getElementById('reportCoordinator').style.background = '#f8fafd';
+    } else {
+        document.getElementById('reportCoordinator').value = '';
+        document.getElementById('reportCoordinator').readOnly = false;
+        document.getElementById('reportCoordinator').style.background = 'white';
+    }
+    
+    // إنشاء عناصر النموذج
+    createEvaluationGrid('implementationQualityContainer', implementationQualityItems, ['', 'متحقق', 'متحقق جزئياً', 'غير متحقق', '']);
+    createEvaluationGrid('staffPerformanceContainer', staffPerformanceItems, ['', 'ممتاز', 'جيد جداً', 'جيد', 'يحتاج تحسين', ''], true);
+    createEvaluationGrid('schoolEnvironmentContainer', schoolEnvironmentItems, ['', 'متوفر', 'جزئياً', 'غير متوفر', '']);
+    
+    document.getElementById('professionalNeedsContainer').innerHTML = '';
+    document.getElementById('challengesContainer').innerHTML = '';
+    document.getElementById('bestPracticesContainer').innerHTML = '';
+    
+    addProfessionalNeed();
+    addChallengeRow();
+    addBestPractice();
+    
+    openModalWithScroll('summerReportModal');
+}
+
+async function editReport(id) {
+    const report = allReportsCache.find(r => r.id == id);
+    if(!report || !canEditSummerReport(currentUser, report)) {
+        showMessage('لا تملك صلاحية تعديل هذا التقرير', 'error');
+        return;
+    }
+    
+    let fullReport = report;
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('summer_activity_reports')
+            .select('*')
+            .eq('id', id)
+            .single();
+        if (!error && data) fullReport = data;
+    } catch(e) {}
+    
+    document.getElementById('reportId').value = fullReport.id;
+    document.getElementById('modalTitle').textContent = 'تعديل تقرير الأنشطة الصيفية';
+    
+    document.getElementById('districtId').value = fullReport.district_id;
+    document.getElementById('weekNumber').value = fullReport.week_number;
+    document.getElementById('districtManager').value = fullReport.district_manager || '';
+    
+    const district = districtsList.find(d => d.id === fullReport.district_id);
+    if (district) {
+        document.getElementById('districtManagerDisplay').value = district.manger || 'غير محدد';
+    }
+    
+    initModalDatePickers();
+    if (periodFromPicker && fullReport.period_from) setPickerDate(periodFromPicker, fullReport.period_from);
+    if (periodToPicker && fullReport.period_to) setPickerDate(periodToPicker, fullReport.period_to);
+    if (reportDatePicker) {
+        if (fullReport.report_date) {
+            setPickerDate(reportDatePicker, fullReport.report_date);
+        } else {
+            reportDatePicker.setDate(new Date(), true);
+        }
+    }
+    document.getElementById('reportCoordinator').value = fullReport.report_coordinator || '';
+    
+    if (currentUser.role === 'user') {
+        document.getElementById('reportCoordinator').readOnly = true;
+        document.getElementById('reportCoordinator').style.background = '#f8fafd';
+    } else {
+        document.getElementById('reportCoordinator').readOnly = false;
+        document.getElementById('reportCoordinator').style.background = 'white';
+    }
+    
+    document.getElementById('execSummary').value = fullReport.exec_summary || '';
+    document.getElementById('topEducationalAchievement').value = fullReport.top_educational_achievement || '';
+    document.getElementById('topRecreationalAchievement').value = fullReport.top_recreational_achievement || '';
+    document.getElementById('mainChallenge').value = fullReport.main_challenge || '';
+    document.getElementById('nextWeekPriority').value = fullReport.next_week_priority || '';
+    
+    const implData = fullReport.implementation_quality || {};
+    const staffData = fullReport.staff_performance || {};
+    const envData = fullReport.school_environment || {};
+    
+    createEvaluationGrid('implementationQualityContainer', implementationQualityItems, ['', 'متحقق', 'متحقق جزئياً', 'غير متحقق', '']);
+    createEvaluationGrid('staffPerformanceContainer', staffPerformanceItems, ['', 'ممتاز', 'جيد جداً', 'جيد', 'يحتاج تحسين', ''], true);
+    createEvaluationGrid('schoolEnvironmentContainer', schoolEnvironmentItems, ['', 'متوفر', 'جزئياً', 'غير متوفر', '']);
+    
+    setTimeout(() => {
+        document.querySelectorAll('#implementationQualityContainer .evaluation-grid').forEach((row, index) => {
+            if (index < implementationQualityItems.length) {
+                const item = implementationQualityItems[index];
+                const data = implData[item.id] || {};
+                const radio = row.querySelector(`input[value="${data.value || ''}"]`);
+                if (radio) radio.checked = true;
+                const notes = row.querySelector('input[data-field="notes"]');
+                if (notes && data.notes) notes.value = data.notes;
+            }
+        });
+        
+        document.querySelectorAll('#staffPerformanceContainer .evaluation-grid').forEach((row, index) => {
+            if (index < staffPerformanceItems.length) {
+                const item = staffPerformanceItems[index];
+                const data = staffData[item.id] || {};
+                const radio = row.querySelector(`input[value="${data.value || ''}"]`);
+                if (radio) radio.checked = true;
+                const notes = row.querySelector('input[data-field="notes"]');
+                if (notes && data.notes) notes.value = data.notes;
+            }
+        });
+        
+        document.querySelectorAll('#schoolEnvironmentContainer .evaluation-grid').forEach((row, index) => {
+            if (index < schoolEnvironmentItems.length) {
+                const item = schoolEnvironmentItems[index];
+                const data = envData[item.id] || {};
+                const radio = row.querySelector(`input[value="${data.value || ''}"]`);
+                if (radio) radio.checked = true;
+                const notes = row.querySelector('input[data-field="notes"]');
+                if (notes && data.notes) notes.value = data.notes;
+            }
+        });
+    }, 100);
+    
+    const needs = fullReport.professional_needs || [];
+    const needsContainer = document.getElementById('professionalNeedsContainer');
+    needsContainer.innerHTML = '';
+    if (needs.length > 0) {
+        needs.forEach(n => {
+            needsContainer.insertAdjacentHTML('beforeend', createProfessionalNeedRow(n));
+        });
+    } else {
+        addProfessionalNeed();
+    }
+    
+    const challenges = fullReport.challenges_risks || [];
+    const challengesContainer = document.getElementById('challengesContainer');
+    challengesContainer.innerHTML = '';
+    if (challenges.length > 0) {
+        challenges.forEach(c => {
+            challengesContainer.insertAdjacentHTML('beforeend', createChallengeRow(c));
+        });
+    } else {
+        addChallengeRow();
+    }
+    
+    const practices = fullReport.best_practices || [];
+    const practicesContainer = document.getElementById('bestPracticesContainer');
+    practicesContainer.innerHTML = '';
+    if (practices.length > 0) {
+        practices.forEach(p => {
+            practicesContainer.insertAdjacentHTML('beforeend', createBestPracticeRow(p));
+        });
+    } else {
+        addBestPractice();
+    }
+    
+    openModalWithScroll('summerReportModal');
+}
+
+// ==================== عرض التقرير ====================
+
+async function viewReport(id) {
+    let report = allReportsCache.find(r => r.id == id);
+    
+    if (!report) {
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('summer_activity_reports')
+                .select('*, users:created_by(id, name, email), districts:district_id(id, name, manger, mangerEmail)')
+                .eq('id', id)
+                .single();
+            if (error) throw error;
+            report = data;
+        } catch (error) {
+            showMessage('التقرير غير موجود', 'error');
+            return;
+        }
+    }
+    
+    currentViewReport = report;
+    
+    const district = report.districts || {};
+    const districtName = district.name || '-';
+    const districtManager = report.district_manager || district.manger || 'غير محدد';
+    const specialistName = report.users?.name || '-';
+    const periodFrom = new Date(report.period_from).toLocaleDateString('ar-SA');
+    const periodTo = new Date(report.period_to).toLocaleDateString('ar-SA');
+    const reportDate = report.report_date ? new Date(report.report_date).toLocaleDateString('ar-SA') : '-';
+    
+    let html = `
+        <div style="direction:rtl;">
+            <div class="info-display">
+                <div class="item"><strong>المنطقة:</strong> ${escapeHtml(districtName)}</div>
+                <div class="item"><strong>مدير المنطقة:</strong> ${escapeHtml(districtManager)}</div>
+                <div class="item"><strong>المختص:</strong> ${escapeHtml(specialistName)}</div>
+                <div class="item"><strong>رقم الأسبوع:</strong> ${report.week_number}</div>
+                <div class="item"><strong>الفترة:</strong> ${periodFrom} - ${periodTo}</div>
+                <div class="item"><strong>تاريخ الإعداد:</strong> ${reportDate}</div>
+                <div class="item"><strong>منسق التقرير:</strong> ${escapeHtml(report.report_coordinator || '-')}</div>
+            </div>
+            
+            <h3 style="color:#1e3c72;margin:20px 0 10px 0;border-bottom:2px solid #1e3c72;padding-bottom:8px;">الملخص التنفيذي</h3>
+            <div style="background:#f8fafd;padding:15px;border-radius:12px;margin-bottom:20px;">
+                <p><strong>مستوى التنفيذ العام:</strong> ${escapeHtml(report.exec_summary || '-')}</p>
+                <p><strong>أبرز إنجاز تعليمي:</strong> ${escapeHtml(report.top_educational_achievement || '-')}</p>
+                <p><strong>أبرز إنجاز ترفيهي/نفسي اجتماعي:</strong> ${escapeHtml(report.top_recreational_achievement || '-')}</p>
+                <p><strong>أهم تحدٍ أو خطر:</strong> ${escapeHtml(report.main_challenge || '-')}</p>
+                <p><strong>أولوية الأسبوع القادم:</strong> ${escapeHtml(report.next_week_priority || '-')}</p>
+            </div>
+    `;
+    
+    const implData = report.implementation_quality || {};
+    const staffData = report.staff_performance || {};
+    const envData = report.school_environment || {};
+    
+    html += `<h3 style="color:#1e3c72;margin:20px 0 10px 0;border-bottom:2px solid #1e3c72;padding-bottom:8px;">انتظام التنفيذ وجودة التخطيط</h3>
+        <table class="preview-table">
+            <thead><tr><th>المعيار</th><th>التقييم</th><th>الملاحظة</th></tr></thead>
+            <tbody>`;
+    implementationQualityItems.forEach(item => {
+        const data = implData[item.id] || {};
+        html += `<tr><td style="text-align:right;">${item.label}</td><td>${data.value || 'غير محدد'}</td><td style="text-align:right;">${escapeHtml(data.notes || '-')}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    
+    html += `<h3 style="color:#1e3c72;margin:20px 0 10px 0;border-bottom:2px solid #1e3c72;padding-bottom:8px;">أداء العاملين</h3>
+        <table class="preview-table">
+            <thead><tr><th>المعيار</th><th>التقييم</th><th>الملاحظة</th></tr></thead>
+            <tbody>`;
+    staffPerformanceItems.forEach(item => {
+        const data = staffData[item.id] || {};
+        html += `<tr><td style="text-align:right;">${item.label}</td><td>${data.value || 'غير محدد'}</td><td style="text-align:right;">${escapeHtml(data.notes || '-')}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    
+    html += `<h3 style="color:#1e3c72;margin:20px 0 10px 0;border-bottom:2px solid #1e3c72;padding-bottom:8px;">البيئة المدرسية</h3>
+        <table class="preview-table">
+            <thead><tr><th>المعيار</th><th>التقييم</th><th>الملاحظة</th></tr></thead>
+            <tbody>`;
+    schoolEnvironmentItems.forEach(item => {
+        const data = envData[item.id] || {};
+        html += `<tr><td style="text-align:right;">${item.label}</td><td>${data.value || 'غير محدد'}</td><td style="text-align:right;">${escapeHtml(data.notes || '-')}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    
+    const needs = report.professional_needs || [];
+    if (needs.length > 0) {
+        html += `<h3 style="color:#1e3c72;margin:20px 0 10px 0;border-bottom:2px solid #1e3c72;padding-bottom:8px;">الاحتياجات المهنية للعاملين</h3>
+            <table class="preview-table">
+                <thead><tr><th>الاحتياج</th><th>نوع الدعم</th><th>الفئة المستهدفة</th><th>المسؤول</th><th>موعد التنفيذ</th><th>دليل الإنجاز</th></tr></thead>
+                <tbody>`;
+        needs.forEach(n => {
+            html += `<tr>
+                <td style="text-align:right;">${escapeHtml(n.need || '-')}</td>
+                <td>${escapeHtml(n.type || '-')}</td>
+                <td>${escapeHtml(n.target || '-')}</td>
+                <td>${escapeHtml(n.responsible || '-')}</td>
+                <td>${escapeHtml(n.deadline || '-')}</td>
+                <td>${escapeHtml(n.evidence || '-')}</td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
+    }
+    
+    const challenges = report.challenges_risks || [];
+    if (challenges.length > 0) {
+        html += `<h3 style="color:#1e3c72;margin:20px 0 10px 0;border-bottom:2px solid #1e3c72;padding-bottom:8px;">التحديات والمخاطر والإجراءات التصحيحية</h3>
+            <table class="preview-table">
+                <thead><tr><th>التحدي/الخطر</th><th>الأثر</th><th>الاحتمالية</th><th>الأولوية</th><th>الإجراء</th><th>المسؤول</th><th>الحالة</th></tr></thead>
+                <tbody>`;
+        challenges.forEach(c => {
+            html += `<tr>
+                <td style="text-align:right;">${escapeHtml(c.challenge || '-')}</td>
+                <td style="text-align:right;">${escapeHtml(c.impact || '-')}</td>
+                <td>${escapeHtml(c.probability || '-')}</td>
+                <td>${escapeHtml(c.priority || '-')}</td>
+                <td style="text-align:right;">${escapeHtml(c.action || '-')}</td>
+                <td>${escapeHtml(c.responsible || '-')}</td>
+                <td>${escapeHtml(c.status || '-')}</td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
+    }
+    
+    const practices = report.best_practices || [];
+    if (practices.length > 0) {
+        html += `<h3 style="color:#1e3c72;margin:20px 0 10px 0;border-bottom:2px solid #1e3c72;padding-bottom:8px;">الممارسات المتميزة والدروس المستفادة</h3>
+            <table class="preview-table">
+                <thead><tr><th>الممارسة</th><th>كيفية التنفيذ</th><th>الأثر</th></tr></thead>
+                <tbody>`;
+        practices.forEach(p => {
+            html += `<tr>
+                <td style="text-align:right;">${escapeHtml(p.practice || '-')}</td>
+                <td style="text-align:right;">${escapeHtml(p.implementation || '-')}</td>
+                <td style="text-align:right;">${escapeHtml(p.impact || '-')}</td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
+    }
+    
+    html += `</div>`;
+    
+    document.getElementById('reportDetails').innerHTML = html;
+    const emailBtn = document.getElementById('emailSummerBtn');
+    if(emailBtn) emailBtn.style.display = canEmailSummerReport(currentUser) ? 'inline-flex' : 'none';
+    openModalWithScroll('viewModal');
+}
+
+// ==================== حفظ التقرير ====================
+
+document.getElementById('summerReportForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(isSaving) {
+        showMessage('جاري الحفظ... الرجاء الانتظار', 'info');
+        return;
+    }
+    
+    const reportId = document.getElementById('reportId').value;
+    const isEdit = !!reportId;
+    const formData = collectFormData();
+    if (!formData) return;
+    
+    isSaving = true;
+    const saveBtn = document.getElementById('saveReportBtn');
+    const originalHtml = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+    saveBtn.disabled = true;
+    
+    try {
+        if (typeof window.saveSummerActivityReport !== 'function') {
+            throw new Error('window.saveSummerActivityReport غير معرفة');
+        }
+        
+        let result;
+        if (isEdit) {
+            result = await window.saveSummerActivityReport(formData, reportId);
+        } else {
+            result = await window.saveSummerActivityReport(formData);
+        }
+        
+        if (!result.success) throw new Error(result.error || 'فشل الحفظ');
+        
+        const newReportId = result.data?.id || reportId;
+        await window.sendSummerReportNotifications(formData, newReportId, isEdit ? 'update' : 'create');
+        
+        closeModal();
+        await loadAllSummerReports(true);
+        filteredReportsCache = [...allReportsCache];
+        totalFilteredCount = filteredReportsCache.length;
+        currentPage = 1;
+        displayCurrentPage();
+        
+        showMessage(isEdit ? 'تم تحديث التقرير بنجاح' : 'تم حفظ التقرير بنجاح', 'success');
+        
+        if (!isEdit) {
+            openModalWithScroll('sendEmailAlertModal');
+        }
+    } catch(error) {
+        console.error(error);
+        showMessage('حدث خطأ في حفظ التقرير: ' + error.message, 'error');
+    } finally {
+        isSaving = false;
+        saveBtn.innerHTML = originalHtml;
+        saveBtn.disabled = false;
+    }
+});
+
+// ==================== الحذف ====================
+
+function openDeleteModal(id) {
+    deleteReportData = id;
+    openModalWithScroll('deleteModal');
+}
+
+async function confirmDelete() {
+    if(!deleteReportData) return;
+    
+    const confirmBtn = document.querySelector('#deleteModal .btn-danger');
+    const originalText = confirmBtn?.innerHTML || 'حذف';
+    if(confirmBtn) {
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحذف...';
+        confirmBtn.disabled = true;
+    }
+    
+    try {
+        if (typeof window.deleteSummerActivityReport !== 'function') {
+            throw new Error('window.deleteSummerActivityReport غير معرفة');
+        }
+        
+        const result = await window.deleteSummerActivityReport(deleteReportData);
+        if(!result.success) throw new Error(result.error || 'فشل الحذف');
+        
+        showMessage('تم حذف التقرير وجميع إشعاراته بنجاح', 'success');
+        closeDeleteModal();
+        await loadAllSummerReports(true);
+        filteredReportsCache = [...allReportsCache];
+        totalFilteredCount = filteredReportsCache.length;
+        currentPage = 1;
+        displayCurrentPage();
+        await updateUnreadBadge();
+    } catch(error) {
+        console.error('خطأ في الحذف:', error);
+        showMessage('حدث خطأ في حذف التقرير: ' + error.message, 'error');
+    } finally {
+        if(confirmBtn) {
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        }
+    }
+}
+
+// ==================== البريد الإلكتروني والتصدير ====================
+
+function generateSummerReportHTML() {
+    if (!currentViewReport) return '';
+    
+    const report = currentViewReport;
+    const district = report.districts || {};
+    const districtName = district.name || '-';
+    const districtManager = report.district_manager || district.manger || 'غير محدد';
+    const specialistName = report.users?.name || '-';
+    const periodFrom = new Date(report.period_from).toLocaleDateString('ar-SA');
+    const periodTo = new Date(report.period_to).toLocaleDateString('ar-SA');
+    const reportDate = report.report_date ? new Date(report.report_date).toLocaleDateString('ar-SA') : '-';
+    
+    const implData = report.implementation_quality || {};
+    const staffData = report.staff_performance || {};
+    const envData = report.school_environment || {};
+    const needs = report.professional_needs || [];
+    const challenges = report.challenges_risks || [];
+    const practices = report.best_practices || [];
+    
+    let html = `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير الأنشطة الصيفية - الأسبوع ${report.week_number}</title>
+        <style>
+            body{font-family:'Segoe UI','Cairo',Arial,sans-serif;padding:10mm 12mm;direction:rtl;background:white;}
+            h1{text-align:center;color:#1e3c72;font-size:22px;margin-bottom:5px;}
+            h2{color:#1e3c72;font-size:18px;margin:20px 0 10px 0;border-bottom:2px solid #1e3c72;padding-bottom:5px;}
+            h3{color:#2a5298;font-size:16px;margin:15px 0 8px 0;}
+            .info-grid{display:flex;flex-wrap:wrap;gap:10px;background:#f8fafd;padding:15px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;}
+            .info-grid .item{flex:1;min-width:150px;}
+            .info-grid .item strong{color:#1e3c72;}
+            table{width:100%;border-collapse:collapse;margin-bottom:15px;font-size:13px;}
+            th,td{border:1px solid #000;padding:6px 8px;text-align:center;}
+            th{background:#1e3c72;color:white;font-weight:600;}
+            .footer{margin-top:25px;border-top:1px solid #ccc;padding-top:10px;text-align:center;font-size:11px;color:#666;}
+            @media print{body{padding:5mm;}}
+        </style>
+    </head><body>
+    <h1>تقرير الأنشطة الصيفية الأسبوعي الشامل</h1>
+    <p style="text-align:center;color:#4e6580;">${districtName} - الأسبوع ${report.week_number}</p>
+    
+    <div class="info-grid">
+        <div class="item"><strong>المنطقة:</strong> ${escapeHtml(districtName)}</div>
+        <div class="item"><strong>مدير المنطقة:</strong> ${escapeHtml(districtManager)}</div>
+        <div class="item"><strong>المختص:</strong> ${escapeHtml(specialistName)}</div>
+        <div class="item"><strong>الفترة:</strong> ${periodFrom} - ${periodTo}</div>
+        <div class="item"><strong>تاريخ الإعداد:</strong> ${reportDate}</div>
+        <div class="item"><strong>منسق التقرير:</strong> ${escapeHtml(report.report_coordinator || '-')}</div>
+    </div>
+    
+    <h2>الملخص التنفيذي</h2>
+    <div style="background:#f8fafd;padding:12px;border-radius:8px;margin-bottom:15px;">
+        <p><strong>مستوى التنفيذ العام:</strong> ${escapeHtml(report.exec_summary || '-')}</p>
+        <p><strong>أبرز إنجاز تعليمي:</strong> ${escapeHtml(report.top_educational_achievement || '-')}</p>
+        <p><strong>أبرز إنجاز ترفيهي/نفسي اجتماعي:</strong> ${escapeHtml(report.top_recreational_achievement || '-')}</p>
+        <p><strong>أهم تحدٍ أو خطر:</strong> ${escapeHtml(report.main_challenge || '-')}</p>
+        <p><strong>أولوية الأسبوع القادم:</strong> ${escapeHtml(report.next_week_priority || '-')}</p>
+    </div>
+    
+    <h2>انتظام التنفيذ وجودة التخطيط</h2>
+    <table><thead><tr><th>المعيار</th><th>التقييم</th><th>الملاحظة</th></tr></thead><tbody>`;
+    implementationQualityItems.forEach(item => {
+        const data = implData[item.id] || {};
+        html += `<tr><td style="text-align:right;">${item.label}</td><td>${data.value || 'غير محدد'}</td><td style="text-align:right;">${escapeHtml(data.notes || '-')}</td></tr>`;
+    });
+    html += `</tbody></table>
+    
+    <h2>أداء العاملين</h2>
+    <table><thead><tr><th>المعيار</th><th>التقييم</th><th>الملاحظة</th></tr></thead><tbody>`;
+    staffPerformanceItems.forEach(item => {
+        const data = staffData[item.id] || {};
+        html += `<tr><td style="text-align:right;">${item.label}</td><td>${data.value || 'غير محدد'}</td><td style="text-align:right;">${escapeHtml(data.notes || '-')}</td></tr>`;
+    });
+    html += `</tbody></table>
+    
+    <h2>البيئة المدرسية</h2>
+    <table><thead><tr><th>المعيار</th><th>التقييم</th><th>الملاحظة</th></tr></thead><tbody>`;
+    schoolEnvironmentItems.forEach(item => {
+        const data = envData[item.id] || {};
+        html += `<tr><td style="text-align:right;">${item.label}</td><td>${data.value || 'غير محدد'}</td><td style="text-align:right;">${escapeHtml(data.notes || '-')}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    
+    if (needs.length > 0) {
+        html += `<h2>الاحتياجات المهنية للعاملين</h2>
+        <table><thead><tr><th>الاحتياج</th><th>نوع الدعم</th><th>الفئة المستهدفة</th><th>المسؤول</th><th>موعد التنفيذ</th><th>دليل الإنجاز</th></tr></thead><tbody>`;
+        needs.forEach(n => {
+            html += `<tr><td style="text-align:right;">${escapeHtml(n.need || '-')}</td><td>${escapeHtml(n.type || '-')}</td><td>${escapeHtml(n.target || '-')}</td><td>${escapeHtml(n.responsible || '-')}</td><td>${escapeHtml(n.deadline || '-')}</td><td>${escapeHtml(n.evidence || '-')}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+    }
+    
+    if (challenges.length > 0) {
+        html += `<h2>التحديات والمخاطر والإجراءات التصحيحية</h2>
+        <table><thead><tr><th>التحدي/الخطر</th><th>الأثر</th><th>الاحتمالية</th><th>الأولوية</th><th>الإجراء</th><th>المسؤول</th><th>الحالة</th></tr></thead><tbody>`;
+        challenges.forEach(c => {
+            html += `<tr><td style="text-align:right;">${escapeHtml(c.challenge || '-')}</td><td style="text-align:right;">${escapeHtml(c.impact || '-')}</td><td>${escapeHtml(c.probability || '-')}</td><td>${escapeHtml(c.priority || '-')}</td><td style="text-align:right;">${escapeHtml(c.action || '-')}</td><td>${escapeHtml(c.responsible || '-')}</td><td>${escapeHtml(c.status || '-')}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+    }
+    
+    if (practices.length > 0) {
+        html += `<h2>الممارسات المتميزة والدروس المستفادة</h2>
+        <table><thead><tr><th>الممارسة</th><th>كيفية التنفيذ</th><th>الأثر</th></tr></thead><tbody>`;
+        practices.forEach(p => {
+            html += `<tr><td style="text-align:right;">${escapeHtml(p.practice || '-')}</td><td style="text-align:right;">${escapeHtml(p.implementation || '-')}</td><td style="text-align:right;">${escapeHtml(p.impact || '-')}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+    }
+    
+    const userName = currentUser?.name || 'مستخدم';
+    const currentDate = new Date().toLocaleDateString('ar-SA');
+    const currentTime = new Date().toLocaleTimeString('ar-SA');
+    html += `<div class="footer">تم إنشاء التقرير بواسطة: ${escapeHtml(userName)} | تاريخ الطباعة: ${currentDate} - ${currentTime}</div>
+    </body></html>`;
+    
+    return html;
+}
+
+function exportReportToPDF() {
+    if (!currentViewReport) {
+        showMessage('لا يوجد تقرير للتصدير', 'error');
+        return;
+    }
+    
+    const html = generateSummerReportHTML();
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        showMessage('الرجاء السماح للنوافذ المنبثقة', 'error');
+        return;
+    }
+    printWindow.document.write(html);
+    printWindow.document.title = `تقرير_الأنشطة_الصيفية_الأسبوع_${currentViewReport.week_number}`;
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 500);
+    showMessage('تم فتح نافذة الطباعة، يمكنك حفظ الملف', 'success');
+}
+
+async function openOutlookForSummerReport() {
+    if (!currentViewReport) {
+        showMessage('لا يوجد تقرير للإرسال', 'error');
+        return;
+    }
+    
+    const emailBtn = document.getElementById('emailSummerBtn');
+    if (emailBtn) emailBtn.disabled = true;
+    
+    try {
+        const specialistName = currentViewReport.users?.name || 'المختص';
+        const district = districtsList.find(d => d.id === currentViewReport.district_id);
+        const subject = `تقرير الأنشطة الصيفية - الأسبوع ${currentViewReport.week_number} - ${district?.name || ''}`;
+        
+        const periodFrom = new Date(currentViewReport.period_from).toLocaleDateString('ar-SA');
+        const periodTo = new Date(currentViewReport.period_to).toLocaleDateString('ar-SA');
+        const sendDate = new Date().toLocaleDateString('ar-SA');
+        
+        const body = `المختص التربوي (${specialistName})\n\nتفاصيل التقرير:\n- المنطقة: ${district?.name || ''}\n- الأسبوع: ${currentViewReport.week_number}\n- الفترة: ${periodFrom} - ${periodTo}\n- تاريخ الإرسال: ${sendDate}`;
+        
+        const toEmails = district?.mangerEmail ? [district.mangerEmail] : [];
+        const ccEmails = ['i.Najjar@UNRWA.ORG', 'Ma.Zaid@unrwa-edu.org'];
+        if (district?.supportEmail && district.supportEmail !== district?.mangerEmail) {
+            ccEmails.unshift(district.supportEmail);
+        }
+        
+        document.getElementById('emailTo').value = toEmails.join('; ') || '(لم يتم العثور على بريد إلكتروني)';
+        document.getElementById('emailCc').value = ccEmails.join('; ');
+        document.getElementById('emailSubject').value = subject;
+        document.getElementById('emailBody').value = body;
+        
+        openModalWithScroll('emailModal');
+    } catch (error) {
+        console.error('Error preparing email:', error);
+        showMessage('حدث خطأ في تجهيز البريد', 'error');
+    } finally {
+        if (emailBtn) emailBtn.disabled = false;
+    }
+}
+
+function openOutlookWithConfirmation() {
+    const confirmModal = document.getElementById('emailConfirmModal');
+    confirmModal.classList.add('active');
+    
+    const yesBtn = document.getElementById('confirmYesBtn');
+    const noBtn = document.getElementById('confirmNoBtn');
+    
+    const newYesBtn = yesBtn.cloneNode(true);
+    yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
+    newYesBtn.onclick = function() {
+        confirmModal.classList.remove('active');
+        executeOpenOutlook();
+    };
+    
+    const newNoBtn = noBtn.cloneNode(true);
+    noBtn.parentNode.replaceChild(newNoBtn, noBtn);
+    newNoBtn.onclick = function() {
+        confirmModal.classList.remove('active');
+        showMessage('الرجاء تحميل التقرير PDF قبل إرسال البريد', 'info');
+        exportReportToPDF();
+    };
+    
+    confirmModal.onclick = function(e) {
+        if (e.target === confirmModal) confirmModal.classList.remove('active');
+    };
+}
+
+function executeOpenOutlook() {
+    const toList = (document.getElementById('emailTo').value || '')
+        .split(/[;,]/)
+        .map(v => v.trim())
+        .filter(v => v !== '(لم يتم العثور على بريد إلكتروني)');
+    
+    const ccList = (document.getElementById('emailCc').value || '')
+        .split(/[;,]/)
+        .map(v => v.trim())
+        .filter(Boolean);
+    
+    const recipients = [...new Set([...toList, ...ccList])].join(',');
+    const subject = (document.getElementById('emailSubject').value || '').trim();
+    const body = (document.getElementById('emailBody').value || '').trim();
+    
+    const url = 'https://outlook.cloud.microsoft.com/mail/0/deeplink/compose?' +
+        'to=' + encodeURIComponent(recipients) +
+        '&subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(body);
+    
+    window.open(url, '_blank');
+    closeEmailModal();
+    showMessage('تم فتح Outlook، يرجى إرفاق ملف PDF للتقرير يدوياً', 'success');
+}
+
+function exportToExcel() {
+    const rows = [['#', 'تاريخ الإنشاء', 'الأسبوع', 'الفترة من', 'الفترة إلى', 'المنطقة', 'المختص', 'مدير المنطقة', 'الحالة']];
+    filteredReportsCache.forEach((r, i) => {
+        const status = r.exec_summary && r.exec_summary.length > 0 ? 'مكتمل' : 'قيد الإعداد';
+        rows.push([
+            i + 1,
+            new Date(r.created_at).toLocaleDateString('ar-SA'),
+            r.week_number,
+            new Date(r.period_from).toLocaleDateString('ar-SA'),
+            new Date(r.period_to).toLocaleDateString('ar-SA'),
+            r.district_name || '-',
+            r.users?.name || '-',
+            r.district_manager || '-',
+            status
+        ]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'الأنشطة الصيفية');
+    XLSX.writeFile(wb, `الأنشطة_الصيفية_${new Date().toISOString().split('T')[0]}.xlsx`);
+    showMessage('تم تصدير التقارير بنجاح', 'success');
+}
+
+// ==================== الإشعارات ====================
+
+async function updateUnreadBadge() {
+    try {
+        const result = await window.getUnreadNotificationsCount(currentUser?.id);
+        if(result && result.success) {
+            const badge = document.getElementById('unreadBadge');
+            if(badge) {
+                if(result.count > 0) {
+                    badge.textContent = result.count > 99 ? '99+' : result.count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+    } catch(e) { console.error(e); }
+}
+
+async function toggleNotificationsPanel() {
+    const panel = document.getElementById('notificationsPanel');
+    const overlay = document.getElementById('panelOverlay');
+    if(panel.classList.contains('open')) {
+        closeNotificationsPanel();
+    } else {
+        await loadNotifications();
+        panel.classList.add('open');
+        overlay.classList.add('open');
+    }
+}
+
+function closeNotificationsPanel() {
+    document.getElementById('notificationsPanel').classList.remove('open');
+    document.getElementById('panelOverlay').classList.remove('open');
+}
+
+async function deleteNotificationItem(notificationId, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    
+    const el = event?.target?.closest('.notification-list-item');
+    if (el) el.style.opacity = '0.5';
+    
+    try {
+        const result = await window.deleteNotification(notificationId);
+        if (result && result.success) {
+            await loadNotifications();
+            await updateUnreadBadge();
+            showMessage('تم حذف الإشعار بنجاح', 'success');
+        }
+    } catch(e) {
+        console.error(e);
+        showMessage('حدث خطأ في حذف الإشعار', 'error');
+        if (el) el.style.opacity = '1';
+    }
+}
+
+async function loadNotifications() {
+    const list = document.getElementById('notificationsList');
+    list.innerHTML = '<div class="empty-notifications"><div class="loader-small"></div><p>جاري تحميل الإشعارات...</p></div>';
+    try {
+        const result = await window.getRecentNotifications(currentUser?.id, 50);
+        if(result && result.success) {
+            const notifications = result.data;
+            if(!notifications || notifications.length === 0) {
+                list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
+            } else {
+                list.innerHTML = notifications.map(n => `
+                    <div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationClick(${n.id}, '${n.related_report_type || ''}', ${n.related_report_id || 'null'})">
+                        <div class="title">${escapeHtml(n.title)}</div>
+                        <div class="message">${escapeHtml(n.message)}</div>
+                        <div class="time">${formatTime(n.created_at)}</div>
+                        <button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${n.id}, event)"><i class="fas fa-trash"></i></button>
+                    </div>
+                `).join('');
+                const markAllBtn = document.getElementById('markAllReadBtn');
+                if(markAllBtn) markAllBtn.style.display = notifications.some(n => !n.is_read) ? 'flex' : 'none';
+            }
+            await updateUnreadBadge();
+        }
+    } catch(e) {
+        console.error(e);
+        list.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ</p></div>';
+    }
+}
+
+async function handleNotificationClick(notificationId, reportType, reportId) {
+    try {
+        await window.markNotificationAsRead(notificationId);
+        await updateUnreadBadge();
+        closeNotificationsPanel();
+        
+        if (reportId && reportId !== 'null' && reportType === 'summer') {
+            const timestamp = Date.now().toString();
+            localStorage.setItem('pendingReportId', reportId);
+            localStorage.setItem('pendingReportType', 'summer');
+            localStorage.setItem('pendingReportTimestamp', timestamp);
+            
+            if (typeof viewReport === 'function') {
+                viewReport(reportId);
+            } else {
+                window.location.href = `summer-reports.html?view=${reportId}&t=${timestamp}`;
+            }
+        }
+    } catch(e) {
+        console.error('خطأ في فتح الإشعار:', e);
+        showMessage('حدث خطأ في فتح الإشعار', 'error');
+    }
+}
+
+async function markAllAsRead() {
+    try {
+        await window.markAllNotificationsAsRead(currentUser?.id);
+        await loadNotifications();
+        await updateUnreadBadge();
+        showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success');
+    } catch(e) {
+        console.error(e);
+        showMessage('حدث خطأ', 'error');
+    }
+}
+
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    const diffMins = Math.floor((new Date() - date) / 60000);
+    if (diffMins < 1) return 'الآن';
+    if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
+    if (diffMins < 1440) return `منذ ${Math.floor(diffMins / 60)} ساعة`;
+    return `منذ ${Math.floor(diffMins / 1440)} يوم`;
+}
+
+function startNotificationPolling() {
+    if (notificationInterval) clearInterval(notificationInterval);
+    notificationInterval = setInterval(async () => {
+        if (currentUser && document.hasFocus()) {
+            try {
+                const r = await window.getUnreadNotificationsCount(currentUser.id);
+                if (r && r.success && r.count > 0) updateUnreadBadge();
+            } catch(e) {}
+        }
+    }, 30000);
+}
+
+function stopNotificationPolling() {
+    if(notificationInterval) {
+        clearInterval(notificationInterval);
+        notificationInterval = null;
+    }
+}
+
+async function logout() {
+    stopNotificationPolling();
+    localStorage.removeItem('currentUser');
+    try { await window.supabaseClient.auth.signOut(); } catch(e) {}
+    window.location.href = 'login.html';
+}
+
+// ==================== انتظار تحميل الدوال المطلوبة من supabase.js ====================
+// يعالج حالة نادرة يكون فيها ملف supabase.js لا يزال قيد التنفيذ (أو تم تحميل
+// نسخة قديمة من الكاش) عند إطلاق حدث load، فبدل الفشل الفوري ننتظر قليلاً
+async function waitForRequiredFunctions(names, timeoutMs = 4000, intervalMs = 100) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+        if (names.every(n => typeof window[n] === 'function')) return true;
+        await new Promise(r => setTimeout(r, intervalMs));
+    }
+    return names.every(n => typeof window[n] === 'function');
+}
+
+// ==================== التهيئة ====================
+
+window.addEventListener('load', async () => {
+    currentUser = await (async () => {
+        const local = localStorage.getItem('currentUser');
+        if(local && JSON.parse(local).id) return JSON.parse(local);
+        try {
+            const { data: { user } } = await window.supabaseClient.auth.getUser();
+            if(user) {
+                const { data: userData } = await window.supabaseClient.from('users').select('*').eq('email', user.email).single();
+                if(userData) {
+                    if(userData.district_id) {
+                        const { data: district } = await window.supabaseClient.from('districts').select('name').eq('id', userData.district_id).single();
+                        if(district) userData.district_name = district.name;
+                    }
+                    localStorage.setItem('currentUser', JSON.stringify(userData));
+                    return userData;
+                }
+            }
+        } catch(e) { console.log(e); }
+        return local ? JSON.parse(local) : null;
+    })();
+    
+    if(!currentUser) { window.location.href = 'login.html'; return; }
+    
+    if(!canViewSummerReports(currentUser)) {
+        showMessage('لا تملك صلاحية الوصول لهذه الصفحة', 'error');
+        setTimeout(() => window.location.href = 'dashboard.html', 2000);
+        return;
+    }
+    if (typeof window.applySidebarPermissions === 'function') window.applySidebarPermissions(currentUser);
+    
+    document.getElementById('userNameDisplay').textContent = currentUser.name;
+    document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
+    document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(currentUser);
+    
+    const showAdmin = ['admin', 'support'].includes(currentUser.role);
+    document.getElementById('adminLinks').style.display = showAdmin ? 'block' : 'none';
+    document.getElementById('navAnalytics').style.display = ['admin', 'support', 'manger'].includes(currentUser.role) ? 'flex' : 'none';
+    document.getElementById('addReportBtn').style.display = canCreateSummerReport(currentUser) ? 'inline-flex' : 'none';
+    
+    console.log('🔍 التحقق من دوال summer activity reports:');
+    console.log('window.getSummerActivityReports:', typeof window.getSummerActivityReports);
+    console.log('window.saveSummerActivityReport:', typeof window.saveSummerActivityReport);
+    console.log('window.deleteSummerActivityReport:', typeof window.deleteSummerActivityReport);
+    
+    await loadDistricts();
+    initFilterDatePickers();
+    
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    if(pageSizeSelect) {
+        pageSizeSelect.addEventListener('change', (e) => {
+            pageSize = parseInt(e.target.value);
+            currentPage = 1;
+            displayCurrentPage();
+        });
+    }
+    
+    const requiredSummerFns = ['getSummerActivityReports', 'saveSummerActivityReport', 'deleteSummerActivityReport', 'sendSummerReportNotifications'];
+    const summerFnsReady = await waitForRequiredFunctions(requiredSummerFns, 4000, 100);
+    
+    if (summerFnsReady) {
+        await loadAllSummerReports();
+    } else {
+        const missing = requiredSummerFns.filter(n => typeof window[n] !== 'function');
+        console.error('❌ الدوال التالية لم يتم تحميلها بعد الانتظار:', missing);
+        showMessage('حدث خطأ في تحميل الدوال المطلوبة، سيتم تحديث الصفحة تلقائياً...', 'error');
+        allReportsCache = [];
+        setTimeout(() => window.location.reload(), 2000);
+        return;
+    }
+    
+    filteredReportsCache = [...allReportsCache];
+    totalFilteredCount = filteredReportsCache.length;
+    currentPage = 1;
+    displayCurrentPage();
+    
+    await updateUnreadBadge();
+    startNotificationPolling();
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const reportIdToView = urlParams.get('view');
+    if(reportIdToView) {
+        setTimeout(() => viewReport(reportIdToView), 500);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    document.addEventListener('click', function(event) {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebarBtn');
+        if (window.innerWidth <= 992 && sidebar.classList.contains('open')) {
+            if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                closeSidebar();
+            }
+        }
+    });
+    
+    console.log('✅ تم تحميل صفحة تقارير الأنشطة الصيفية بنجاح');
+});
+</script>
+</body>
+</html>

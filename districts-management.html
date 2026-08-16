@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+<!-- SYSTEM_FIX_VERSION: 2026-08-11-v5 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -13,7 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/modern-style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+console.log('%c🔖 SYSTEM_FIX_VERSION: 2026-08-11-v5', 'color:#2e9b54;font-weight:bold;font-size:14px');</script>
     <script src="js/supabase.js"></script>
     <style>
         /* ======= تنسيق القائمة الجانبية المتجاوبة مثل overview ======= */
@@ -383,12 +385,13 @@
     <nav class="sidebar-nav">
         <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
         <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
-        <a href="summary-reports.html" id="summaryReportsLink" style="display: none;"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
+        <a id="navSummerReports" href="summer-reports.html"><i class="fas fa-sun"></i> الأنشطة الصيفية</a>
+        <a href="summary-reports.html" id="navSummaryReports" style="display: none;"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
         <a href="analytics.html" id="navAnalytics" style="display: none;"><i class="fas fa-chart-bar"></i> التحليلات</a>
-        <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
         <div id="adminLinks" style="display: none;">
-            <a href="districts-management.html" class="active" id="districtsManagementLink"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
-            <a href="users-management.html" id="usersManagementLink"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
+            <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
+            <a href="districts-management.html" class="active" id="navDistrictsManagement"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+            <a href="users-management.html" id="navUsersManagement"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
         </div>
     </nav>
 
@@ -429,6 +432,7 @@
         <div class="tabs">
             <div class="tab active" onclick="switchTab('districts')"><i class="fas fa-map-marked-alt"></i> المناطق</div>
             <div class="tab" onclick="switchTab('schools')"><i class="fas fa-school"></i> المدارس</div>
+            <div class="tab" onclick="switchTab('centers')"><i class="fas fa-building"></i> المراكز التعليمية</div>
         </div>
 
         <div id="districtsTab" class="tab-content active">
@@ -467,10 +471,39 @@
                 <div style="overflow-x: auto;">
                     <table class="modern-table">
                         <thead><tr><th>#</th><th>اسم المدرسة</th><th>المنطقة</th><th>مدير المدرسة</th><th>البريد الإلكتروني للمدير</th><th>تاريخ الإضافة</th><th>الإجراءات</th></tr></thead>
-                        <tbody id="schoolsTableBody"><tr><td colspan="7" style="text-align: center; padding: 3rem;"><div class="loader"></div></tbody>
+                        <tbody id="schoolsTableBody"><tr><td colspan="7" style="text-align: center; padding: 3rem;"><div class="loader"></div></td></tbody>
                     </table>
                 </div>
                 <div style="margin-top: 1rem; color: #4e6580;" id="schoolsCount">عدد النتائج: 0</div>
+            </div>
+        </div>
+
+        <!-- تبويب المراكز التعليمية (جديد) -->
+        <div id="centersTab" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; flex: 1;">
+                    <div class="search-box" style="flex: 1; min-width: 250px;">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="centerSearchInput" placeholder="بحث باسم المركز...">
+                    </div>
+                    <select id="centerDistrictFilter" class="form-input" style="width: auto; min-width: 180px;">
+                        <option value="">جميع المناطق</option>
+                    </select>
+                </div>
+                <button onclick="openAddCenterModal()" class="btn-primary"><i class="fas fa-plus"></i> إضافة مركز جديد</button>
+            </div>
+            <div class="table-container">
+                <div style="overflow-x: auto;">
+                    <table class="modern-table">
+                        <thead>
+                            <tr><th>#</th><th>الاسم (EN)</th><th>الاسم (AR)</th><th>المنطقة</th><th>مدير المركز</th><th>البريد الإلكتروني</th><th>تاريخ الإضافة</th><th>الإجراءات</th></tr>
+                        </thead>
+                        <tbody id="centersTableBody">
+                            <tr><td colspan="8" style="text-align: center; padding: 3rem;"><div class="loader"></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 1rem; color: #4e6580;" id="centersCount">عدد النتائج: 0</div>
             </div>
         </div>
     </div>
@@ -514,6 +547,32 @@
             <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                 <button type="submit" class="btn-primary" style="flex: 2;">حفظ</button>
                 <button type="button" onclick="closeSchoolModal()" class="btn-secondary" style="flex: 1;">إلغاء</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- مودال المركز التعليمي (جديد) -->
+<div id="centerModal" class="modal">
+    <div class="modal-content modal-medium">
+        <div class="modal-header">
+            <h2 id="centerModalTitle">إضافة مركز تعليمي جديد</h2>
+            <button class="modal-close" onclick="closeCenterModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="centerForm">
+            <input type="hidden" id="centerId">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                <div><label>الاسم (بالإنجليزية) <span style="color: #e34f76;">*</span></label><input type="text" id="centerNameEn" class="form-input" required></div>
+                <div><label>الاسم (بالعربية)</label><input type="text" id="centerNameAr" class="form-input"></div>
+                <div><label>المنطقة <span style="color: #e34f76;">*</span></label><select id="centerDistrict" class="form-input" required><option value="">اختر المنطقة</option></select></div>
+                <div><label>رقم الموظف</label><input type="text" id="centerEmployeeId" class="form-input"></div>
+                <div><label>مدير المركز (بالإنجليزية)</label><input type="text" id="centerManagerEn" class="form-input"></div>
+                <div><label>مدير المركز (بالعربية)</label><input type="text" id="centerManagerAr" class="form-input"></div>
+                <div><label>البريد الإلكتروني</label><input type="email" id="centerEmail" class="form-input"></div>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn-primary" style="flex: 2;"><i class="fas fa-save"></i> حفظ</button>
+                <button type="button" onclick="closeCenterModal()" class="btn-secondary" style="flex: 1;"><i class="fas fa-times"></i> إلغاء</button>
             </div>
         </form>
     </div>
@@ -577,6 +636,184 @@
     let deleteItem = { type: null, id: null, name: null };
     let isSubmitting = false;
 
+    // ==================== دوال المراكز التعليمية ====================
+    let centersData = [];
+
+    async function loadCenters() {
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('educational_centers')
+                .select(`
+                    *,
+                    districts:district_id (id, name)
+                `)
+                .order('name_en', { ascending: true });
+            
+            if (error) throw error;
+            centersData = data || [];
+            displayCenters();
+            
+            // تحديث فلتر المناطق في تبويب المراكز
+            const filterSelect = document.getElementById('centerDistrictFilter');
+            if (filterSelect) {
+                const currentValue = filterSelect.value;
+                const options = '<option value="">جميع المناطق</option>' + 
+                    districts.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
+                filterSelect.innerHTML = options;
+                if (currentValue) filterSelect.value = currentValue;
+            }
+            
+            // تحديث قائمة المناطق في مودال المركز
+            const districtSelect = document.getElementById('centerDistrict');
+            if (districtSelect) {
+                const options = '<option value="">اختر المنطقة</option>' + 
+                    districts.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
+                districtSelect.innerHTML = options;
+            }
+            
+        } catch (error) {
+            console.error('Error loading centers:', error);
+            showMessage('حدث خطأ في تحميل المراكز', 'error');
+        }
+    }
+
+    function displayCenters() {
+        const tbody = document.getElementById('centersTableBody');
+        const searchTerm = document.getElementById('centerSearchInput')?.value?.toLowerCase() || '';
+        const districtFilter = document.getElementById('centerDistrictFilter')?.value || '';
+        
+        let filtered = centersData.filter(c => {
+            if (searchTerm && !(c.name_en?.toLowerCase().includes(searchTerm) || c.name_ar?.toLowerCase().includes(searchTerm))) return false;
+            if (districtFilter && c.district_id != districtFilter) return false;
+            return true;
+        });
+        
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem;"><i class="fas fa-building"></i><p>لا توجد مراكز تعليمية</p></td></tr>`;
+            document.getElementById('centersCount').textContent = 'عدد النتائج: 0';
+            return;
+        }
+        
+        tbody.innerHTML = filtered.map((center, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td><strong>${escapeHtml(center.name_en || '-')}</strong></td>
+                <td>${escapeHtml(center.name_ar || '-')}</td>
+                <td><span class="badge badge-primary">${escapeHtml(center.districts?.name || '-')}</span></td>
+                <td>${escapeHtml(center.manager_name_ar || center.manager_name_en || '-')}</td>
+                <td>${escapeHtml(center.email || '-')}</td>
+                <td>${center.created_at ? new Date(center.created_at).toLocaleDateString('ar-SA') : '-'}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button onclick="openEditCenterModal('${center.id}')" class="action-btn edit"><i class="fas fa-edit"></i></button>
+                        <button onclick="openDeleteCenterModal('${center.id}', '${escapeHtml(center.name_en)}')" class="action-btn delete"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+        document.getElementById('centersCount').textContent = `عدد النتائج: ${filtered.length}`;
+    }
+
+    function filterCenters() {
+        displayCenters();
+    }
+
+    function openAddCenterModal() {
+        document.getElementById('centerModalTitle').textContent = 'إضافة مركز تعليمي جديد';
+        document.getElementById('centerForm').reset();
+        document.getElementById('centerId').value = '';
+        document.getElementById('centerModal').classList.add('active');
+    }
+
+    async function openEditCenterModal(id) {
+        const center = centersData.find(c => c.id == id);
+        if (!center) return;
+        
+        document.getElementById('centerModalTitle').textContent = 'تعديل المركز التعليمي';
+        document.getElementById('centerId').value = center.id;
+        document.getElementById('centerNameEn').value = center.name_en || '';
+        document.getElementById('centerNameAr').value = center.name_ar || '';
+        document.getElementById('centerDistrict').value = center.district_id || '';
+        document.getElementById('centerEmployeeId').value = center.employee_id || '';
+        document.getElementById('centerManagerEn').value = center.manager_name_en || '';
+        document.getElementById('centerManagerAr').value = center.manager_name_ar || '';
+        document.getElementById('centerEmail').value = center.email || '';
+        document.getElementById('centerModal').classList.add('active');
+    }
+
+    document.getElementById('centerForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (isSubmitting) return;
+        
+        const id = document.getElementById('centerId').value;
+        const centerData = {
+            name_en: document.getElementById('centerNameEn').value.trim(),
+            name_ar: document.getElementById('centerNameAr').value.trim() || null,
+            district_id: parseInt(document.getElementById('centerDistrict').value),
+            employee_id: document.getElementById('centerEmployeeId').value.trim() || null,
+            manager_name_en: document.getElementById('centerManagerEn').value.trim() || null,
+            manager_name_ar: document.getElementById('centerManagerAr').value.trim() || null,
+            email: document.getElementById('centerEmail').value.trim() || null
+        };
+        
+        if (!centerData.name_en || !centerData.district_id) {
+            showMessage('الرجاء ملء جميع الحقول المطلوبة', 'error');
+            return;
+        }
+        
+        isSubmitting = true;
+        const submitBtn = document.querySelector('#centerForm button[type="submit"]');
+        const originalHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+        submitBtn.disabled = true;
+        
+        try {
+            let result;
+            if (id) {
+                result = await window.supabaseClient.from('educational_centers').update(centerData).eq('id', id);
+            } else {
+                result = await window.supabaseClient.from('educational_centers').insert([centerData]);
+            }
+            if (result.error) throw result.error;
+            
+            closeCenterModal();
+            await loadCenters();
+            await loadStatistics();
+            showMessage(id ? 'تم تحديث المركز بنجاح' : 'تم إضافة المركز بنجاح', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage('حدث خطأ: ' + error.message, 'error');
+        } finally {
+            isSubmitting = false;
+            submitBtn.innerHTML = originalHtml;
+            submitBtn.disabled = false;
+        }
+    });
+
+    function closeCenterModal() {
+        document.getElementById('centerModal').classList.remove('active');
+    }
+
+    function openDeleteCenterModal(id, name) {
+        if (confirm(`هل أنت متأكد من حذف المركز "${name}"؟`)) {
+            deleteCenter(id);
+        }
+    }
+
+    async function deleteCenter(id) {
+        try {
+            const { error } = await window.supabaseClient.from('educational_centers').delete().eq('id', id);
+            if (error) throw error;
+            await loadCenters();
+            showMessage('تم حذف المركز بنجاح', 'success');
+        } catch (error) {
+            console.error('Error deleting center:', error);
+            showMessage('حدث خطأ في حذف المركز', 'error');
+        }
+    }
+
+    // ==================== باقي دوال الملف ====================
+
     function getUserSubtitle(user) {
         if (!user) return '';
         if (user.role === 'admin' || user.role === 'support') return 'مدير نظام';
@@ -589,6 +826,23 @@
     function getRoleName(role) {
         const roles = { 'admin': 'مدير النظام', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'spuser': 'مدير مدرسة', 'user': 'مختص تربوي' };
         return roles[role] || role;
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function showMessage(message, type) {
+        const container = document.getElementById('notificationsContainer');
+        if (!container) return;
+        const notification = document.createElement('div');
+        notification.className = `notification-item ${type}`;
+        notification.innerHTML = `<div style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-${type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-circle'}"></i><span>${message}</span></div>`;
+        container.appendChild(notification);
+        setTimeout(() => notification.remove(), 4000);
     }
 
     window.addEventListener('load', async () => {
@@ -610,6 +864,7 @@
         
         await loadDistricts();
         await loadSchools();
+        await loadCenters();
         await loadStatistics();
         await updateUnreadBadge();
         startNotificationPolling();
@@ -617,6 +872,8 @@
         document.getElementById('districtSearchInput').addEventListener('input', filterDistricts);
         document.getElementById('schoolSearchInput').addEventListener('input', filterSchools);
         document.getElementById('schoolDistrictFilter').addEventListener('change', filterSchools);
+        document.getElementById('centerSearchInput')?.addEventListener('input', filterCenters);
+        document.getElementById('centerDistrictFilter')?.addEventListener('change', filterCenters);
         
         // إغلاق القائمة عند النقر خارجها
         document.addEventListener('click', function(event) {
@@ -658,6 +915,7 @@
     }
 
     function updateUIForUser(user) {
+        if (typeof window.applySidebarPermissions === 'function') window.applySidebarPermissions(user);
         const showAdminLinks = ['admin', 'support'].includes(user.role);
         document.getElementById('adminLinks').style.display = showAdminLinks ? 'block' : 'none';
         const showAnalytics = ['admin', 'support', 'manger'].includes(user.role);
@@ -665,21 +923,26 @@
         
         const summaryReportsLink = document.getElementById('summaryReportsLink');
         if (summaryReportsLink) {
-            summaryReportsLink.style.display = (user.role === 'spuser') ? 'none' : 'flex';
+            summaryReportsLink.style.display = (user.role === 'spuser' || user.role === 'center') ? 'none' : 'flex';
         }
     }
 
     function switchTab(tab) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
         if (tab === 'districts') {
             document.querySelector('.tab').classList.add('active');
             document.getElementById('districtsTab').classList.add('active');
             loadDistricts();
-        } else {
+        } else if (tab === 'schools') {
             document.querySelectorAll('.tab')[1].classList.add('active');
             document.getElementById('schoolsTab').classList.add('active');
             loadSchools();
+        } else if (tab === 'centers') {
+            document.querySelectorAll('.tab')[2].classList.add('active');
+            document.getElementById('centersTab').classList.add('active');
+            loadCenters();
         }
     }
 
@@ -702,10 +965,10 @@
             await displayDistricts();
             document.getElementById('totalDistricts').textContent = districts.length;
             
-            const districtOptions = '<option value="">اختر المنطقة</option>' + districts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+            const districtOptions = '<option value="">اختر المنطقة</option>' + districts.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
             document.getElementById('schoolDistrict').innerHTML = districtOptions;
             
-            const filterOptions = '<option value="">جميع المناطق</option>' + districts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+            const filterOptions = '<option value="">جميع المناطق</option>' + districts.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
             document.getElementById('schoolDistrictFilter').innerHTML = filterOptions;
         } catch (error) { 
             console.error('Error loading districts:', error);
@@ -719,7 +982,7 @@
         let filtered = districts.filter(d => d.name.toLowerCase().includes(searchTerm));
         
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fas fa-folder-open"></i><p>لا توجد مناطق</p></tr></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد مناطق</p></td></tr>`;
             document.getElementById('districtsCount').textContent = 'عدد النتائج: 0';
             return;
         }
@@ -733,17 +996,17 @@
         tbody.innerHTML = filtered.map((district, index) => `
             <tr>
                 <td>${index + 1}</td>
-                <td><strong>${district.name}</strong></td>
-                <td>${district.manger || '-'}</td>
-                <td>${district.mangerEmail || '-'}</td>
+                <td><strong>${escapeHtml(district.name)}</strong></td>
+                <td>${escapeHtml(district.manger || '-')}</td>
+                <td>${escapeHtml(district.mangerEmail || '-')}</td>
                 <td><span class="badge badge-primary">${schoolsCount[district.id] || 0} مدرسة</span></td>
                 <td>${new Date(district.created_at).toLocaleDateString('ar-SA')}</td>
                 <td>
                     <div class="action-buttons">
                         <button onclick="openEditDistrictModal('${district.id}')" class="action-btn edit"><i class="fas fa-edit"></i></button>
-                        <button onclick="openDeleteModal('district', '${district.id}', '${district.name}')" class="action-btn delete"><i class="fas fa-trash"></i></button>
+                        <button onclick="openDeleteModal('district', '${district.id}', '${escapeHtml(district.name)}')" class="action-btn delete"><i class="fas fa-trash"></i></button>
                     </div>
-                 </td
+                </td>
             </tr>
         `).join('');
         document.getElementById('districtsCount').textContent = `عدد النتائج: ${filtered.length}`;
@@ -791,7 +1054,7 @@
         });
         
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fas fa-school"></i><p>لا توجد مدارس</p></td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:3rem;"><i class="fas fa-school"></i><p>لا توجد مدارس</p></td></tr>`;
             document.getElementById('schoolsCount').textContent = 'عدد النتائج: 0';
             return;
         }
@@ -799,17 +1062,17 @@
         tbody.innerHTML = filtered.map((school, index) => `
             <tr>
                 <td>${index + 1}</td>
-                <td><strong>${school.name || '-'}</strong></td>
-                <td><span class="badge badge-primary">${school.district_name || '-'}</span></td>
-                <td>${school.schoolPrincipal || '-'}</td>
-                <td>${school.schoolPrincipalEmail || '-'}</td>
+                <td><strong>${escapeHtml(school.name || '-')}</strong></td>
+                <td><span class="badge badge-primary">${escapeHtml(school.district_name || '-')}</span></td>
+                <td>${escapeHtml(school.schoolPrincipal || '-')}</td>
+                <td>${escapeHtml(school.schoolPrincipalEmail || '-')}</td>
                 <td>${school.created_at ? new Date(school.created_at).toLocaleDateString('ar-SA') : '-'}</td>
                 <td>
                     <div class="action-buttons">
                         <button onclick="openEditSchoolModal('${school.id}')" class="action-btn edit"><i class="fas fa-edit"></i></button>
-                        <button onclick="openDeleteModal('school', '${school.id}', '${school.name}')" class="action-btn delete"><i class="fas fa-trash"></i></button>
+                        <button onclick="openDeleteModal('school', '${school.id}', '${escapeHtml(school.name)}')" class="action-btn delete"><i class="fas fa-trash"></i></button>
                     </div>
-                 </td
+                </td>
             </tr>
         `).join('');
         document.getElementById('schoolsCount').textContent = `عدد النتائج: ${filtered.length}`;
@@ -995,16 +1258,6 @@
     function closeSchoolModal() { document.getElementById('schoolModal').classList.remove('active'); }
     function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('active'); deleteItem = { type: null, id: null, name: null }; }
 
-    function showMessage(message, type) {
-        const container = document.getElementById('notificationsContainer');
-        if (!container) return;
-        const notification = document.createElement('div');
-        notification.className = `notification-item ${type}`;
-        notification.innerHTML = `<div style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-${type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-circle'}"></i><span>${message}</span></div>`;
-        container.appendChild(notification);
-        setTimeout(() => notification.remove(), 4000);
-    }
-
     // ==================== دوال الإشعارات ====================
     
     async function updateUnreadBadge() {
@@ -1055,12 +1308,26 @@
         try {
             const result = await window.getRecentNotifications(currentUser?.id, 50);
             if (result.success) {
-                displayNotifications(result.data);
+                const notifications = result.data;
+                if (!notifications || notifications.length === 0) {
+                    listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
+                } else {
+                    listContainer.innerHTML = notifications.map(n => `
+                        <div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationClick(${n.id})">
+                            <div class="title">${escapeHtml(n.title)}</div>
+                            <div class="message">${escapeHtml(n.message)}</div>
+                            <div class="time">${formatNotificationTime(n.created_at)}</div>
+                            <button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${n.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                }
                 await updateUnreadBadge();
                 
                 const markAllBtn = document.getElementById('markAllReadBtn');
                 if (markAllBtn) {
-                    const hasUnread = result.data.some(n => !n.is_read);
+                    const hasUnread = notifications.some(n => !n.is_read);
                     markAllBtn.style.display = hasUnread ? 'flex' : 'none';
                 }
             } else {
@@ -1072,37 +1339,15 @@
         }
     }
 
-    function displayNotifications(notifications) {
-        const listContainer = document.getElementById('notificationsList');
-        
-        if (!notifications || notifications.length === 0) {
-            listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
-            return;
-        }
-        
-        listContainer.innerHTML = notifications.map(notification => `
-            <div class="notification-list-item ${!notification.is_read ? 'unread' : ''}" onclick="viewNotification(${notification.id})">
-                <div class="title">${escapeHtml(notification.title)}</div>
-                <div class="message">${escapeHtml(notification.message)}</div>
-                <div class="time">${formatNotificationTime(notification.created_at)}</div>
-                <button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${notification.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `).join('');
-    }
-
-    async function viewNotification(notificationId) {
+    async function handleNotificationClick(notificationId) {
         try {
             const result = await window.handleNotificationClick(notificationId);
-            
             if (!result.success) {
                 await window.markNotificationAsRead(notificationId);
                 await updateUnreadBadge();
                 await loadNotifications();
                 showMessage('تم تحديث الإشعار', 'success');
             }
-            
         } catch (error) { 
             console.error('Error handling notification:', error);
             showMessage('حدث خطأ في فتح الإشعار', 'error');
@@ -1146,13 +1391,6 @@
         if (diffDays < 7) return `منذ ${diffDays} يوم`;
         
         return date.toLocaleDateString('ar-SA');
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
     }
 
     let notificationInterval = null;

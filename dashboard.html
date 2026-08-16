@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+<!-- SYSTEM_FIX_VERSION: 2026-08-11-v5 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -10,672 +11,206 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/modern-style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+console.log('%c🔖 SYSTEM_FIX_VERSION: 2026-08-11-v5', 'color:#2e9b54;font-weight:bold;font-size:14px');</script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; overflow-x: hidden; }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f5f7fb;
-            overflow-x: hidden;
-        }
-
-        /* ======= تنسيق القائمة الجانبية المتجاوبة مثل overview ======= */
         .sidebar {
-            position: fixed;
-            right: 0;
-            top: 0;
-            width: 280px;
-            height: 100%;
-            background: white;
-            border-left: 1px solid #eef2f7;
-            transition: right 0.3s ease-in-out;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
+            position: fixed; right: 0; top: 0; width: 280px; height: 100%;
+            background: white; border-left: 1px solid #eef2f7;
+            transition: right 0.3s ease-in-out; z-index: 1000;
+            display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0,0,0,0.05);
         }
-
-        /* في وضع الجوال: القائمة مخفية تماماً */
         @media (max-width: 768px) {
-            .sidebar {
-                right: -280px;
-            }
-            .sidebar.open {
-                right: 0;
-                box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
-            }
-            .main-content {
-                margin-right: 0 !important;
-            }
-            .toggle-sidebar {
-                display: flex !important;
-            }
+            .sidebar { right: -280px; }
+            .sidebar.open { right: 0; box-shadow: -5px 0 25px rgba(0,0,0,0.15); }
+            .main-content { margin-right: 0 !important; }
+            .toggle-sidebar { display: flex !important; }
         }
 
-        /* زر فتح القائمة للجوال */
         .toggle-sidebar {
-            display: none;
-            position: fixed;
-            right: 20px;
-            top: 20px;
-            background: white;
-            border: none;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            cursor: pointer;
-            z-index: 1001;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            color: #1e3c72;
-            transition: all 0.2s;
+            display: none; position: fixed; right: 20px; top: 20px;
+            background: white; border: none; border-radius: 50%;
+            width: 45px; height: 45px; cursor: pointer; z-index: 1001;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            align-items: center; justify-content: center;
+            font-size: 1.2rem; color: #1e3c72; transition: all 0.2s;
         }
+        .toggle-sidebar:hover { background: #f0f4fa; transform: scale(1.05); }
 
-        .toggle-sidebar:hover {
-            background: #f0f4fa;
-            transform: scale(1.05);
-        }
-
-        /* تغطية الخلفية عند فتح القائمة في الجوال */
         .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;
             transition: all 0.3s;
         }
 
-        /*.sidebar-overlay.active {
-            display: block;
-        }*/
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #eef2f7; text-align: center; }
+        .sidebar-logo { width: 50px; height: 50px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem; }
+        .sidebar-header h2 { font-size: 1.1rem; color: #1e3c72; margin-bottom: 0.25rem; }
+        .user-role { font-size: 0.75rem; color: #8ba0bc; }
+        .sidebar-nav { flex: 1; padding: 1rem; }
+        .sidebar-nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: #4e6580; text-decoration: none; border-radius: 12px; margin-bottom: 0.25rem; transition: all 0.2s; }
+        .sidebar-nav a:hover { background: #e8f0fe; color: #1e3c72; }
+        .sidebar-nav a.active { background: linear-gradient(135deg, #1e3c72, #153155); color: white; }
+        .sidebar-footer { padding: 1rem; border-top: 1px solid #eef2f7; }
+        .user-info { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+        .user-avatar { width: 45px; height: 45px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+        .user-name { font-size: 0.9rem; font-weight: 600; color: #1e3c72; }
+        .user-district { font-size: 0.7rem; color: #8ba0bc; transition: all 0.3s ease; }
+        .logout-btn { width: 100%; padding: 0.75rem; background: none; border: 1px solid #e34f76; color: #e34f76; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .logout-btn:hover { background: #fff2f5; }
 
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid #eef2f7;
-            text-align: center;
+        .main-content { margin-right: 280px; min-height: 100vh; padding: 1.5rem; transition: margin-right 0.3s ease; }
+
+        .entity-switcher {
+            background: white; border-radius: 16px; padding: 0.75rem 1.5rem;
+            margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: none; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 0.75rem; border: 1px solid #eef2f7; transition: all 0.3s ease;
         }
+        .entity-switcher.visible { display: flex; }
+        .entity-switcher .current-entity { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 1rem; background: #f0f4fa; border-radius: 30px; transition: all 0.3s ease; }
+        .entity-switcher .current-entity:hover { background: #e8f0fe; }
+        .entity-switcher .current-entity .entity-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem; flex-shrink: 0; }
+        .entity-switcher .current-entity .entity-icon.district { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .entity-switcher .current-entity .entity-icon.school { background: linear-gradient(135deg, #1e3c72, #2a5298); }
+        .entity-switcher .current-entity .entity-icon.educational_center { background: linear-gradient(135deg, #2e9b54, #1e7b3a); }
+        .entity-switcher .current-entity .entity-details { display: flex; flex-direction: column; line-height: 1.3; }
+        .entity-switcher .current-entity .entity-details .entity-name { font-weight: 600; color: #0b1f35; font-size: 0.95rem; }
+        .entity-switcher .current-entity .entity-details .entity-type { font-size: 0.7rem; color: #6a7f9e; }
+        .entity-switcher .current-entity .entity-details .entity-role { font-size: 0.65rem; color: #1e3c72; background: #e8f0fe; padding: 0.1rem 0.5rem; border-radius: 20px; display: inline-block; margin-top: 0.1rem; }
 
-        .sidebar-logo {
-            width: 50px;
-            height: 50px;
+        .entity-switcher .switch-controls { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+        .entity-switcher .switch-controls select { padding: 0.5rem 2.5rem 0.5rem 1rem; border: 1.5px solid #d7e0ea; border-radius: 30px; font-family: 'Inter', sans-serif; font-size: 0.9rem; background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234e6580' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat left 1rem center; background-size: 12px; appearance: none; -webkit-appearance: none; min-width: 180px; cursor: pointer; transition: all 0.3s ease; color: #0b1f35; }
+        .entity-switcher .switch-controls select:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 3px rgba(30,60,114,0.1); }
+        .entity-switcher .switch-controls select option { padding: 0.5rem; }
+        .entity-switcher .switch-controls .switch-btn { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 30px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
+        .entity-switcher .switch-controls .switch-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30,60,114,0.3); }
+        .entity-switcher .switch-controls .switch-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        .entity-switcher .switch-controls .switch-btn i { font-size: 0.8rem; }
+
+        .admin-banner {
             background: linear-gradient(135deg, #1e3c72, #2a5298);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            color: white;
-            font-size: 1.5rem;
-        }
-
-        .sidebar-header h2 {
-            font-size: 1.1rem;
-            color: #1e3c72;
-            margin-bottom: 0.25rem;
-        }
-
-        .user-role {
-            font-size: 0.75rem;
-            color: #8ba0bc;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 1rem;
-        }
-
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: #4e6580;
-            text-decoration: none;
-            border-radius: 12px;
-            margin-bottom: 0.25rem;
-            transition: all 0.2s;
-        }
-
-        .sidebar-nav a:hover {
-            background: #e8f0fe;
-            color: #1e3c72;
-        }
-
-        .sidebar-nav a.active {
-            background: linear-gradient(135deg, #1e3c72, #153155);
-            color: white;
-        }
-
-        .sidebar-footer {
-            padding: 1rem;
-            border-top: 1px solid #eef2f7;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        .user-name {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #1e3c72;
-        }
-
-        .user-district {
-            font-size: 0.7rem;
-            color: #8ba0bc;
-        }
-
-        .logout-btn {
-            width: 100%;
-            padding: 0.75rem;
-            background: none;
-            border: 1px solid #e34f76;
-            color: #e34f76;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .logout-btn:hover {
-            background: #fff2f5;
-        }
-
-        .main-content {
-            margin-right: 280px;
-            min-height: 100vh;
-            padding: 1.5rem;
-            transition: margin-right 0.3s ease;
-        }
-
-        /* باقي التنسيقات الأصلية للوحة التحكم (بدون أي تغيير) */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .loader {
-            border: 3px solid #eef2f7;
-            border-top: 3px solid #1e3c72;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        .loader-small {
-            border: 2px solid #eef2f7;
-            border-top: 2px solid #1e3c72;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .reports-count {
-            font-size: 0.85rem;
-            color: #4e6580;
-            margin-top: 0.5rem;
-        }
-
-        .change-password-btn {
-            background: none;
-            border: none;
-            color: #4e6580;
-            cursor: pointer;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.4rem 0;
-            border-radius: 8px;
-            transition: all 0.2s;
-            width: 100%;
-            margin-top: 0.5rem;
-        }
-
-        .change-password-btn:hover {
-            background: #f0f4fa;
-            color: #1e3c72;
-        }
-
-        .password-modal {
-            max-width: 450px;
-        }
-
-        .password-field {
-            position: relative;
-            margin-bottom: 1.5rem;
-        }
-
-        .password-field input {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border: 1.5px solid #d7e0ea;
-            border-radius: 12px;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
-        }
-
-        .password-field input:focus {
-            outline: none;
-            border-color: #1e3c72;
-            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
-        }
-
-        .password-field .toggle-password {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #6a7f9e;
-        }
-
-        .password-strength {
-            font-size: 0.75rem;
-            margin-top: 0.3rem;
-        }
-
-        .password-strength.weak {
-            color: #e34f76;
-        }
-
-        .password-strength.medium {
-            color: #f59e0b;
-        }
-
-        .password-strength.strong {
-            color: #2e9b54;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .notifications-trigger button {
-            background: none;
-            border: none;
-            width: 100%;
-            text-align: center;
-            padding: 0.75rem 1rem;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            color: #4e6580;
-            position: relative;
-            font-size: 0.9rem;
-        }
-
-        .notifications-trigger button:hover {
-            background: #f0f4fa;
-            color: #1e3c72;
-        }
-
-        .notification-badge {
-            position: relative;
-        }
-
-        .badge-count {
-            position: absolute;
-            top: -8px;
-            right: 20px;
-            background: #e34f76;
-            color: white;
-            font-size: 0.65rem;
-            font-weight: 600;
-            min-width: 18px;
-            height: 18px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 4px;
-        }
-
-        .notifications-container {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 9999;
-            max-width: 350px;
-        }
-
-        .notification-item {
-            background: white;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            border-right: 4px solid #1e3c72;
-            animation: slideIn 0.3s ease;
-            cursor: pointer;
-        }
-
-        .notification-item.success {
-            border-right-color: #2e9b54;
-        }
-
-        .notification-item.error {
-            border-right-color: #e34f76;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(-100%);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .notifications-panel {
-            position: fixed;
-            top: 0;
-            left: -380px;
-            width: 380px;
-            height: 100vh;
-            background: white;
-            box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
-            z-index: 10000;
-            transition: left 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .notifications-panel.open {
-            left: 0;
-        }
-
-        .notifications-panel-header {
-            padding: 1.25rem;
-            border-bottom: 1px solid #eef2f7;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f8fafd;
-        }
-
-        .notifications-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-
-        .notification-list-item {
-            background: #f8fafd;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 0.75rem;
-            cursor: pointer;
-            border-right: 3px solid transparent;
-            position: relative;
-        }
-
-        .notification-list-item.unread {
-            background: white;
-            border-right-color: #1e3c72;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .delete-notification {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #e34f76;
-            cursor: pointer;
-            opacity: 0;
-        }
-
-        .notification-list-item:hover .delete-notification {
-            opacity: 1;
-        }
-
-        .empty-notifications {
-            text-align: center;
-            padding: 3rem;
-            color: #4e6580;
-        }
-
-        .panel-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 9999;
-            display: none;
-        }
-
-        .panel-overlay.open {
-            display: block;
-        }
-
-        .mark-all-read {
-            background: none;
-            border: none;
-            color: #1e3c72;
-            cursor: pointer;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .close-panel {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            color: #4e6580;
-        }
-
-        .stat-number {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #1e3c72;
-        }
-
-        .data-verification {
-            font-size: 0.75rem;
-            color: #2e9b54;
-            margin-top: 0.75rem;
-            text-align: center;
-            padding: 0.5rem;
-            background: #e8f5e9;
-            border-radius: 8px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .stat-icon {
-            width: 55px;
-            height: 55px;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-        }
-
-        .stat-info h3 {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #4e6580;
-        }
-
-        .table-container {
-            background: white;
-            border-radius: 20px;
-            padding: 1.25rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            margin-bottom: 1.5rem;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1e3c72;
-            margin-bottom: 1rem;
-        }
-
-        .btn-primary {
-            background: #1e3c72;
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        .btn-secondary {
-            background: #eef2f7;
-            color: #4e6580;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 1.5rem;
-            max-width: 500px;
-            width: 90%;
-        }
-
-        .progress-bar-bg {
-            background: #eef2f7;
-            border-radius: 30px;
-            height: 8px;
-            overflow: hidden;
-            margin: 1rem 0;
-        }
-
-        .progress-bar-fill {
-            background: linear-gradient(90deg, #1e3c72, #2e9b54);
-            width: 0%;
-            height: 100%;
-            border-radius: 30px;
-            transition: width 0.3s ease;
-        }
-
-        .loading-stats {
-            font-size: 0.8rem;
-            color: #4e6580;
-            text-align: center;
-            margin-top: 0.5rem;
-        }
-
-        .modern-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .modern-table th,
-        .modern-table td {
-            padding: 12px 16px;
-            text-align: right;
-            border-bottom: 1px solid #eef2f7;
+            color: white; border-radius: 16px; padding: 0.75rem 1.5rem;
+            margin-bottom: 1.5rem; display: none; align-items: center; gap: 1rem; flex-wrap: wrap;
+        }
+        .admin-banner.visible { display: flex; }
+        .admin-banner .banner-icon { display: flex; align-items: center; gap: 0.5rem; }
+        .admin-banner .banner-icon i { font-size: 1.3rem; }
+        .admin-banner .banner-icon span { font-weight: 600; }
+        .admin-banner .banner-text { opacity: 0.9; font-size: 0.95rem; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+
+        .loader { border: 3px solid #eef2f7; border-top: 3px solid #1e3c72; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        .loader-small { border: 2px solid #eef2f7; border-top: 2px solid #1e3c72; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .stat-card { background: white; border-radius: 16px; padding: 1.25rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s ease; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+        .stat-icon { width: 55px; height: 55px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; flex-shrink: 0; }
+        .stat-number { font-size: 1.8rem; font-weight: 700; color: #1e3c72; }
+        .stat-info h3 { font-size: 0.85rem; font-weight: 500; color: #4e6580; }
+
+        .table-container { background: white; border-radius: 20px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .section-title { font-size: 1.25rem; font-weight: 600; color: #1e3c72; margin-bottom: 1rem; }
+
+        .btn-primary { background: #1e3c72; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary:hover { background: #153155; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30,60,114,0.2); }
+        .btn-secondary { background: #eef2f7; color: #4e6580; border: none; padding: 0.6rem 1.2rem; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; }
+        .btn-secondary:hover { background: #e2e8f0; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 24px; padding: 1.5rem; max-width: 500px; width: 90%; }
+
+        .progress-bar-bg { background: #eef2f7; border-radius: 30px; height: 8px; overflow: hidden; margin: 1rem 0; }
+        .progress-bar-fill { background: linear-gradient(90deg, #1e3c72, #2e9b54); width: 0%; height: 100%; border-radius: 30px; transition: width 0.3s ease; }
+        .loading-stats { font-size: 0.8rem; color: #4e6580; text-align: center; margin-top: 0.5rem; }
+
+        .modern-table { width: 100%; border-collapse: collapse; }
+        .modern-table th, .modern-table td { padding: 12px 16px; text-align: right; border-bottom: 1px solid #eef2f7; }
+        .modern-table th { background: #f8fafd; font-weight: 600; color: #1e3c72; }
+
+        .data-verification { font-size: 0.75rem; color: #2e9b54; margin-top: 0.75rem; text-align: center; padding: 0.5rem; background: #e8f5e9; border-radius: 8px; }
+
+        .notifications-container { position: fixed; top: 20px; left: 20px; z-index: 9999; max-width: 350px; }
+        .notification-item { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-right: 4px solid #1e3c72; animation: slideIn 0.3s ease; cursor: pointer; }
+        .notification-item.success { border-right-color: #2e9b54; }
+        .notification-item.error { border-right-color: #e34f76; }
+        .notification-item.info { border-right-color: #1e3c72; }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .notifications-panel { position: fixed; top: 0; left: -380px; width: 380px; height: 100vh; background: white; box-shadow: -5px 0 25px rgba(0,0,0,0.1); z-index: 10000; transition: left 0.3s ease; display: flex; flex-direction: column; }
+        .notifications-panel.open { left: 0; }
+        .notifications-panel-header { padding: 1.25rem; border-bottom: 1px solid #eef2f7; display: flex; justify-content: space-between; align-items: center; background: #f8fafd; }
+        .notifications-list { flex: 1; overflow-y: auto; padding: 1rem; }
+        .notification-list-item { background: #f8fafd; border-radius: 12px; padding: 1rem; margin-bottom: 0.75rem; cursor: pointer; border-right: 3px solid transparent; position: relative; transition: all 0.2s ease; }
+        .notification-list-item:hover { transform: translateX(-3px); }
+        .notification-list-item.unread { background: white; border-right-color: #1e3c72; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .delete-notification { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #e34f76; cursor: pointer; opacity: 0; transition: opacity 0.2s ease; }
+        .notification-list-item:hover .delete-notification { opacity: 1; }
+        .empty-notifications { text-align: center; padding: 3rem; color: #4e6580; }
+        .panel-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: none; }
+        .panel-overlay.open { display: block; }
+        .mark-all-read { background: none; border: none; color: #1e3c72; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem; transition: all 0.2s ease; }
+        .mark-all-read:hover { color: #153155; }
+        .close-panel { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #4e6580; transition: all 0.2s ease; }
+        .close-panel:hover { color: #0b1f35; }
+        .notification-badge { position: relative; }
+        .badge-count { position: absolute; top: -8px; right: 20px; background: #e34f76; color: white; font-size: 0.65rem; font-weight: 600; min-width: 18px; height: 18px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+
+        .change-password-btn { background: none; border: none; color: #4e6580; cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0; border-radius: 8px; transition: all 0.2s; width: 100%; margin-top: 0.5rem; }
+        .change-password-btn:hover { background: #f0f4fa; color: #1e3c72; }
+
+        .password-modal { max-width: 450px; }
+        .password-field { position: relative; margin-bottom: 1.5rem; }
+        .password-field input { width: 100%; padding: 0.8rem 1rem; border: 1.5px solid #d7e0ea; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: all 0.3s ease; }
+        .password-field input:focus { outline: none; border-color: #1e3c72; box-shadow: 0 0 0 3px rgba(30,60,114,0.1); }
+        .password-field .toggle-password { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: #6a7f9e; transition: all 0.2s ease; }
+        .password-field .toggle-password:hover { color: #1e3c72; }
+        .password-strength { font-size: 0.75rem; margin-top: 0.3rem; }
+        .password-strength.weak { color: #e34f76; }
+        .password-strength.medium { color: #f59e0b; }
+        .password-strength.strong { color: #2e9b54; }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #4e6580; transition: all 0.2s ease; }
+        .modal-close:hover { color: #0b1f35; }
+        .form-label { display: block; font-size: 0.85rem; font-weight: 500; color: #1e3c72; margin-bottom: 0.3rem; }
+        .modal-actions { display: flex; gap: 1rem; margin-top: 1rem; }
+
+        @media (max-width: 768px) {
+            .entity-switcher { flex-direction: column; align-items: stretch; padding: 1rem; }
+            .entity-switcher .current-entity { justify-content: center; padding: 0.5rem 1rem; }
+            .entity-switcher .switch-controls { flex-direction: column; width: 100%; }
+            .entity-switcher .switch-controls select { width: 100%; min-width: unset; }
+            .entity-switcher .switch-controls .switch-btn { width: 100%; justify-content: center; }
+            .stats-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+            .modern-table th, .modern-table td { padding: 8px 10px; font-size: 0.8rem; }
+            .notifications-panel { width: 100%; left: -100%; }
+            .admin-banner { flex-direction: column; text-align: center; padding: 1rem; }
+        }
+        @media (max-width: 480px) {
+            .stat-card { flex-direction: column; text-align: center; padding: 1rem; }
+            .stat-icon { margin: 0 auto; }
+            .entity-switcher .current-entity { flex-direction: column; text-align: center; }
+            .entity-switcher .current-entity .entity-details .entity-role { display: inline-block; }
         }
     </style>
 </head>
 <body>
 
-    <!-- زر فتح القائمة للجوال -->
     <button class="toggle-sidebar" id="toggleSidebarBtn" onclick="toggleSidebar()">
         <i class="fas fa-bars"></i>
     </button>
 
-    <!-- تغطية الخلفية عند فتح القائمة -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <!-- القائمة الجانبية -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-logo"><i class="fas fa-chalkboard-teacher"></i></div>
@@ -684,22 +219,22 @@
         </div>
 
         <div class="notifications-trigger" style="margin: 0.5rem 1rem;">
-            <button onclick="toggleNotificationsPanel()" class="notification-badge">
+            <button onclick="toggleNotificationsPanel()" class="notification-badge" style="background: none; border: none; width: 100%; text-align: center; padding: 0.75rem 1rem; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.75rem; color: #4e6580; transition: all 0.2s; position: relative;">
                 <i class="fas fa-bell" style="font-size: 1.1rem;"></i>
                 <span>الإشعارات</span>
-                <span id="unreadBadge" class="badge-count" style="display: none;">0</span>
+                <span id="unreadBadge" class="badge-count" style="position: absolute; top: -8px; right: 20px; background: #e34f76; color: white; font-size: 0.65rem; font-weight: 600; min-width: 18px; height: 18px; border-radius: 10px; display: none; align-items: center; justify-content: center; padding: 0 4px;">0</span>
             </button>
         </div>
 
         <nav class="sidebar-nav" id="sidebarNav">
             <a href="dashboard.html" class="active"><i class="fas fa-home"></i> الرئيسية</a>
             <a href="reports.html"><i class="fas fa-file-alt"></i> التقارير</a>
+            <a id="navSummerReports" href="summer-reports.html"><i class="fas fa-sun"></i> الأنشطة الصيفية</a>
             <a href="summary-reports.html" id="navSummaryReports"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
             <a href="analytics.html" id="navAnalytics"><i class="fas fa-chart-bar"></i> التحليلات</a>
-            <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
             <div id="adminLinks" style="display: none;">
-                <a href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
-                <a href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
+                <a id="navDistrictsManagement" href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+                <a id="navUsersManagement" href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
             </div>
         </nav>
 
@@ -724,7 +259,36 @@
             <p style="color: #4e6580;">آخر تحديث: <span id="lastUpdate"></span></p>
         </div>
 
-        <!-- شريط تقدم التحميل -->
+        <div id="adminBanner" class="admin-banner">
+            <div class="banner-icon">
+                <i class="fas fa-crown"></i>
+                <span>صلاحية كاملة</span>
+            </div>
+            <span class="banner-text">أنت تشاهد جميع التقارير في النظام</span>
+        </div>
+
+        <div id="entitySwitcher" class="entity-switcher">
+            <div class="current-entity" id="currentEntityDisplay">
+                <div class="entity-icon district" id="currentEntityIcon">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <div class="entity-details">
+                    <span class="entity-name" id="currentEntityName">تحميل...</span>
+                    <span class="entity-type" id="currentEntityType">منطقة</span>
+                    <span class="entity-role" id="currentEntityRole">مدير منطقة</span>
+                </div>
+            </div>
+
+            <div class="switch-controls">
+                <select id="entitySelect">
+                    <option value="">اختر كيان...</option>
+                </select>
+                <button class="switch-btn" id="switchEntityBtn" onclick="switchEntity()">
+                    <i class="fas fa-exchange-alt"></i> تبديل
+                </button>
+            </div>
+        </div>
+
         <div id="loadingProgress" style="display: none; margin-bottom: 1rem;">
             <div class="progress-bar-bg">
                 <div class="progress-bar-fill" id="progressFill"></div>
@@ -750,18 +314,10 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg,#2e9b54, #1e7b3a);"><i class="fas fa-laptop"></i></div>
+                <div class="stat-icon" style="background: linear-gradient(135deg, #2e9b54, #1e7b3a);"><i class="fas fa-laptop"></i></div>
                 <div class="stat-info">
                     <h3>تقارير عن بعد</h3>
                     <div class="stat-number" id="remoteReports">0</div>
-                </div>
-            </div>
-
-            <div class="stat-card" id="schoolsVisitedInPersonCard">
-                <div class="stat-icon"><i class="fas fa-building"></i></div>
-                <div class="stat-info">
-                    <h3>المدارس التي تمت زيارتها (وجاهي)</h3>
-                    <div class="stat-number" id="schoolsVisitedInPerson">0</div>
                 </div>
             </div>
 
@@ -770,6 +326,14 @@
                 <div class="stat-info">
                     <h3>المدارس التي تمت زيارتها (عن بعد)</h3>
                     <div class="stat-number" id="schoolsVisitedRemote">0</div>
+                </div>
+            </div>
+
+            <div class="stat-card" id="centersVisitedCard">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fas fa-university"></i></div>
+                <div class="stat-info">
+                    <h3>المراكز التي تمت زيارتها</h3>
+                    <div class="stat-number" id="centersVisited">0</div>
                 </div>
             </div>
         </div>
@@ -788,15 +352,15 @@
         </div>
 
         <div class="table-container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
                 <h3 class="section-title" style="margin-bottom: 0;"><i class="fas fa-clock"></i> آخر التقارير المضافة</h3>
-                <a href="reports.html" style="color: #1e3c72; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">عرض الكل <i class="fas fa-arrow-left"></i></a>
+                <a href="reports.html" style="color: #1e3c72; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease;">عرض الكل <i class="fas fa-arrow-left"></i></a>
             </div>
 
             <div style="overflow-x: auto;">
                 <table class="modern-table">
                     <thead>
-                        <tr><th>#</th><th>التاريخ</th><th>المدرسة</th><th>المعلم</th><th>المبحث</th><th>النوع</th></tr>
+                        <tr><th>#</th><th>التاريخ</th><th>المدرسة/المركز</th><th>المعلم</th><th>المبحث</th><th>النوع</th></tr>
                     </thead>
                     <tbody id="recentReports">
                         <tr><td colspan="6" style="text-align: center; padding: 2rem;"><div class="loader"></div></td></tr>
@@ -807,7 +371,6 @@
         </div>
     </main>
 
-    <!-- باقي النوافذ المنبثقة -->
     <div id="changePasswordModal" class="modal">
         <div class="modal-content password-modal">
             <div class="modal-header">
@@ -864,23 +427,8 @@
         </div>
     </div>
 
-    <script>
-        let currentUser = null;
-        let chartsInstances = {};
-        let isChangingPassword = false;
-
-        let dashboardCache = {
-            inPersonCount: 0,
-            remoteCount: 0,
-            uniqueInPersonSchools: 0,
-            uniqueRemoteSchools: 0,
-            recentReports: [],
-            monthlyData: null,
-            lastFetchTime: 0,
-            cacheDuration: 60000
-        };
-
-        // دوال فتح وإغلاق القائمة للجوال
+ <script>
+        // ==================== دوال القائمة الجانبية ====================
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -895,16 +443,304 @@
             overlay.classList.remove('active');
         }
 
-        // إغلاق القائمة عند الضغط على رابط داخلها (لتحسين تجربة المستخدم)
-        function closeSidebarAndNavigate(url) {
-            closeSidebar();
-            setTimeout(() => {
-                window.location.href = url;
-            }, 150);
+        // ==================== دوال استخراج الكيان ====================
+        function parseEntityKey(key) {
+            if (!key) return null;
+            const parts = key.split('_');
+            let type, id;
+            if (parts.length === 3 && parts[0] === 'educational' && parts[1] === 'center') {
+                type = 'educational_center';
+                id = parseInt(parts[2]);
+            } else if (parts.length === 2) {
+                type = parts[0];
+                id = parseInt(parts[1]);
+            } else {
+                return null;
+            }
+            if (isNaN(id)) return null;
+            return { type, id };
         }
 
+        function buildEntityKey(type, id) {
+            return `${type}_${id}`;
+        }
+
+        function extractNumberFromString(text) {
+            if (!text) return null;
+            const match = text.toString().match(/\d+/);
+            return match ? parseInt(match[0]) : null;
+        }
+
+        // ==================== دوال الكيانات ====================
+        async function getAvailableEntities() {
+            const currentUser = await getCurrentUserFast();
+            if (!currentUser) return [];
+
+            try {
+                if (window.getEntityListWithNames) {
+                    const entities = await window.getEntityListWithNames(currentUser);
+                    return entities || [];
+                }
+                return [];
+            } catch (error) {
+                console.error('Error getting available entities:', error);
+                return [];
+            }
+        }
+
+        function getCurrentEntityKey() {
+            return localStorage.getItem('currentEntityKey') || null;
+        }
+
+        // ==================== دوال مبدل الكيانات ====================
+        async function updateEntitySwitcher() {
+            const container = document.getElementById('entitySwitcher');
+            const select = document.getElementById('entitySelect');
+            const currentName = document.getElementById('currentEntityName');
+            const currentType = document.getElementById('currentEntityType');
+            const currentRole = document.getElementById('currentEntityRole');
+            const currentIcon = document.getElementById('currentEntityIcon');
+            const userDistrictDisplay = document.getElementById('userDistrictDisplay');
+
+            if (!container) return;
+
+            const user = await getCurrentUserFast();
+            if (!user) return;
+
+            if (user.role === 'admin' || user.role === 'support') {
+                container.classList.remove('visible');
+                if (userDistrictDisplay) {
+                    userDistrictDisplay.textContent = getUserSubtitle(user);
+                }
+                return;
+            }
+
+            const entities = await getAvailableEntities();
+            console.log('📋 الكيانات المتاحة:', entities);
+
+            if (!entities || entities.length <= 1) {
+                container.classList.remove('visible');
+                if (entities && entities.length === 1) {
+                    const key = buildEntityKey(entities[0].type, entities[0].id);
+                    localStorage.setItem('currentEntityKey', key);
+                    updateSidebarEntityName(entities[0]);
+                }
+                return;
+            }
+
+            container.classList.add('visible');
+
+            const currentKey = getCurrentEntityKey();
+            let currentEntity = null;
+
+            if (currentKey) {
+                const parsed = parseEntityKey(currentKey);
+                if (parsed) {
+                    currentEntity = entities.find(e => e.type === parsed.type && e.id === parsed.id);
+                }
+            }
+
+            if (!currentEntity && entities.length > 0) {
+                currentEntity = entities[0];
+                const key = buildEntityKey(currentEntity.type, currentEntity.id);
+                localStorage.setItem('currentEntityKey', key);
+            }
+
+            if (currentEntity) {
+                const entityName = currentEntity.name || 'غير محدد';
+                const entityType = currentEntity.typeLabel || 'كيان';
+                const entityRole = getRoleName(currentEntity.role) || 'مستخدم';
+
+                currentName.textContent = entityName;
+                currentType.textContent = entityType;
+                currentRole.textContent = entityRole;
+
+                currentIcon.className = `entity-icon ${currentEntity.type}`;
+                const iconMap = {
+                    'district': 'fa-map-marked-alt',
+                    'school': 'fa-school',
+                    'educational_center': 'fa-building'
+                };
+                currentIcon.innerHTML = `<i class="fas ${iconMap[currentEntity.type] || 'fa-building'}"></i>`;
+
+                updateSidebarEntityName(currentEntity);
+            }
+
+            select.innerHTML = '<option value="">اختر كيان...</option>';
+            entities.forEach(entity => {
+                const option = document.createElement('option');
+                const key = buildEntityKey(entity.type, entity.id);
+                option.value = key;
+                const typeLabel = entity.type === 'educational_center' ? 'مركز' : entity.typeLabel;
+                option.textContent = `${entity.name} (${typeLabel})`;
+                if (currentEntity && entity.type === currentEntity.type && entity.id === currentEntity.id) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
+        function updateSidebarEntityName(entity) {
+            const userDistrictDisplay = document.getElementById('userDistrictDisplay');
+            if (!userDistrictDisplay) return;
+            
+            if (entity) {
+                const displayName = entity.name || entity.typeLabel || 'غير محدد';
+                const iconMap = {
+                    'district': '🏛️',
+                    'school': '🏫',
+                    'educational_center': '📚'
+                };
+                const icon = iconMap[entity.type] || '📌';
+                userDistrictDisplay.textContent = `${icon} ${displayName}`;
+                console.log(`✅ تحديث القائمة الجانبية: ${icon} ${displayName}`);
+            } else {
+                const user = getCurrentUserFast();
+                userDistrictDisplay.textContent = getUserSubtitle(user);
+            }
+        }
+
+        async function switchEntity() {
+            const select = document.getElementById('entitySelect');
+            const btn = document.getElementById('switchEntityBtn');
+            const selectedValue = select.value;
+
+            if (!selectedValue) {
+                showMessage('الرجاء اختيار كيان', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...';
+
+            try {
+                const parsed = parseEntityKey(selectedValue);
+                if (!parsed) {
+                    showMessage('تنسيق الكيان غير صحيح', 'error');
+                    return;
+                }
+
+                const entities = await getAvailableEntities();
+                const selectedEntity = entities.find(e => e.type === parsed.type && e.id === parsed.id);
+
+                if (!selectedEntity) {
+                    showMessage('الكيان غير موجود', 'error');
+                    return;
+                }
+
+                localStorage.setItem('currentEntityKey', selectedValue);
+
+                const user = await getCurrentUserFast();
+                if (user) {
+                    const entityDisplayName = selectedEntity.name || selectedEntity.typeLabel || 'غير محدد';
+
+                    // تصفير كل معرّفات الكيانات أولًا لمنع بقاء قيم قديمة من كيان سابق (مثل school_id بعد التبديل من مدرسة إلى مركز)
+                    user.educational_center_id = null;
+                    user.educational_center_name = null;
+                    user.school_id = null;
+                    user.school_name = null;
+                    user.district_id = null;
+                    user.district_name = null;
+
+                    if (selectedEntity.type === 'educational_center') {
+                        user.educational_center_name = entityDisplayName;
+                        user.educational_center_id = selectedEntity.id;
+                    } else if (selectedEntity.type === 'school') {
+                        user.school_name = entityDisplayName;
+                        user.school_id = selectedEntity.id;
+                    } else if (selectedEntity.type === 'district') {
+                        user.district_name = entityDisplayName;
+                        user.district_id = selectedEntity.id;
+                    }
+                    
+                    user.role = selectedEntity.role;
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    currentUser = user;
+
+                    // مسح الكاش الموحد للتقارير بالكامل (بما فيها IndexedDB) حتى تُجلب بيانات جديدة مطابقة للكيان الجديد
+                    // في هذه الصفحة وفي أي صفحة أخرى (reports.html, summary-reports.html, ...) عند فتحها لاحقًا
+                    if (typeof window.clearGlobalReportsCache === 'function') window.clearGlobalReportsCache();
+                    if (typeof window.clearGlobalSummaryReportsCache === 'function') window.clearGlobalSummaryReportsCache();
+                    
+                    document.getElementById('userRoleDisplay').textContent = getRoleName(selectedEntity.role);
+                    updateSidebarEntityName(selectedEntity);
+                    updateUIBasedOnRole(user);
+                }
+
+                await updateEntitySwitcher();
+
+                const notification = {
+                    action: 'entityChanged',
+                    entityKey: selectedValue,
+                    entityName: selectedEntity.name,
+                    entityType: selectedEntity.type,
+                    timestamp: Date.now()
+                };
+                try {
+                    localStorage.setItem('entityChangedNotification', JSON.stringify(notification));
+                } catch(e) {}
+
+                showMessage(`✅ تم التبديل إلى ${selectedEntity.name} (${selectedEntity.typeLabel})`, 'success');
+
+                await refreshDashboardData();
+
+            } catch (error) {
+                console.error('Error switching entity:', error);
+                showMessage('حدث خطأ أثناء تبديل الكيان', 'error');
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        }
+
+        async function initEntitySwitcher() {
+            console.log('🔄 تهيئة مبدل الكيانات في لوحة التحكم...');
+            await updateEntitySwitcher();
+            
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'currentUser' || event.key === 'currentEntityKey') {
+                    console.log(`📢 [Storage] تغيير في ${event.key}`);
+                    updateEntitySwitcher();
+                    if (event.key === 'currentEntityKey') {
+                        refreshDashboardData();
+                    }
+                }
+                if (event.key === 'entityChangedNotification' && event.newValue) {
+                    try {
+                        const notification = JSON.parse(event.newValue);
+                        if (notification.action === 'entityChanged') {
+                            console.log(`📢 تم استلام إشعار تغيير الكيان: ${notification.entityName}`);
+                            updateEntitySwitcher();
+                            refreshDashboardData();
+                            setTimeout(() => {
+                                localStorage.removeItem('entityChangedNotification');
+                            }, 1000);
+                        }
+                    } catch(e) {}
+                }
+            });
+
+            setInterval(() => {
+                const currentKey = localStorage.getItem('currentEntityKey');
+                const displayedName = document.getElementById('currentEntityName')?.textContent;
+                if (currentKey && displayedName && displayedName !== 'تحميل...') {
+                    // تحديث إذا لزم الأمر
+                }
+            }, 5000);
+        }
+
+        // ==================== دوال لوحة التحكم ====================
+        let currentUser = null;
+        let chartsInstances = {};
+        let notificationInterval = null;
+        let currentDashboardData = null;
+        let allSchoolsList = [];
+        let districtsMap = {};
+        let educationalCentersList = [];
+
         function getRoleName(role) {
-            const roles = { 'admin': 'مدير النظام', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'spuser': 'مدير مدرسة', 'user': 'مختص تربوي' };
+            const roles = { 'admin': 'مدير النظام', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'spuser': 'مدير مدرسة','center': 'مركز تعليمي',  'user': 'مختص تربوي' };
             return roles[role] || role;
         }
 
@@ -913,181 +749,445 @@
             if (user.role === 'admin' || user.role === 'support') return 'مدير نظام';
             if (user.role === 'manger') return user.district_name || user.district || 'مدير منطقة';
             if (user.role === 'spuser') return user.school_name || user.school || 'مدير مدرسة';
+            if (user.role === 'center') return 'مركز تعليمي'; 
             if (user.role === 'user') return 'مشرف تربوي';
             return '';
         }
 
         function updateUIBasedOnRole(user) {
-            if (!user) return;
-            const adminLinks = document.getElementById('adminLinks');
-            const analyticsLink = document.getElementById('navAnalytics');
-            const summaryReportsLink = document.getElementById('navSummaryReports');
-            const schoolsVisitedInPersonCard = document.getElementById('schoolsVisitedInPersonCard');
-            const schoolsVisitedRemoteCard = document.getElementById('schoolsVisitedRemoteCard');
+        if (typeof window.applySidebarPermissions === 'function') window.applySidebarPermissions(user);
+                if (!user) return;
+                const adminLinks = document.getElementById('adminLinks');
+                const analyticsLink = document.getElementById('navAnalytics');
+                const summaryReportsLink = document.getElementById('navSummaryReports');
 
-            const showAdminLinks = (user.role === 'admin' || user.role === 'support');
-            if (adminLinks) adminLinks.style.display = showAdminLinks ? 'block' : 'none';
-            if (analyticsLink) analyticsLink.style.display = (user.role === 'admin' || user.role === 'support' || user.role === 'manger') ? 'flex' : 'none';
-            if (summaryReportsLink) summaryReportsLink.style.display = (user.role !== 'spuser') ? 'flex' : 'none';
-
-            const showSchoolsCards = (user.role !== 'spuser');
-            if (schoolsVisitedInPersonCard) schoolsVisitedInPersonCard.style.display = showSchoolsCards ? 'flex' : 'none';
-            if (schoolsVisitedRemoteCard) schoolsVisitedRemoteCard.style.display = showSchoolsCards ? 'flex' : 'none';
-        }
-
-        async function getCurrentUserFast() {
-            const localUser = localStorage.getItem('currentUser');
-            if (localUser && JSON.parse(localUser).id) return JSON.parse(localUser);
-            try {
-                const { data: { user } } = await window.supabaseClient.auth.getUser();
-                if (user) {
-                    const { data: userData } = await window.supabaseClient.from('users').select('*').eq('email', user.email).single();
-                    if (userData) {
-                        if (userData.district_id) {
-                            const { data: district } = await window.supabaseClient.from('districts').select('name').eq('id', userData.district_id).single();
-                            if (district) userData.district_name = district.name;
-                        }
-                        if (userData.school_id) {
-                            const { data: school } = await window.supabaseClient.from('schools').select('name').eq('id', userData.school_id).single();
-                            if (school) userData.school_name = school.name;
-                        }
-                        localStorage.setItem('currentUser', JSON.stringify(userData));
-                        return userData;
+                // إظهار روابط الإدارة فقط للأدمن والدعم
+                if (adminLinks) adminLinks.style.display = (user.role === 'admin' || user.role === 'support') ? 'block' : 'none';
+                
+                // إظهار التحليلات للأدمن والدعم ومدير المنطقة
+                if (analyticsLink) analyticsLink.style.display = (user.role === 'admin' || user.role === 'support' || user.role === 'manger') ? 'flex' : 'none';
+                
+                // ====== إخفاء التقارير التجميعية لمدير المدرسة ومدير المركز ======
+                if (summaryReportsLink) {
+                    summaryReportsLink.style.display = (user.role !== 'spuser' && user.role !== 'center') ? 'flex' : 'none';
+                    console.log(`📊 التقارير التجميعية: ${summaryReportsLink.style.display} (الدور: ${user.role})`);
+                }
+                
+                const adminBanner = document.getElementById('adminBanner');
+                if (adminBanner) {
+                    if (user.role === 'admin' || user.role === 'support') {
+                        adminBanner.classList.add('visible');
+                    } else {
+                        adminBanner.classList.remove('visible');
                     }
                 }
-            } catch (e) { console.log(e); }
-            return null;
-        }
+            }
 
         function parseDate(dateStr) {
             if (!dateStr) return null;
-            let year, month, day;
             let cleaned = String(dateStr).trim();
             let match = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-            if (match) { year = parseInt(match[1]); month = parseInt(match[2]); day = parseInt(match[3]); if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` }; }
+            if (match) {
+                let year = parseInt(match[1]), month = parseInt(match[2]), day = parseInt(match[3]);
+                if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31)
+                    return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` };
+            }
             match = cleaned.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/);
-            if (match) { year = parseInt(match[1]); month = parseInt(match[2]); day = parseInt(match[3]); if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` }; }
+            if (match) {
+                year = parseInt(match[1]); month = parseInt(match[2]); day = parseInt(match[3]);
+                if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31)
+                    return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` };
+            }
             match = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-            if (match) { day = parseInt(match[1]); month = parseInt(match[2]); year = parseInt(match[3]); if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` }; }
+            if (match) {
+                day = parseInt(match[1]); month = parseInt(match[2]); year = parseInt(match[3]);
+                if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31)
+                    return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` };
+            }
             const date = new Date(cleaned);
-            if (!isNaN(date.getTime()) && date.getFullYear() > 1900) { year = date.getFullYear(); month = date.getMonth() + 1; day = date.getDate(); return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` }; }
+            if (!isNaN(date.getTime()) && date.getFullYear() > 1900) {
+                year = date.getFullYear(); month = date.getMonth() + 1; day = date.getDate();
+                return { year, month, day, monthKey: `${year}-${String(month).padStart(2, '0')}` };
+            }
             return null;
         }
 
-        async function fetchAllDataWithPagination(tableName, queryBuilder = null, onProgress = null) {
-            let allData = [];
-            let from = 0;
-            const pageSize = 1000;
-            let hasMore = true;
-            while (hasMore) {
-                let query = window.supabaseClient.from(tableName).select('*').range(from, from + pageSize - 1);
-                if (queryBuilder) query = queryBuilder(query);
-                const { data, error } = await query;
-                if (error) break;
-                if (data && data.length > 0) {
-                    allData = [...allData, ...data];
-                    from += pageSize;
-                    if (onProgress) onProgress(allData.length, data.length);
-                    if (data.length < pageSize) hasMore = false;
-                } else {
-                    hasMore = false;
-                }
-            }
-            return allData;
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
-        async function fetchAllDashboardData(user) {
+        function showMessage(msg, type) {
+            const container = document.getElementById('notificationsContainer');
+            if (!container) return;
+            const el = document.createElement('div');
+            el.className = `notification-item ${type}`;
+            el.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-circle'}"></i> <span>${msg}</span>`;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+
+        // ==================== تصفية التقارير حسب الكيان ====================
+        function filterReportsByEntity(reports, entityType, entityId) {
+            if (!reports || reports.length === 0) return [];
+            if (!entityType || !entityId) return reports;
+
+            const entityIdNum = parseInt(entityId);
+            if (isNaN(entityIdNum)) {
+                const extracted = extractNumberFromString(entityId);
+                if (extracted) entityIdNum = extracted;
+                else return reports;
+            }
+
+            console.log(`🔍 تصفية لوحة التحكم حسب الكيان: ${entityType} - ID: ${entityIdNum}`);
+
+            const filtered = reports.filter(report => {
+                if (String(report.id).startsWith('pending_')) return false;
+
+                if (entityType === 'district') {
+                    if (report.report_type === 'remote') {
+                        const match = report.schools?.district_id === entityIdNum || 
+                                      report.district_id === entityIdNum;
+                        return match;
+                    } else if (report.report_type === 'in_person') {
+                        const match = report.educational_centers?.district_id === entityIdNum ||
+                                      report.district_id === entityIdNum;
+                        return match;
+                    }
+                    return false;
+                } else if (entityType === 'school') {
+                    if (report.report_type === 'remote') {
+                        const match = report.school_id === entityIdNum || 
+                                      report.schools?.id === entityIdNum;
+                        return match;
+                    }
+                    return false;
+                } else if (entityType === 'educational_center') {
+                    if (report.report_type === 'in_person') {
+                        const match = report.educational_center_id === entityIdNum ||
+                                      report.educational_centers?.id === entityIdNum ||
+                                      report.center_id === entityIdNum;
+                        return match;
+                    }
+                    return false;
+                }
+                return true;
+            });
+
+            console.log(`📊 بعد تصفية الكيان: ${filtered.length} تقرير`);
+            return filtered;
+        }
+
+        // ==================== تحميل بيانات لوحة التحكم ====================
+        async function loadAllSchools() {
+            try {
+                if (!window.supabaseClient) return;
+                const { data, error } = await window.supabaseClient.from('schools').select('id, name, district_id');
+                if (error) throw error;
+                allSchoolsList = data || [];
+                
+                const { data: districts } = await window.supabaseClient.from('districts').select('id, name');
+                if (districts) districts.forEach(d => districtsMap[d.id] = d.name);
+            } catch (error) {
+                console.error('Error loading schools:', error);
+            }
+        }
+
+        async function loadEducationalCenters() {
+            try {
+                if (!window.supabaseClient) return;
+                const { data, error } = await window.supabaseClient.from('educational_centers').select('id, name_en, manager_name_ar, district_id');
+                if (error) throw error;
+                educationalCentersList = data || [];
+            } catch (error) {
+                console.error('Error loading educational centers:', error);
+            }
+        }
+
+        async function refreshDashboardData() {
+            console.log('🔄 إعادة تحميل بيانات لوحة التحكم...');
+            showMessage('🔄 جاري تحديث البيانات للكيان الجديد...', 'info');
+            
             const progressDiv = document.getElementById('loadingProgress');
             const progressFill = document.getElementById('progressFill');
             const loadingStats = document.getElementById('loadingStats');
+            
             progressDiv.style.display = 'block';
+            progressFill.style.width = '10%';
+            loadingStats.innerHTML = 'جاري تحديث البيانات...';
+            
             try {
-                let schoolIds = null;
-                if (user.role === 'manger' && user.district_id) {
-                    const { data: schools } = await window.supabaseClient.from('schools').select('id').eq('district_id', user.district_id);
-                    schoolIds = schools?.map(s => s.id) || [];
-                    if (schoolIds.length === 0) {
-                        progressDiv.style.display = 'none';
-                        return { inPersonCount: 0, remoteCount: 0, uniqueInPersonSchools: 0, uniqueRemoteSchools: 0, recentReports: [], monthlyData: { labels: [], counts: [], total: 0 } };
-                    }
-                } else if (user.role === 'spuser' && user.school_id) {
-                    schoolIds = [user.school_id];
+                const dashboardData = await loadDashboardFromCache(true);
+                if (dashboardData) {
+                    currentDashboardData = dashboardData;
+                    displayDashboardData(dashboardData);
+                    progressFill.style.width = '100%';
+                    loadingStats.innerHTML = `✅ تم تحديث البيانات (${dashboardData.totalReports} تقرير)`;
+                    setTimeout(() => progressDiv.style.display = 'none', 800);
+                    showMessage(`✅ تم تحديث البيانات للكيان الجديد`, 'success');
+                } else {
+                    throw new Error('فشل تحميل البيانات');
                 }
-
-                let inPersonQuery = null, remoteQuery = null;
-                if (schoolIds && schoolIds.length > 0) {
-                    inPersonQuery = (q) => q.in('school_id', schoolIds);
-                    remoteQuery = (q) => q.in('school_id', schoolIds);
-                } else if (user.role === 'user') {
-                    inPersonQuery = (q) => q.eq('specialist_id', user.id);
-                    remoteQuery = (q) => q.eq('specialist_id', user.id);
-                }
-
-                let inPersonProgress = 0, remoteProgress = 0;
-                const updateProgress = () => {
-                    const totalProgress = (inPersonProgress + remoteProgress) / 2;
-                    progressFill.style.width = `${totalProgress}%`;
-                    loadingStats.innerHTML = `جاري تحميل البيانات... ${Math.round(totalProgress)}%`;
-                };
-                const inPersonPromise = fetchAllDataWithPagination('in_person_reports', inPersonQuery, (t) => { inPersonProgress = Math.min(100, (t / (t + 1000)) * 100); updateProgress(); });
-                const remotePromise = fetchAllDataWithPagination('remote_reports', remoteQuery, (t) => { remoteProgress = Math.min(100, (t / (t + 1000)) * 100); updateProgress(); });
-                const [inPersonReports, remoteReports] = await Promise.all([inPersonPromise, remotePromise]);
-                progressFill.style.width = '100%';
-                loadingStats.innerHTML = '✅ تم تحميل البيانات!';
-                setTimeout(() => progressDiv.style.display = 'none', 1000);
-
-                const allSchoolIds = new Set([...inPersonReports.map(r => r.school_id), ...remoteReports.map(r => r.school_id)].filter(id => id));
-                let schoolsMap = new Map();
-                if (allSchoolIds.size) {
-                    const { data: schools } = await window.supabaseClient.from('schools').select('id, name').in('id', Array.from(allSchoolIds));
-                    if (schools) schools.forEach(s => schoolsMap.set(s.id, s));
-                }
-                const inPersonWithSchools = inPersonReports.map(r => ({ ...r, schools: schoolsMap.get(r.school_id) || { name: 'غير محدد' } }));
-                const remoteWithSchools = remoteReports.map(r => ({ ...r, schools: schoolsMap.get(r.school_id) || { name: 'غير محدد' } }));
-                const inPersonCount = inPersonWithSchools.length, remoteCount = remoteWithSchools.length;
-                const uniqueInPersonSchools = new Set(inPersonWithSchools.map(r => r.school_id).filter(id => id)).size;
-                const uniqueRemoteSchools = new Set(remoteWithSchools.map(r => r.school_id).filter(id => id)).size;
-                const allReportsWithType = [...inPersonWithSchools.map(r => ({ ...r, report_type: 'in_person' })), ...remoteWithSchools.map(r => ({ ...r, report_type: 'remote' }))];
-                const recentReports = allReportsWithType.sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date)).slice(0, 5);
-                const today = new Date();
-                const currentYear = today.getFullYear();
-                const currentMonth = today.getMonth() + 1;
-                const monthsList = [], monthsMap = new Map();
-                const monthNames = ['يناير', 'فبراير', 'مارس', 'إبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-                for (let i = 5; i >= 0; i--) {
-                    let year = currentYear, month = currentMonth - i;
-                    if (month <= 0) { month += 12; year--; }
-                    const monthKey = `${year}-${String(month).padStart(2, '0')}`;
-                    monthsList.push(monthKey);
-                    monthsMap.set(monthKey, { count: 0, label: `${monthNames[month - 1]} ${year}` });
-                }
-                for (const report of allReportsWithType) {
-                    const parsed = parseDate(report.visit_date);
-                    if (parsed && monthsMap.has(parsed.monthKey)) monthsMap.get(parsed.monthKey).count++;
-                }
-                const labels = monthsList.map(m => monthsMap.get(m).label);
-                const counts = monthsList.map(m => monthsMap.get(m).count);
-                const monthlyTotal = counts.reduce((a, b) => a + b, 0);
-                const verificationDiv = document.getElementById('chartVerification');
-                if (verificationDiv) verificationDiv.innerHTML = `✅ ${monthlyTotal} تقرير في آخر 6 أشهر (إجمالي الكل: ${inPersonCount + remoteCount} تقرير)`;
-                return { inPersonCount, remoteCount, uniqueInPersonSchools, uniqueRemoteSchools, recentReports, monthlyData: { labels, counts, total: monthlyTotal } };
-            } catch (e) {
-                console.error(e);
-                progressDiv.style.display = 'none';
-                return { inPersonCount: 0, remoteCount: 0, uniqueInPersonSchools: 0, uniqueRemoteSchools: 0, recentReports: [], monthlyData: { labels: [], counts: [], total: 0 } };
+            } catch (error) {
+                console.error('❌ فشل تحديث البيانات:', error);
+                showMessage('❌ حدث خطأ في تحديث البيانات', 'error');
+                setTimeout(() => progressDiv.style.display = 'none', 1500);
             }
         }
 
-        function displayRecentReportsTable(reports) {
+        async function loadDashboardFromCache(forceRefresh = false) {
+            console.log(`📊 تحميل بيانات لوحة التحكم من الكاش (forceRefresh: ${forceRefresh})...`);
+
+            const progressDiv = document.getElementById('loadingProgress');
+            const progressFill = document.getElementById('progressFill');
+            const loadingStats = document.getElementById('loadingStats');
+
+            progressDiv.style.display = 'block';
+            progressFill.style.width = '10%';
+            loadingStats.innerHTML = 'جاري تحميل البيانات من الكاش...';
+
+            try {
+                await loadAllSchools();
+                await loadEducationalCenters();
+
+                const result = await window.getGlobalReportsCache(forceRefresh);
+
+                progressFill.style.width = '50%';
+                loadingStats.innerHTML = 'جاري معالجة البيانات...';
+
+                if (result.success && result.data) {
+                    let reports = result.data;
+                    console.log(`📊 تم جلب ${reports.length} تقرير من الكاش`);
+
+                    // ====== الحصول على الكيان المختار ======
+                    const entityKey = localStorage.getItem('currentEntityKey');
+                    console.log('📌 الكيان المختار للوحة التحكم:', entityKey);
+                    
+                    let selectedEntityType = null;
+                    let selectedEntityId = null;
+                    
+                    if (entityKey) {
+                        const parsed = parseEntityKey(entityKey);
+                        if (parsed) {
+                            selectedEntityType = parsed.type;
+                            selectedEntityId = parsed.id;
+                            reports = filterReportsByEntity(reports, parsed.type, parsed.id);
+                            console.log(`📊 بعد تصفية الكيان: ${reports.length} تقرير`);
+                        }
+                    }
+
+                    // ====== تصفية حسب دور المستخدم (مع تجاوز إذا كان كيان محدد) ======
+                    const currentUserLocal = await getCurrentUserFast();
+                    
+                    // إذا كان المستخدم قد اختار كياناً محدداً (مركز أو مدرسة)، نتجاوز تصفية spuser
+                    const isEntitySpecific = selectedEntityType === 'educational_center' || selectedEntityType === 'school';
+                    
+                    if (currentUserLocal?.role === 'spuser' && !isEntitySpecific) {
+                        // فقط إذا لم يكن هناك كيان محدد
+                        const userEntities = await window.getAllUserEntities(currentUserLocal);
+                        const schoolIds = [...new Set([currentUserLocal.school_id, ...userEntities.schools].filter(id => id))];
+                        const districtIds = [...new Set([currentUserLocal.district_id, ...userEntities.districts].filter(id => id))];
+                        
+                        reports = reports.filter(report => {
+                            if (report.report_type === 'remote') {
+                                return schoolIds.includes(report.school_id);
+                            } else if (report.report_type === 'in_person') {
+                                const center = report.educational_centers;
+                                if (center && center.district_id) {
+                                    return districtIds.includes(center.district_id);
+                                }
+                                if (report.district_id) {
+                                    return districtIds.includes(report.district_id);
+                                }
+                                return false;
+                            }
+                            return true;
+                        });
+                        console.log(`📊 بعد تصفية spuser: ${reports.length} تقرير`);
+                    } else if (currentUserLocal?.role === 'spuser' && isEntitySpecific) {
+                        console.log(`🔄 تجاوز تصفية spuser لأن الكيان المحدد هو ${selectedEntityType}`);
+                    } else if (currentUserLocal?.role === 'manger') {
+                        const userEntities = await window.getAllUserEntities(currentUserLocal);
+                        const districtIds = [...new Set([currentUserLocal.district_id, ...userEntities.districts].filter(id => id))];
+                        
+                        if (districtIds.length > 0) {
+                            const { data: schoolsInDistricts } = await window.supabaseClient
+                                .from('schools')
+                                .select('id')
+                                .in('district_id', districtIds);
+                            const schoolIds = schoolsInDistricts?.map(s => s.id) || [];
+                            
+                            const { data: centersInDistricts } = await window.supabaseClient
+                                .from('educational_centers')
+                                .select('id')
+                                .in('district_id', districtIds);
+                            const centerIds = centersInDistricts?.map(c => c.id) || [];
+                            
+                            reports = reports.filter(report => {
+                                if (report.report_type === 'remote') {
+                                    return schoolIds.includes(report.school_id) || userEntities.schools.includes(report.school_id);
+                                } else if (report.report_type === 'in_person') {
+                                    return centerIds.includes(report.educational_center_id) || userEntities.centers.includes(report.educational_center_id);
+                                }
+                                return true;
+                            });
+                        } else {
+                            reports = [];
+                        }
+                        console.log(`📊 بعد تصفية manger: ${reports.length} تقرير`);
+                    } else if (currentUserLocal?.role === 'user') {
+                        reports = reports.filter(report => report.specialist_id == currentUserLocal.id);
+                        console.log(`📊 بعد تصفية user: ${reports.length} تقرير`);
+                    }
+
+                    console.log(`📊 بعد جميع التصفيات: ${reports.length} تقرير`);
+
+                    // ====== حساب الإحصائيات ======
+                    const inPersonReports = reports.filter(r => r.report_type === 'in_person');
+                    const remoteReports = reports.filter(r => r.report_type === 'remote');
+
+                    const inPersonCount = inPersonReports.length;
+                    const remoteCount = remoteReports.length;
+
+                    const uniqueRemoteSchools = new Set(remoteReports.map(r => r.school_id).filter(id => id)).size;
+                    const uniqueCenters = new Set(inPersonReports.map(r => r.educational_center_id).filter(id => id)).size;
+
+                    // ====== آخر 5 تقارير ======
+                    const recentReports = [...reports]
+                        .sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date))
+                        .slice(0, 5);
+
+                    // ====== جلب أسماء الكيانات ======
+                    const entityNamesMap = new Map();
+                    const centerIds = new Set();
+                    const schoolIds = new Set();
+
+                    for (const report of reports) {
+                        if (report.report_type === 'in_person' && report.educational_center_id) {
+                            centerIds.add(parseInt(report.educational_center_id));
+                        } else if (report.report_type === 'remote' && report.school_id) {
+                            schoolIds.add(parseInt(report.school_id));
+                        }
+                    }
+
+                    if (centerIds.size > 0) {
+                        const centers = educationalCentersList.filter(c => centerIds.has(c.id));
+                        centers.forEach(c => {
+                            const name = c.name_en || c.manager_name_ar || 'مركز تعليمي';
+                            entityNamesMap.set(`center_${c.id}`, name);
+                        });
+                    }
+
+                    if (schoolIds.size > 0) {
+                        const schools = allSchoolsList.filter(s => schoolIds.has(s.id));
+                        schools.forEach(s => {
+                            entityNamesMap.set(`school_${s.id}`, s.name);
+                        });
+                    }
+
+                    const recentWithNames = recentReports.map(r => {
+                        let name = 'غير محدد';
+                        if (r.report_type === 'in_person' && r.educational_center_id) {
+                            name = entityNamesMap.get(`center_${r.educational_center_id}`) || 'مركز تعليمي';
+                        } else if (r.report_type === 'remote' && r.school_id) {
+                            name = entityNamesMap.get(`school_${r.school_id}`) || 'مدرسة';
+                        }
+                        return {
+                            ...r,
+                            school_name: name
+                        };
+                    });
+
+                    // ====== البيانات الشهرية لآخر 6 أشهر ======
+                    const today = new Date();
+                    const currentYear = today.getFullYear();
+                    const currentMonth = today.getMonth() + 1;
+                    const monthsList = [];
+                    const monthsMap = new Map();
+                    const monthNames = ['يناير', 'فبراير', 'مارس', 'إبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+
+                    for (let i = 5; i >= 0; i--) {
+                        let year = currentYear, month = currentMonth - i;
+                        if (month <= 0) { month += 12; year--; }
+                        const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+                        monthsList.push(monthKey);
+                        monthsMap.set(monthKey, { count: 0, label: `${monthNames[month - 1]} ${year}` });
+                    }
+
+                    for (const report of reports) {
+                        const parsed = parseDate(report.visit_date);
+                        if (parsed && monthsMap.has(parsed.monthKey)) {
+                            monthsMap.get(parsed.monthKey).count++;
+                        }
+                    }
+
+                    const labels = monthsList.map(m => monthsMap.get(m).label);
+                    const counts = monthsList.map(m => monthsMap.get(m).count);
+                    const monthlyTotal = counts.reduce((a, b) => a + b, 0);
+
+                    progressFill.style.width = '100%';
+                    loadingStats.innerHTML = `✅ تم تحميل ${reports.length} تقرير بنجاح`;
+                    setTimeout(() => progressDiv.style.display = 'none', 800);
+
+                    const resultData = {
+                        inPersonCount: inPersonCount,
+                        remoteCount: remoteCount,
+                        uniqueRemoteSchools: uniqueRemoteSchools,
+                        uniqueCenters: uniqueCenters,
+                        recentReports: recentWithNames,
+                        monthlyData: { labels, counts, total: monthlyTotal },
+                        totalReports: reports.length,
+                        fromCache: result.fromCache,
+                        selectedEntityType: selectedEntityType,
+                        selectedEntityId: selectedEntityId
+                    };
+                    
+                    currentDashboardData = resultData;
+                    console.log('📊 البيانات النهائية للوحة التحكم:', resultData);
+                    return resultData;
+                } else {
+                    throw new Error(result.error || 'فشل تحميل البيانات');
+                }
+            } catch (error) {
+                console.error('❌ خطأ في تحميل البيانات:', error);
+                progressFill.style.width = '100%';
+                loadingStats.innerHTML = '❌ حدث خطأ في تحميل البيانات';
+                setTimeout(() => progressDiv.style.display = 'none', 1500);
+                return null;
+            }
+        }
+
+        function displayDashboardData(data) {
+            console.log('📊 عرض بيانات لوحة التحكم:', data);
+            
+            if (!data) {
+                document.getElementById('totalReports').textContent = '0';
+                document.getElementById('inPersonReports').textContent = '0';
+                document.getElementById('remoteReports').textContent = '0';
+                document.getElementById('schoolsVisitedRemote').textContent = '0';
+                document.getElementById('centersVisited').textContent = '0';
+                return;
+            }
+
+            document.getElementById('totalReports').textContent = data.totalReports.toLocaleString() || '0';
+            document.getElementById('inPersonReports').textContent = data.inPersonCount.toLocaleString() || '0';
+            document.getElementById('remoteReports').textContent = data.remoteCount.toLocaleString() || '0';
+            document.getElementById('schoolsVisitedRemote').textContent = data.uniqueRemoteSchools.toLocaleString() || '0';
+            document.getElementById('centersVisited').textContent = data.uniqueCenters.toLocaleString() || '0';
+
             const tbody = document.getElementById('recentReports');
             const reportsCount = document.getElementById('reportsCount');
-            if (!reports || reports.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير</p></td></tr>';
+
+            if (!data.recentReports || data.recentReports.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;"><i class="fas fa-folder-open" style="font-size:2rem;opacity:0.5;"></i><p style="margin-top:0.5rem;">لا توجد تقارير</p></td></tr>';
                 if (reportsCount) reportsCount.textContent = '';
                 return;
             }
-            tbody.innerHTML = reports.map((report, idx) => {
-                const schoolName = report.schools?.name || 'غير محدد';
+
+            tbody.innerHTML = data.recentReports.map((report, idx) => {
+                const schoolName = report.school_name || 'غير محدد';
                 const teacherName = report.teacher_name || 'غير محدد';
                 const subject = report.subject || 'غير محدد';
                 let date = '-';
@@ -1098,120 +1198,379 @@
                 const reportType = report.report_type === 'in_person' ? 'وجاهي' : 'عن بعد';
                 const bgColor = report.report_type === 'in_person' ? '#e8f0fe' : '#eef9f0';
                 const textColor = report.report_type === 'in_person' ? '#1e3c72' : '#2e9b54';
-                return `<tr><td>${idx + 1}</td><td>${date}</td><td>${escapeHtml(schoolName)}</td><td>${escapeHtml(teacherName)}</td><td>${escapeHtml(subject)}</td><td><span style="padding:0.3rem 1rem;border-radius:30px;background:${bgColor};color:${textColor};">${reportType}</span></td></tr>`;
+                return `<tr>
+                    <td>${idx + 1}</td>
+                    <td>${date}</td>
+                    <td>${escapeHtml(schoolName)}</td>
+                    <td>${escapeHtml(teacherName)}</td>
+                    <td>${escapeHtml(subject)}</td>
+                    <td><span style="padding:0.3rem 1rem;border-radius:30px;background:${bgColor};color:${textColor};font-size:0.8rem;">${reportType}</span></td>
+                </tr>`;
             }).join('');
-            if (reportsCount) reportsCount.textContent = `آخر ${reports.length} تقارير`;
+
+            if (reportsCount) reportsCount.textContent = `آخر ${data.recentReports.length} تقارير`;
+
+            createCharts(data.inPersonCount, data.remoteCount, data.monthlyData.labels, data.monthlyData.counts);
+
+            const verificationDiv = document.getElementById('chartVerification');
+            if (verificationDiv) {
+                const sourceMsg = data.fromCache ? '📦 (من الكاش)' : '🔄 (من الخادم)';
+                verificationDiv.innerHTML = `✅ ${data.monthlyData.total} تقرير في آخر 6 أشهر (إجمالي الكل: ${data.totalReports} تقرير) ${sourceMsg}`;
+            }
+
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-SA');
         }
 
         function createCharts(inPersonCount, remoteCount, monthlyLabels, monthlyCounts) {
+            const total = inPersonCount + remoteCount;
+
             if (chartsInstances.reportsChart) chartsInstances.reportsChart.destroy();
             if (chartsInstances.monthlyChart) chartsInstances.monthlyChart.destroy();
-            const total = inPersonCount + remoteCount;
+
             const reportsChartCtx = document.getElementById('reportsChart')?.getContext('2d');
-            if (reportsChartCtx) chartsInstances.reportsChart = new Chart(reportsChartCtx, { type: 'doughnut', data: { labels: ['تقارير وجاهي', 'تقارير عن بعد'], datasets: [{ data: [inPersonCount, remoteCount], backgroundColor: ['#1e3c72', '#2e9b54'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: (ctx) => { const pct = total > 0 ? Math.round(ctx.raw / total * 100) : 0; return `${ctx.label}: ${ctx.raw} تقرير (${pct}%)`; } } } } } });
-            const monthlyChartCtx = document.getElementById('monthlyChart')?.getContext('2d');
-            if (monthlyChartCtx && monthlyLabels.length) chartsInstances.monthlyChart = new Chart(monthlyChartCtx, { type: 'bar', data: { labels: monthlyLabels, datasets: [{ label: 'عدد التقارير', data: monthlyCounts, backgroundColor: '#1e3c72', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${ctx.raw} تقرير` } } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }, x: { ticks: { maxRotation: 45, minRotation: 45 } } } } });
-        }
-
-        async function loadDashboardData(user, forceRefresh = false) {
-            const now = Date.now();
-            if (!forceRefresh && dashboardCache.lastFetchTime && (now - dashboardCache.lastFetchTime) < dashboardCache.cacheDuration && dashboardCache.recentReports.length) {
-                document.getElementById('totalReports').textContent = dashboardCache.inPersonCount + dashboardCache.remoteCount;
-                document.getElementById('inPersonReports').textContent = dashboardCache.inPersonCount;
-                document.getElementById('remoteReports').textContent = dashboardCache.remoteCount;
-                document.getElementById('schoolsVisitedInPerson').textContent = dashboardCache.uniqueInPersonSchools;
-                document.getElementById('schoolsVisitedRemote').textContent = dashboardCache.uniqueRemoteSchools;
-                displayRecentReportsTable(dashboardCache.recentReports);
-                if (dashboardCache.monthlyData) createCharts(dashboardCache.inPersonCount, dashboardCache.remoteCount, dashboardCache.monthlyData.labels, dashboardCache.monthlyData.counts);
-                return;
-            }
-            document.getElementById('recentReports').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;"><div class="loader"></div><p>جاري التحميل...</p></td></tr>';
-            const data = await fetchAllDashboardData(user);
-            dashboardCache = { inPersonCount: data.inPersonCount, remoteCount: data.remoteCount, uniqueInPersonSchools: data.uniqueInPersonSchools, uniqueRemoteSchools: data.uniqueRemoteSchools, recentReports: data.recentReports, monthlyData: data.monthlyData, lastFetchTime: now, cacheDuration: 60000 };
-            document.getElementById('totalReports').textContent = data.inPersonCount + data.remoteCount;
-            document.getElementById('inPersonReports').textContent = data.inPersonCount;
-            document.getElementById('remoteReports').textContent = data.remoteCount;
-            document.getElementById('schoolsVisitedInPerson').textContent = data.uniqueInPersonSchools;
-            document.getElementById('schoolsVisitedRemote').textContent = data.uniqueRemoteSchools;
-            displayRecentReportsTable(data.recentReports);
-            createCharts(data.inPersonCount, data.remoteCount, data.monthlyData.labels, data.monthlyData.counts);
-        }
-
-        // دوال كلمة المرور والإشعارات (بدون تغيير)
-        function openChangePasswordModal() { document.getElementById('changePasswordModal').classList.add('active'); }
-        function closeChangePasswordModal() { document.getElementById('changePasswordModal').classList.remove('active'); }
-        function toggleCurrentPassword() { const input = document.getElementById('currentPassword'); const icon = event.target; if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); } else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); } }
-        function toggleNewPassword() { const input = document.getElementById('newPassword'); const icon = event.target; if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); } else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); } }
-        function toggleConfirmPassword() { const input = document.getElementById('confirmPassword'); const icon = event.target; if (input.type === 'password') { input.type = 'text'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); } else { input.type = 'password'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); } }
-        function checkPasswordStrength() { const pwd = document.getElementById('newPassword').value; const div = document.getElementById('passwordStrength'); let s = 0; if (pwd.length >= 8) s++; if (pwd.match(/[a-z]/)) s++; if (pwd.match(/[A-Z]/)) s++; if (pwd.match(/[0-9]/)) s++; if (pwd.match(/[^a-zA-Z0-9]/)) s++; if (pwd.length === 0) { div.innerHTML = ''; return; } if (s <= 2) { div.innerHTML = 'كلمة مرور ضعيفة'; div.className = 'password-strength weak'; } else if (s === 3) { div.innerHTML = 'كلمة مرور متوسطة'; div.className = 'password-strength medium'; } else { div.innerHTML = 'كلمة مرور قوية'; div.className = 'password-strength strong'; } }
-        document.getElementById('changePasswordForm').addEventListener('submit', async (e) => { e.preventDefault(); if (isChangingPassword) return; const current = document.getElementById('currentPassword').value; const newPwd = document.getElementById('newPassword').value; const confirm = document.getElementById('confirmPassword').value; if (!current || !newPwd || !confirm) { showMessage('الرجاء ملء جميع الحقول', 'error'); return; } if (newPwd !== confirm) { showMessage('كلمة المرور غير متطابقة', 'error'); return; } if (newPwd.length < 6) { showMessage('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل', 'error'); return; } isChangingPassword = true; const btn = document.getElementById('changePasswordBtn'); const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...'; btn.disabled = true; try { const { data: user, error } = await window.supabaseClient.from('users').select('password').eq('id', currentUser.id).single(); if (error) throw error; if (user.password !== current) { showMessage('كلمة المرور الحالية غير صحيحة', 'error'); return; } await window.supabaseClient.from('users').update({ password: newPwd }).eq('id', currentUser.id); currentUser.password = newPwd; localStorage.setItem('currentUser', JSON.stringify(currentUser)); showMessage('تم تغيير كلمة المرور بنجاح', 'success'); closeChangePasswordModal(); } catch (err) { showMessage('حدث خطأ', 'error'); } finally { isChangingPassword = false; btn.innerHTML = orig; btn.disabled = false; } });
-        function showMessage(text, type) { const c = document.getElementById('notificationsContainer'); if (!c) return; const n = document.createElement('div'); n.className = `notification-item ${type}`; n.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${text}`; c.appendChild(n); setTimeout(() => n.remove(), 4000); }
-        async function updateUnreadBadge() { if (!window.getUnreadNotificationsCount || !currentUser) return; const r = await window.getUnreadNotificationsCount(currentUser.id); if (r.success) { const b = document.getElementById('unreadBadge'); if (b) { b.textContent = r.count > 99 ? '99+' : r.count; b.style.display = r.count > 0 ? 'flex' : 'none'; } } }
-        async function toggleNotificationsPanel() { const p = document.getElementById('notificationsPanel'); const o = document.getElementById('panelOverlay'); if (p.classList.contains('open')) { closeNotificationsPanel(); } else { await loadNotifications(); p.classList.add('open'); o.classList.add('open'); } }
-        function closeNotificationsPanel() { document.getElementById('notificationsPanel')?.classList.remove('open'); document.getElementById('panelOverlay')?.classList.remove('open'); }
-        async function loadNotifications() { const list = document.getElementById('notificationsList'); if (!list || !window.getRecentNotifications || !currentUser) return; list.innerHTML = '<div class="empty-notifications"><div class="loader-small"></div><p>جاري التحميل...</p></div>'; const r = await window.getRecentNotifications(currentUser.id, 50); if (r.success) { const notes = r.data; if (!notes?.length) { list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>'; } else { list.innerHTML = notes.map(n => `<div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationClick(${n.id})"><div><strong>${escapeHtml(n.title)}</strong></div><div>${escapeHtml(n.message)}</div><div style="font-size:0.7rem;">${formatTime(n.created_at)}</div><button class="delete-notification" onclick="event.stopPropagation(); deleteNotification(${n.id})"><i class="fas fa-trash"></i></button></div>`).join(''); } await updateUnreadBadge(); const hasUnread = notes.some(n => !n.is_read); document.getElementById('markAllReadBtn').style.display = hasUnread ? 'flex' : 'none'; } }
-        async function handleNotificationClick(id) { if (window.handleNotificationClick) await window.handleNotificationClick(id); closeNotificationsPanel(); await loadNotifications(); }
-        async function deleteNotification(id) { if (window.deleteNotification) await window.deleteNotification(id); await loadNotifications(); await updateUnreadBadge(); showMessage('تم الحذف', 'success'); }
-        async function markAllAsRead() { if (window.markAllNotificationsAsRead && currentUser) await window.markAllNotificationsAsRead(currentUser.id); await loadNotifications(); await updateUnreadBadge(); showMessage('تم تعيين الكل كمقروء', 'success'); }
-        function formatTime(ds) { const d = new Date(ds); const m = Math.floor((new Date() - d) / 60000); if (m < 1) return 'الآن'; if (m < 60) return `منذ ${m} دقيقة`; if (m < 1440) return `منذ ${Math.floor(m / 60)} ساعة`; return `منذ ${Math.floor(m / 1440)} يوم`; }
-        function escapeHtml(t) { if (!t) return ''; const div = document.createElement('div'); div.textContent = t; return div.innerHTML; }
-        function startNotificationPolling() { if (notificationInterval) clearInterval(notificationInterval); notificationInterval = setInterval(() => { if (currentUser && document.hasFocus()) updateUnreadBadge(); }, 30000); }
-        let notificationInterval = null;
-        async function logout() { if (notificationInterval) clearInterval(notificationInterval); localStorage.removeItem('currentUser'); try { await window.supabaseClient.auth.signOut(); } catch (e) { } window.location.href = 'login.html'; }
-
-        window.addEventListener('load', async () => {
-            currentUser = await getCurrentUserFast();
-            
-            // التحقق من وجود المستخدم أولاً
-            if (!currentUser) { 
-                window.location.href = 'login.html'; 
-                return; 
-            }
-            
-            // بعد التأكد من وجود المستخدم، قم بتنظيف الإشعارات
-            if (currentUser && currentUser.id) {
-                window.initUserSessionCleanup(true).then(cleanupResult => {
-                    if (cleanupResult.success) {
-                        if (cleanupResult.skipped) {
-                            console.log(`⏭️ ${cleanupResult.message}`);
-                        } else if (cleanupResult.deletedCount > 0) {
-                            console.log(`🧹 تم حذف ${cleanupResult.deletedCount} إشعار قديم`);
-                            if (typeof updateUnreadBadge === 'function') {
-                                updateUnreadBadge();
-                            }
-                            if (typeof showMessage === 'function') {
-                                showMessage(`✅ تم حذف ${cleanupResult.deletedCount} إشعار قديم`, 'info');
+            if (reportsChartCtx) {
+                chartsInstances.reportsChart = new Chart(reportsChartCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['تقارير وجاهي', 'تقارير عن بعد'],
+                        datasets: [{
+                            data: [inPersonCount, remoteCount],
+                            backgroundColor: ['#1e3c72', '#2e9b54'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { font: { size: 12 } } },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const pct = total > 0 ? Math.round(ctx.raw / total * 100) : 0;
+                                        return `${ctx.label}: ${ctx.raw} تقرير (${pct}%)`;
+                                    }
+                                }
                             }
                         }
                     }
-                }).catch(err => console.error('خطأ في تنظيف الإشعارات:', err));
+                });
             }
 
-            // بدء نظام الحفاظ على النشاط
-            window.startAutoKeepAlive();
-            
-            // باقي الكود
-            document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username;
-            document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
-            document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(currentUser);
-            updateUIBasedOnRole(currentUser);
-            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-SA');
-            await loadDashboardData(currentUser);
-            await updateUnreadBadge();
-            startNotificationPolling();
-
-            // إضافة مستمع لإغلاق القائمة عند النقر خارجها
-            document.addEventListener('click', function (event) {
-                const sidebar = document.getElementById('sidebar');
-                const toggleBtn = document.getElementById('toggleSidebarBtn');
-                const overlay = document.getElementById('sidebarOverlay');
-                if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
-                    if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
-                        closeSidebar();
+            const monthlyChartCtx = document.getElementById('monthlyChart')?.getContext('2d');
+            if (monthlyChartCtx && monthlyLabels.length) {
+                chartsInstances.monthlyChart = new Chart(monthlyChartCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: monthlyLabels,
+                        datasets: [{
+                            label: 'عدد التقارير',
+                            data: monthlyCounts,
+                            backgroundColor: '#1e3c72',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { callbacks: { label: (ctx) => `${ctx.raw} تقرير` } }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } },
+                            x: { ticks: { maxRotation: 45, minRotation: 45 } }
+                        }
                     }
-                }
-            });
+                });
+            }
+        }
+
+        // ==================== دوال كلمة المرور والإشعارات ====================
+        function openChangePasswordModal() { document.getElementById('changePasswordModal').classList.add('active'); }
+        function closeChangePasswordModal() { document.getElementById('changePasswordModal').classList.remove('active'); }
+
+        function toggleCurrentPassword() {
+            const input = document.getElementById('currentPassword');
+            const icon = event.target;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function toggleNewPassword() {
+            const input = document.getElementById('newPassword');
+            const icon = event.target;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function toggleConfirmPassword() {
+            const input = document.getElementById('confirmPassword');
+            const icon = event.target;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function checkPasswordStrength() {
+            const pwd = document.getElementById('newPassword').value;
+            const div = document.getElementById('passwordStrength');
+            let s = 0;
+            if (pwd.length >= 8) s++;
+            if (pwd.match(/[a-z]/)) s++;
+            if (pwd.match(/[A-Z]/)) s++;
+            if (pwd.match(/[0-9]/)) s++;
+            if (pwd.match(/[^a-zA-Z0-9]/)) s++;
+            if (pwd.length === 0) { div.innerHTML = ''; return; }
+            if (s <= 2) { div.innerHTML = 'كلمة مرور ضعيفة'; div.className = 'password-strength weak'; }
+            else if (s === 3) { div.innerHTML = 'كلمة مرور متوسطة'; div.className = 'password-strength medium'; }
+            else { div.innerHTML = 'كلمة مرور قوية'; div.className = 'password-strength strong'; }
+        }
+
+        document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const current = document.getElementById('currentPassword').value;
+            const newPwd = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+
+            if (!current || !newPwd || !confirm) { showMessage('الرجاء ملء جميع الحقول', 'error'); return; }
+            if (newPwd !== confirm) { showMessage('كلمة المرور غير متطابقة', 'error'); return; }
+            if (newPwd.length < 6) { showMessage('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل', 'error'); return; }
+
+            const btn = document.getElementById('changePasswordBtn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...';
+            btn.disabled = true;
+
+            try {
+                const { data: user, error } = await window.supabaseClient.from('users').select('password').eq('id', currentUser.id).single();
+                if (error) throw error;
+                if (user.password !== current) { showMessage('كلمة المرور الحالية غير صحيحة', 'error'); return; }
+                await window.supabaseClient.from('users').update({ password: newPwd }).eq('id', currentUser.id);
+                currentUser.password = newPwd;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                showMessage('تم تغيير كلمة المرور بنجاح', 'success');
+                closeChangePasswordModal();
+            } catch (err) { showMessage('حدث خطأ', 'error'); }
+            finally { btn.innerHTML = orig; btn.disabled = false; }
         });
+
+        // ==================== دوال الإشعارات ====================
+        async function updateUnreadBadge() {
+            if (!window.getUnreadNotificationsCount || !currentUser) return;
+            const r = await window.getUnreadNotificationsCount(currentUser.id);
+            if (r.success) {
+                const b = document.getElementById('unreadBadge');
+                if (b) {
+                    b.textContent = r.count > 99 ? '99+' : r.count;
+                    b.style.display = r.count > 0 ? 'flex' : 'none';
+                }
+            }
+        }
+
+        async function toggleNotificationsPanel() {
+            const p = document.getElementById('notificationsPanel');
+            const o = document.getElementById('panelOverlay');
+            if (p.classList.contains('open')) { closeNotificationsPanel(); }
+            else { await loadNotifications(); p.classList.add('open'); o.classList.add('open'); }
+        }
+
+        function closeNotificationsPanel() {
+            document.getElementById('notificationsPanel')?.classList.remove('open');
+            document.getElementById('panelOverlay')?.classList.remove('open');
+        }
+
+        async function loadNotifications() {
+            const list = document.getElementById('notificationsList');
+            if (!list || !window.getRecentNotifications || !currentUser) return;
+            list.innerHTML = '<div class="empty-notifications"><div class="loader-small"></div><p>جاري التحميل...</p></div>';
+            const r = await window.getRecentNotifications(currentUser.id, 50);
+            if (r.success) {
+                const notes = r.data;
+                if (!notes?.length) {
+                    list.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
+                } else {
+                    list.innerHTML = notes.map(n => `<div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationClick(${n.id})"><div><strong>${escapeHtml(n.title)}</strong></div><div>${escapeHtml(n.message)}</div><div style="font-size:0.7rem;">${formatTime(n.created_at)}</div><button class="delete-notification" onclick="event.stopPropagation(); deleteNotification(${n.id})"><i class="fas fa-trash"></i></button></div>`).join('');
+                }
+                await updateUnreadBadge();
+                const hasUnread = notes.some(n => !n.is_read);
+                document.getElementById('markAllReadBtn').style.display = hasUnread ? 'flex' : 'none';
+            }
+        }
+
+        async function handleNotificationClick(id) {
+            if (window.handleNotificationClick) await window.handleNotificationClick(id);
+            closeNotificationsPanel();
+            await loadNotifications();
+        }
+
+        async function deleteNotification(id) {
+            if (window.deleteNotification) await window.deleteNotification(id);
+            await loadNotifications();
+            await updateUnreadBadge();
+            showMessage('تم الحذف', 'success');
+        }
+
+        async function markAllAsRead() {
+            if (window.markAllNotificationsAsRead && currentUser) await window.markAllNotificationsAsRead(currentUser.id);
+            await loadNotifications();
+            await updateUnreadBadge();
+            showMessage('تم تعيين الكل كمقروء', 'success');
+        }
+
+        function formatTime(ds) {
+            const d = new Date(ds);
+            const m = Math.floor((new Date() - d) / 60000);
+            if (m < 1) return 'الآن';
+            if (m < 60) return `منذ ${m} دقيقة`;
+            if (m < 1440) return `منذ ${Math.floor(m / 60)} ساعة`;
+            return `منذ ${Math.floor(m / 1440)} يوم`;
+        }
+
+        function startNotificationPolling() {
+            if (notificationInterval) clearInterval(notificationInterval);
+            notificationInterval = setInterval(() => {
+                if (currentUser && document.hasFocus()) updateUnreadBadge();
+            }, 30000);
+        }
+
+        // ==================== دوال المستخدم ====================
+        async function getCurrentUserFast() {
+            try {
+                if (window.getCurrentUser) {
+                    const user = await window.getCurrentUser();
+                    if (user && user.id) return user;
+                }
+                const stored = localStorage.getItem('currentUser');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed && parsed.id) return parsed;
+                }
+                return null;
+            } catch (e) {
+                console.error('Error getting current user:', e);
+                const stored = localStorage.getItem('currentUser');
+                return stored ? JSON.parse(stored) : null;
+            }
+        }
+
+        async function logout() {
+            if (notificationInterval) clearInterval(notificationInterval);
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('currentEntityKey');
+            try { await window.supabaseClient.auth.signOut(); } catch (e) { }
+            window.location.href = 'login.html';
+        }
+
+       // ==================== في dashboard.html - التهيئة ====================
+window.addEventListener('load', async () => {
+    console.log('🔄 بدء تحميل لوحة التحكم...');
+    
+    currentUser = await getCurrentUserFast();
+    if (!currentUser) { window.location.href = 'login.html'; return; }
+
+    console.log('👤 المستخدم الحالي:', currentUser.name, 'الدور:', currentUser.role);
+    console.log('📌 educational_center_id:', currentUser.educational_center_id);
+
+    if (currentUser && currentUser.id) {
+        window.initUserSessionCleanup(true).catch(err => console.error('خطأ في تنظيف الإشعارات:', err));
+    }
+
+    window.startAutoKeepAlive();
+
+    document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username;
+    document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
+    
+    // ====== تحديث القائمة الجانبية ======
+    const entityKey = localStorage.getItem('currentEntityKey');
+    if (entityKey) {
+        const parsed = parseEntityKey(entityKey);
+        if (parsed) {
+            const entities = await getAvailableEntities();
+            const entity = entities.find(e => e.type === parsed.type && e.id === parsed.id);
+            if (entity) {
+                updateSidebarEntityName(entity);
+            }
+        }
+    } else if (currentUser.educational_center_name) {
+        document.getElementById('userDistrictDisplay').textContent = `📚 ${currentUser.educational_center_name}`;
+    } else if (currentUser.school_name) {
+        document.getElementById('userDistrictDisplay').textContent = `🏫 ${currentUser.school_name}`;
+    } else if (currentUser.role === 'center') {
+        document.getElementById('userDistrictDisplay').textContent = '📚 مركز تعليمي';
+    } else {
+        document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(currentUser);
+    }
+    
+    // ====== تحديث واجهة المستخدم حسب الدور (بما فيها إخفاء التقارير التجميعية) ======
+    updateUIBasedOnRole(currentUser);
+    
+    // ====== تأكيد إخفاء التقارير التجميعية لمدير المركز ======
+    if (currentUser.role === 'center') {
+        const summaryLink = document.getElementById('navSummaryReports');
+        if (summaryLink) {
+            summaryLink.style.display = 'none';
+            console.log('✅ تم إخفاء التقارير التجميعية لمدير المركز');
+        }
+    }
+
+    await initEntitySwitcher();
+
+    await loadAllSchools();
+    await loadEducationalCenters();
+    
+    // تحميل البيانات مع إجبار التحديث من الخادم
+    const dashboardData = await loadDashboardFromCache(true);
+    console.log('📊 البيانات المحملة من الخادم:', dashboardData);
+    
+    if (dashboardData) {
+        currentDashboardData = dashboardData;
+        displayDashboardData(dashboardData);
+    } else {
+        console.log('🔄 محاولة تحميل البيانات مرة أخرى...');
+        const retryData = await loadDashboardFromCache(true);
+        if (retryData) {
+            currentDashboardData = retryData;
+            displayDashboardData(retryData);
+        }
+    }
+
+    await updateUnreadBadge();
+    startNotificationPolling();
+
+    // إغلاق القائمة عند النقر خارجها
+    document.addEventListener('click', function (event) {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebarBtn');
+        if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+            if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                closeSidebar();
+            }
+        }
+    });
+
+    console.log('✅ لوحة التحكم جاهزة مع تبديل الكيانات');
+});
     </script>
 </body>
 </html>

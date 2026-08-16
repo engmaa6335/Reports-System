@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+<!-- SYSTEM_FIX_VERSION: 2026-08-11-v5 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -15,13 +16,23 @@
     <link rel="stylesheet" href="css/modern-style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+console.log('%c🔖 SYSTEM_FIX_VERSION: 2026-08-11-v5', 'color:#2e9b54;font-weight:bold;font-size:14px');</script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="js/supabase.js"></script>
     
     <style>
+        .report-count-badge {
+            display: inline-block;
+            background: #1e3c72;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-right: 5px;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', 'Cairo', sans-serif; background: #f5f7fb; }
         .notifications-container { position: fixed; top: 20px; left: 20px; z-index: 9999; max-width: 350px; }
@@ -30,12 +41,12 @@
         .notification-item.error { border-right-color: #e34f76; }
         .notification-item.info { border-right-color: #1e3c72; }
         @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .sidebar { position: fixed; right: 0; top: 0; width: 280px; height: 100%; background: white; border-left: 1px solid #eef2f7; transition: right 0.3s ease-in-out; z-index: 1000; display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05); }
+        .sidebar { position: fixed; right: 0; top: 0; width: 280px; height: 100%; background: white; border-left: 1px solid #eef2f7; transition: right 0.3s ease-in-out; z-index: 1000; display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0,0,0,0.05); }
         @media (max-width: 992px) { .sidebar { right: -280px; } .sidebar.open { right: 0; } .main-content { margin-right: 0 !important; } .toggle-sidebar { display: flex !important; } }
         @media (max-width: 768px) { .filters-bar { flex-direction: column; } .filter-group { width: 100%; } .reports-control-bar { flex-direction: column; align-items: stretch; } .page-size-selector { justify-content: center; } .modal-content { margin: 0.5rem !important; width: 95%; } }
         .toggle-sidebar { display: none; position: fixed; right: 20px; top: 20px; background: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; z-index: 1001; box-shadow: 0 2px 10px rgba(0,0,0,0.1); align-items: center; justify-content: center; font-size: 1.2rem; color: #1e3c72; transition: all 0.2s; }
         .toggle-sidebar:hover { background: #f0f4fa; transform: scale(1.05); }
-        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999; transition: all 0.3s; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; transition: all 0.3s; }
         .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #eef2f7; text-align: center; }
         .sidebar-logo { width: 50px; height: 50px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem; }
         .sidebar-header h2 { font-size: 1.1rem; color: #1e3c72; margin-bottom: 0.25rem; }
@@ -201,9 +212,17 @@
         .btn-confirm-no:hover { background: #eef2ff; color: #1e3c72; }
         .confirm-modal-footer { padding: 1rem 1.5rem 1.5rem; text-align: center; border-top: 1px solid #eef2f7; background: #f8fafd; }
         .confirm-modal-footer small { color: #8ba0bc; font-size: 0.75rem; }
+        .autosave-indicator { position: fixed; bottom: 20px; left: 20px; background: #2e9b54; color: white; padding: 8px 16px; border-radius: 40px; font-size: 13px; z-index: 10001; display: none; align-items: center; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .autosave-indicator.show { display: flex; animation: fadeOut 2s ease; }
+        @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; display: none; } }
+        .connection-status { position: fixed; top: 20px; left: 20px; background: #2e9b54; color: white; padding: 6px 12px; border-radius: 30px; font-size: 12px; z-index: 10001; display: none; align-items: center; gap: 6px; }
+        .connection-status.offline { background: #e34f76; display: flex; }
     </style>
 </head>
 <body id="appBody">
+
+    <div id="autosaveIndicator" class="autosave-indicator"><i class="fas fa-save"></i> تم الحفظ التلقائي</div>
+    <div id="connectionStatus" class="connection-status"><i class="fas fa-wifi"></i> <span>متصل</span></div>
 
 <button class="toggle-sidebar" id="toggleSidebarBtn" onclick="toggleSidebar()">
     <i class="fas fa-bars"></i>
@@ -227,12 +246,13 @@
         <nav class="sidebar-nav" id="sidebarNav">
             <a href="dashboard.html"><i class="fas fa-home"></i> الرئيسية</a>
             <a href="reports.html" class="active"><i class="fas fa-file-alt"></i> التقارير</a>
-            <a href="summary-reports.html" id="summaryReportsLink" style="display: none;"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
+            <a id="navSummerReports" href="summer-reports.html"><i class="fas fa-sun"></i> الأنشطة الصيفية</a>
+            <a href="summary-reports.html" id="navSummaryReports" style="display: none;"><i class="fas fa-chart-line"></i> التقارير التجميعية</a>
             <a href="analytics.html" id="navAnalytics" style="display: none;"><i class="fas fa-chart-bar"></i> التحليلات</a>
             <div id="adminLinks" style="display: none;">
                 <a href="overview.html"><i class="fas fa-robot"></i> ملخص التقارير</a>
-                <a href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
-                <a href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
+                <a id="navDistrictsManagement" href="districts-management.html"><i class="fas fa-map-marked-alt"></i> إدارة المناطق</a>
+                <a id="navUsersManagement" href="users-management.html"><i class="fas fa-users-cog"></i> إدارة المستخدمين</a>
             </div>
         </nav>
         <div class="sidebar-footer">
@@ -382,7 +402,7 @@
     </div>
 </div>
 
-<!-- ===================== مودال التنبيه العام (المعدل) ===================== -->
+<!-- ===================== مودال التنبيه العام ===================== -->
 <div id="sendEmailAlertModal" class="modal">
     <div class="modal-content alert-modal-content">
         <div class="modal-header">
@@ -393,8 +413,6 @@
             <div class="alert-icon info"><i class="fas fa-check-circle"></i></div>
             <div class="alert-title" id="alertTitle">✅ تم حفظ التقرير بنجاح</div>
             <div class="alert-message" id="alertMessage">تم حفظ التقرير في النظام بنجاح.</div>
-            
-            <!-- ملاحظات هامة جديدة -->
             <div class="alert-steps">
                 <p><i class="fas fa-lightbulb"></i> ملاحظات هامة:</p>
                 <ul style="margin: 0.5rem 0 0 1.5rem;">
@@ -402,7 +420,6 @@
                     <li><i class="fas fa-envelope-slash"></i> لا داعي لإرسال التقرير عبر الإيميل</li>
                 </ul>
             </div>
-
             <div class="alert-recipient" id="alertRecipient" style="display: none;"><strong><i class="fas fa-envelope"></i> سيتم الإرسال إلى:</strong><p id="recipientEmail"></p></div>
             <div class="alert-buttons"><button onclick="closeSendEmailAlertModal()" class="btn-got-it"><i class="fas fa-check"></i> حسناً</button></div>
         </div>
@@ -643,48 +660,6 @@
 </div>
 
 <script>
-// ===================== قوائم التقييم =====================
-const inPersonTeachingList = [
-    'لدى المعلم/ة توقعات إيجابية وواقعية تجاه الطلبة',
-    'يلتزم المعلم بخطة التعلم',
-    'يشارك المعلم الطلبة بأهداف ومعايير نجاح واضحة',
-    'ينفذ المعلم أنشطة متنوعة تناسب جميع الطلبة',
-    'يدير المعلم وقت الأنشطة بصورة فاعلة',
-    'يوظف المعلم أساليب التمايز المختلفة',
-    'يوظف المعلم أساليب تقييم متنوعة',
-    'يشارك الطلبة بفاعلية في الأنشطة الصفية',
-    'يزود المعلم الطلبة بتغذية راجعة بنائية مستمرة',
-    'يزود المعلم أولياء الأمور بمعلومات حول تقدم أبنائهم'
-];
-
-const inPersonWellbeingList = [
-    'ينخرط الطلبة بأنشطة تدعم الجانب النفسي والاجتماعي',
-    'يتعاون الطلبة فيما بينهم بتخطيط وتنفيذ الأنشطة',
-    'يشارك معظم الطلبة في أنشطة تناسب احتياجاتهم',
-    'يحفز الطلبة الذين يظهرون تقدماً بمحفزات مادية أو معنوية',
-    'يتم إحالة الطلبة الذين يحتاجون لدعم النفسي والاجتماعي إلى المرشد',
-    'يتم إحالة الطلبة الذين لديهم مشاكل صحية إلى النقطة الطبية',
-    'يعرض الطلبة أعمالهم على المعلمين باستمرار'
-];
-
-const remoteAdminList = [
-    'مدى التزام الفريق الإداري بفتح وإغلاق المجموعات وفق الجدول الزمني',
-    'تنشر المواد التعليمية على المجموعات بشكل منتظم',
-    'مدى اهتمام الإدارة والمعلمين بإدارة الإعلانات والتعليمات',
-    'مدى الالتزام بقواعد السلوك في إدارة المحادثات',
-    'مدى انخراط جميع العاملين وفق أدوارهم المتفق عليها'
-];
-
-const remoteTechnicalList = [
-    'مدى التزام المعلم بإدراج البطاقات التعليمية حسب الخطة الزمنية',
-    'يسرد المعلم أهداف البطاقات التعليمية مع ذكر أهم النقاط',
-    'يشجع المعلم الطلبة على المشاركة من خلال التعزيز المعنوي',
-    'شارك الطلبة بفاعلية وقدموا بعض التساؤلات والاستفسارات',
-    'يجيب المعلم على أسئلة الطلبة ويوضح الغموض في البطاقات',
-    'يغلق المعلم جلسة التعلم بملخص حول ما تعلمه الطالب',
-    'جميع مشاركات المعلم والطلبة لا تتعارض مع مبادئ الحياد'
-];
-
 // ===================== متغيرات عامة =====================
 let allReportsCache = [];
 let filteredReportsCache = [];
@@ -695,7 +670,6 @@ let districtsList = [];
 let schoolsData = [];
 let educationalCentersList = [];
 let usersData = [];
-let isLoadingMore = false;
 let dateFromPicker = null, dateToPicker = null, inPersonDatePicker = null, remoteDatePicker = null;
 let isInPersonSaving = false, isRemoteSaving = false;
 let currentEditingId = null;
@@ -704,11 +678,518 @@ let reportsCache = new Map();
 let isLoadingReport = false;
 let currentOpenReportId = null;
 let currentReportHtmlBlob = null;
-let refreshInProgress = false;
-
 let currentPage = 1;
 let pageSize = 100;
 let totalFilteredCount = 0;
+let isSyncing = false;
+let backgroundRefreshInProgress = false;
+let initialLoadComplete = false;
+let cacheInitialized = false;
+let cacheInitializing = false;
+let notificationInterval = null;
+let centerNameCache = new Map();
+
+// ===================== دالة استخراج الرقم من النص =====================
+function extractNumberFromString(text) {
+    if (!text) return null;
+    const match = text.toString().match(/\d+/);
+    return match ? parseInt(match[0]) : null;
+}
+
+// ===================== دالة الحصول على الكيان المختار =====================
+function getSelectedEntityId() {
+    // محاولة الحصول من localStorage
+    let entityKey = localStorage.getItem('currentEntityKey');
+    
+    // إذا كان هناك كيان في localStorage
+    if (entityKey) {
+        const parts = entityKey.split('_');
+        // إذا كان التنسيق educational_center_xxx
+        if (parts.length >= 3 && parts[0] === 'educational' && parts[1] === 'center') {
+            const id = extractNumberFromString(parts[2]);
+            if (id) return { type: 'educational_center', id: id };
+        }
+        // إذا كان التنسيق educational_xxx
+        else if (parts.length >= 2 && parts[0] === 'educational') {
+            const id = extractNumberFromString(parts[1]);
+            if (id) return { type: 'educational_center', id: id };
+        }
+        // إذا كان التنسيق type_id
+        else if (parts.length >= 2) {
+            const id = extractNumberFromString(parts[1]);
+            if (id) return { type: parts[0], id: id };
+        }
+    }
+    
+    // إذا لم يتم العثور على كيان، نستخدم educational_center_id من المستخدم
+    if (currentUser && currentUser.educational_center_id) {
+        const id = parseInt(currentUser.educational_center_id);
+        if (!isNaN(id) && id > 0) {
+            return { type: 'educational_center', id: id };
+        }
+    }
+    
+    return null;
+}
+
+// ===================== دوال تصفية التقارير حسب الكيان =====================
+function filterReportsByEntity(reports, entityType, entityId) {
+    if (!reports || reports.length === 0) return [];
+    if (!entityType || !entityId) return reports;
+
+    // تحويل entityId إلى رقم
+    let entityIdNum = parseInt(entityId);
+    if (isNaN(entityIdNum)) {
+        entityIdNum = extractNumberFromString(entityId);
+        if (!entityIdNum) {
+            console.warn(`⚠️ لا يمكن استخراج رقم من: ${entityId}`);
+            return reports;
+        }
+        console.log(`✅ تم استخراج الرقم من "${entityId}": ${entityIdNum}`);
+    }
+
+    console.log(`🔍 تصفية حسب الكيان: ${entityType} - ID: ${entityIdNum}`);
+    console.log(`📊 عدد التقارير قبل التصفية: ${reports.length}`);
+
+    const filtered = reports.filter(report => {
+        if (String(report.id).startsWith('pending_')) return false;
+
+        if (report.report_type === 'in_person') {
+            // البحث عن educational_center_id بطرق متعددة
+            const centerId = report.educational_center_id || 
+                            report.educational_centers?.id || 
+                            report.center_id ||
+                            report.educational_centers_id;
+            
+            let centerIdNum = parseInt(centerId);
+            if (isNaN(centerIdNum)) {
+                centerIdNum = extractNumberFromString(centerId);
+            }
+            
+            if (entityType === 'educational_center' || entityType === 'educational') {
+                const match = centerIdNum === entityIdNum;
+                if (match) {
+                    console.log(`✅ تقرير وجاهي مطابق للمركز ${entityIdNum}: ${report.id}`);
+                }
+                return match;
+            } else if (entityType === 'district') {
+                const districtId = report.educational_centers?.district_id || 
+                                  report.district_id || 
+                                  report.center_district_id;
+                let districtIdNum = parseInt(districtId);
+                if (isNaN(districtIdNum)) {
+                    districtIdNum = extractNumberFromString(districtId);
+                }
+                return districtIdNum === entityIdNum;
+            }
+            return false;
+        } else if (report.report_type === 'remote') {
+            if (entityType === 'school') {
+                const schoolId = report.school_id || 
+                                report.schools?.id || 
+                                report.schools_id;
+                let schoolIdNum = parseInt(schoolId);
+                if (isNaN(schoolIdNum)) {
+                    schoolIdNum = extractNumberFromString(schoolId);
+                }
+                return schoolIdNum === entityIdNum;
+            } else if (entityType === 'district') {
+                const districtId = report.schools?.district_id || 
+                                  report.district_id || 
+                                  report.school_district_id;
+                let districtIdNum = parseInt(districtId);
+                if (isNaN(districtIdNum)) {
+                    districtIdNum = extractNumberFromString(districtId);
+                }
+                return districtIdNum === entityIdNum;
+            }
+            return false;
+        }
+        return true;
+    });
+
+    console.log(`📊 عدد التقارير بعد التصفية: ${filtered.length}`);
+    return filtered;
+}
+
+// ===================== دالة جلب اسم المركز من الخادم =====================
+async function fetchCenterName(centerId) {
+    if (isNaN(centerId)) return null;
+    
+    if (centerNameCache.has(centerId)) {
+        return centerNameCache.get(centerId);
+    }
+    
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('educational_centers')
+            .select('id, name_en, manager_name_ar')
+            .eq('id', centerId)
+            .single();
+        if (error) throw error;
+        if (data) {
+            const name = data.name_en || data.manager_name_ar || 'مركز تعليمي';
+            centerNameCache.set(centerId, name);
+            if (!educationalCentersList.find(c => c.id === centerId)) {
+                educationalCentersList.push({ 
+                    id: centerId, 
+                    name_en: data.name_en, 
+                    manager_name_ar: data.manager_name_ar 
+                });
+            }
+            return name;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error fetching center name:', error);
+        return null;
+    }
+}
+
+// ===================== دالة تحديث اسم الكيان في القائمة الجانبية =====================
+async function updateEntityDisplayName() {
+    const userDistrictDisplay = document.getElementById('userDistrictDisplay');
+    if (!userDistrictDisplay) return;
+    
+    // استخدام اسم المركز من المستخدم إذا كان موجوداً
+    if (currentUser && currentUser.educational_center_name) {
+        userDistrictDisplay.textContent = `📚 ${currentUser.educational_center_name}`;
+        console.log(`✅ استخدام اسم المركز من المستخدم: ${currentUser.educational_center_name}`);
+        return;
+    }
+    
+    // الحصول على الكيان المختار
+    const entity = getSelectedEntityId();
+    if (!entity) {
+        userDistrictDisplay.textContent = getUserSubtitle(currentUser) || 'جميع الكيانات';
+        return;
+    }
+    
+    if (entity.type === 'educational_center') {
+        // البحث في educationalCentersList
+        let center = educationalCentersList.find(c => c.id === entity.id);
+        
+        if (center) {
+            const name = center.name_en || center.manager_name_ar || 'مركز تعليمي';
+            userDistrictDisplay.textContent = `📚 ${name}`;
+            console.log(`✅ تم العثور على المركز في القائمة: ${name}`);
+            return;
+        }
+        
+        // محاولة جلب البيانات من الخادم
+        console.log(`🔄 جلب اسم المركز ${entity.id} من الخادم...`);
+        const name = await fetchCenterName(entity.id);
+        if (name) {
+            userDistrictDisplay.textContent = `📚 ${name}`;
+            console.log(`✅ تم تحديث اسم المركز من الخادم: ${name}`);
+            return;
+        }
+        
+        userDistrictDisplay.textContent = `📚 مركز تعليمي #${entity.id}`;
+    } else if (entity.type === 'school') {
+        const school = schoolsData.find(s => s.id === entity.id);
+        userDistrictDisplay.textContent = school ? `🏫 ${school.name}` : `🏫 مدرسة #${entity.id}`;
+    } else if (entity.type === 'district') {
+        const district = districtsList.find(d => d.id === entity.id);
+        userDistrictDisplay.textContent = district ? `🏛️ ${district.name}` : `🏛️ منطقة #${entity.id}`;
+    }
+}
+
+// ===================== دالة تحميل جميع المراكز =====================
+async function loadAllEducationalCenters() {
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('educational_centers')
+            .select('id, name_en, manager_name_ar, email, district_id');
+        if (error) throw error;
+        if (data && data.length > 0) {
+            educationalCentersList = data;
+            data.forEach(c => {
+                centerNameCache.set(c.id, c.name_en || c.manager_name_ar || 'مركز تعليمي');
+            });
+            console.log(`📊 تم تحميل ${data.length} مركز تعليمي`);
+        }
+        return data;
+    } catch (error) {
+        console.error('Error loading all educational centers:', error);
+        return [];
+    }
+}
+
+// ===================== دالة تطبيق جميع الفلاتر =====================
+function applyAllFilters() {
+    if (!allReportsCache || allReportsCache.length === 0) {
+        filteredReportsCache = [];
+        totalFilteredCount = 0;
+        displayCurrentPage();
+        return;
+    }
+
+    console.log('🔄 تطبيق جميع الفلاتر...');
+    console.log(`📊 إجمالي التقارير في الكاش: ${allReportsCache.length}`);
+
+    let filtered = [...allReportsCache];
+    
+    // الحصول على الكيان المختار
+    const entity = getSelectedEntityId();
+    console.log(`📌 الكيان المختار:`, entity || 'لا يوجد');
+    
+    // تحديث اسم الكيان في القائمة الجانبية
+    updateEntityDisplayName();
+    
+    // ====== تطبيق تصفية الكيان ======
+    if (entity) {
+        console.log(`🔍 تطبيق تصفية الكيان: ${entity.type} - ID: ${entity.id}`);
+        filtered = filterReportsByEntity(filtered, entity.type, entity.id);
+        console.log(`📊 بعد تصفية الكيان: ${filtered.length} تقرير`);
+    }
+    
+    // ====== تصفية حسب البحث ======
+    const search = document.getElementById('searchInput')?.value || '';
+    if (search && search.trim() !== '') {
+        const beforeSearch = filtered.length;
+        filtered = filtered.filter(r => performSmartSearch(r, search));
+        console.log(`📊 بعد تصفية البحث: ${filtered.length} (من ${beforeSearch})`);
+    }
+    
+    // ====== تصفية حسب التاريخ ======
+    const fromDate = getDateFromPicker(dateFromPicker);
+    const toDate = getDateFromPicker(dateToPicker);
+    if (fromDate) {
+        filtered = filtered.filter(r => r.visit_date >= fromDate);
+    }
+    if (toDate) {
+        filtered = filtered.filter(r => r.visit_date <= toDate);
+    }
+    
+    // ====== تصفية حسب نوع التقرير ======
+    const type = document.getElementById('reportTypeFilter')?.value || '';
+    if (type) {
+        filtered = filtered.filter(r => r.report_type === type);
+    }
+    
+    // ====== تصفية حسب المنطقة ======
+    const district = document.getElementById('districtFilter')?.value || '';
+    if (district && district !== '') {
+        filtered = filtered.filter(r => r.district_name === district);
+    }
+    
+    // ====== تصفية حسب الصف ======
+    const classFilter = document.getElementById('classFilter')?.value || '';
+    if (classFilter) {
+        filtered = filtered.filter(r => r.class_name === classFilter);
+    }
+    
+    filteredReportsCache = filtered;
+    totalFilteredCount = filtered.length;
+    currentPage = 1;
+    displayCurrentPage();
+    
+    console.log(`📊 النتيجة النهائية: ${filtered.length} تقرير`);
+}
+
+// ===================== دالة تحسين بيانات التقارير =====================
+function enhanceReportData(report) {
+    if (!report) return report;
+    
+    if (report.report_type === 'in_person') {
+        if (report.educational_centers) {
+            report.educational_center_id = report.educational_centers.id;
+            report.center_id = report.educational_centers.id;
+            report.center_district_id = report.educational_centers.district_id;
+        }
+        if (report.educational_center_id && !report.center_id) {
+            report.center_id = report.educational_center_id;
+        }
+        if (!report.educational_center_id && report.educational_centers_id) {
+            report.educational_center_id = report.educational_centers_id;
+        }
+    } else if (report.report_type === 'remote') {
+        if (report.schools) {
+            report.school_id = report.schools.id;
+            report.schools_id = report.schools.id;
+            report.school_district_id = report.schools.district_id;
+        }
+        if (report.school_id && !report.schools_id) {
+            report.schools_id = report.school_id;
+        }
+    }
+    
+    return report;
+}
+
+// ===================== تحديث دالة initializeCache =====================
+async function initializeCache() {
+    if (cacheInitialized || cacheInitializing) return;
+    cacheInitializing = true;
+    showProgress(true);
+    updateProgress(5, 'جاري تحميل التقارير...');
+    
+    try {
+        console.log('🔄 بدء تهيئة الكاش في reports.html');
+        console.log('👤 المستخدم الحالي:', currentUser?.role);
+        console.log('📌 educational_center_id:', currentUser?.educational_center_id);
+        console.log('📌 educational_center_name:', currentUser?.educational_center_name);
+        console.log('📌 الكيان المختار في localStorage:', localStorage.getItem('currentEntityKey'));
+        
+        // تحميل جميع المراكز التعليمية أولاً
+        await loadAllEducationalCenters();
+        
+        // تحديث اسم الكيان في القائمة الجانبية فوراً
+        await updateEntityDisplayName();
+        
+        let result = await window.getFullReportsCache(false);
+        
+        if (!result.success || !result.data || result.data.length === 0) {
+            console.log('📭 لا توجد بيانات في الكاش، جلب من الخادم...');
+            result = await window.getFullReportsCache(true);
+        }
+        
+        if (result.success && result.data) {
+            let reports = result.data;
+            console.log(`📊 تم جلب ${reports.length} تقرير`);
+            
+            // تحسين البيانات وإضافة حقول مساعدة
+            reports = reports.map(r => enhanceReportData(r));
+            
+            // تصفية التقارير المعلقة
+            allReportsCache = reports.filter(r => !String(r.id).startsWith('pending_'));
+            allReportsCache = sortReportsByDate(allReportsCache);
+            
+            console.log(`📊 بعد إزالة المعلقة: ${allReportsCache.length} تقرير`);
+            
+            // عرض عينة من البيانات للتحقق
+            if (allReportsCache.length > 0) {
+                const inPersonSamples = allReportsCache.filter(r => r.report_type === 'in_person').slice(0, 3);
+                console.log('📋 عينة من التقارير الوجاهية:', inPersonSamples.map(r => ({
+                    id: r.id,
+                    educational_center_id: r.educational_center_id,
+                    center_id: r.center_id
+                })));
+            }
+            
+            // تطبيق جميع الفلاتر (بما فيها الكيان)
+            applyAllFilters();
+            
+            document.getElementById('totalCountDisplay').textContent = allReportsCache.length.toLocaleString();
+            document.getElementById('totalReportsHint').textContent = allReportsCache.length.toLocaleString();
+            
+            updateProgress(30, `تم تحميل ${allReportsCache.length.toLocaleString()} تقرير${result.fromCache ? ' من الكاش' : ''}`);
+            
+            console.log(`✅ تم تحميل ${allReportsCache.length} تقرير في صفحة التقارير`);
+            
+            setTimeout(() => showProgress(false), 500);
+            
+            if (!result.fromCache && !backgroundRefreshInProgress && !initialLoadComplete) {
+                backgroundRefreshInProgress = true;
+                updateProgress(40, 'جاري تحديث البيانات في الخلفية...');
+                refreshCacheInBackground();
+            } else {
+                cacheInitialized = true;
+                cacheInitializing = false;
+                initialLoadComplete = true;
+            }
+        } else {
+            throw new Error(result.error || 'فشل تحميل البيانات');
+        }
+        
+    } catch (error) {
+        console.error('❌ فشل تهيئة الكاش:', error);
+        updateProgress(100, '❌ حدث خطأ في تحميل البيانات');
+        setTimeout(() => showProgress(false), 1500);
+        
+        try {
+            const cached = await window.loadReportsFromIndexedDB();
+            if (cached && cached.data && cached.data.length > 0) {
+                let reports = cached.data.map(r => enhanceReportData(r));
+                allReportsCache = reports.filter(r => !String(r.id).startsWith('pending_'));
+                allReportsCache = sortReportsByDate(allReportsCache);
+                applyAllFilters();
+                document.getElementById('totalCountDisplay').textContent = allReportsCache.length.toLocaleString();
+                document.getElementById('totalReportsHint').textContent = allReportsCache.length.toLocaleString();
+                showMessage('تم تحميل البيانات من النسخة الاحتياطية', 'info');
+            }
+        } catch(e) {
+            console.warn('فشل تحميل النسخة الاحتياطية:', e);
+        }
+    } finally {
+        cacheInitialized = true;
+        cacheInitializing = false;
+        initialLoadComplete = true;
+    }
+}
+
+// ===================== دالة refreshCacheInBackground =====================
+async function refreshCacheInBackground() {
+    console.log('🔄 تحديث الكاش في الخلفية...');
+    try {
+        const result = await window.refreshFullReportsCache();
+        if (result.success && result.data) {
+            const newReports = result.data.filter(r => !String(r.id).startsWith('pending_'));
+            if (newReports.length > allReportsCache.length) {
+                allReportsCache = sortReportsByDate(newReports);
+                applyAllFilters();
+                document.getElementById('totalCountDisplay').textContent = allReportsCache.length.toLocaleString();
+                document.getElementById('totalReportsHint').textContent = allReportsCache.length.toLocaleString();
+                console.log(`✅ تم تحديث الكاش في الخلفية: ${allReportsCache.length} تقرير`);
+            }
+        }
+    } catch (err) {
+        console.error('❌ فشل تحديث الكاش في الخلفية:', err);
+    } finally {
+        backgroundRefreshInProgress = false;
+    }
+}
+
+// ===================== مستمع لتغيير الكيان =====================
+window.addEventListener('storage', function(e) {
+    if (e.key === 'currentEntityKey') {
+        console.log('🔄 تم تغيير الكيان المختار من:', e.oldValue, 'إلى:', e.newValue);
+        if (allReportsCache && allReportsCache.length > 0) {
+            applyAllFilters();
+            showMessage(`تم تحديث التقارير حسب الكيان المختار`, 'info');
+        }
+    }
+});
+
+// ===================== دالة loadUserFromStorage =====================
+function loadUserFromStorage() {
+    const saved = localStorage.getItem('currentUser');
+    return saved ? JSON.parse(saved) : null;
+}
+
+// ===================== دوال القائمة الجانبية =====================
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('active');
+    if (sidebar.classList.contains('open')) toggleBodyScroll(true);
+    else toggleBodyScroll(false);
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    toggleBodyScroll(false);
+}
+
+// ===================== دوال شريط التقدم =====================
+function showProgress(show) {
+    const progressDiv = document.getElementById('loadingProgress');
+    if (progressDiv) {
+        progressDiv.style.display = show ? 'block' : 'none';
+    }
+}
+
+function updateProgress(percent, message) {
+    const progressFill = document.getElementById('progressFill');
+    const loadingStats = document.getElementById('loadingStats');
+    if (progressFill) progressFill.style.width = `${percent}%`;
+    if (loadingStats) loadingStats.innerHTML = message || `جاري التحميل... ${percent}%`;
+}
 
 // ===================== دوال مساعدة =====================
 function toggleBodyScroll(disable) {
@@ -755,8 +1236,19 @@ function closeModalWithScroll(modalId) {
     }
 }
 
+function closeModal(modalId) {
+    closeModalWithScroll(modalId);
+    if (modalId === 'inPersonModal') {
+        if (typeof stopAutoSave === 'function') stopAutoSave();
+        if (typeof clearForm === 'function') clearForm('in_person_draft');
+    } else if (modalId === 'remoteModal') {
+        if (typeof stopAutoSave === 'function') stopAutoSave();
+        if (typeof clearForm === 'function') clearForm('remote_draft');
+    }
+}
+
 function getRoleName(role) {
-    const roles = { 'admin': 'مدير النظام', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'user': 'مختص تربوي', 'spuser': 'مدير مدرسة' };
+    const roles = { 'admin': 'مدير النظام', 'support': 'دعم فني', 'manger': 'مدير منطقة', 'user': 'مختص تربوي','center': 'مركز تعليمي' ,'spuser': 'مدير مدرسة' };
     return roles[role] || role;
 }
 
@@ -770,14 +1262,18 @@ function getUserSubtitle(user) {
     if (user.role === 'admin' || user.role === 'support') return 'مدير نظام';
     if (user.role === 'manger') return user.district_name || user.district || 'مدير منطقة';
     if (user.role === 'spuser') return user.school_name || user.school || 'مدير مدرسة';
+    if (user.role === 'center') return 'مركز تعليمي'; 
     if (user.role === 'user') return 'مشرف تربوي';
     return '';
 }
 
-function canCreateReports(user) { return user && ['admin', 'support', 'user'].includes(user.role); }
+function canCreateReports(user) {  return user && ['admin', 'support', 'user', 'center'].includes(user.role); }
+
 function canEditReport(user, report) { return user && report && (['admin', 'support'].includes(user.role) || (user.role === 'user' && report.specialist_id == user.id)); }
-function canDeleteReport(user, report) { return user && report && ['admin', 'support'].includes(user.role); }
-function canEmailReport(user) { return user && ['user', 'support'].includes(user.role); }
+
+function canDeleteReport(user, report) {  return user && report && ['admin', 'support'].includes(user.role); }
+
+function canEmailReport(user) { return user && ['user', 'support', 'center'].includes(user.role); }
 
 function getDateFromPicker(picker) {
     if (picker && picker.selectedDates && picker.selectedDates[0]) {
@@ -789,27 +1285,7 @@ function getDateFromPicker(picker) {
 
 function setPickerDate(picker, dateValue) { if (picker && dateValue) picker.setDate(new Date(dateValue)); }
 
-function buildEvaluationItems(containerId, items, prefix, savedValues = {}) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = items.map((item, idx) => {
-        const savedValue = savedValues[`item_${idx}`] || 'متوسطة';
-        return `<div class="skill-item"><span class="skill-name">${idx+1}. ${item}</span><div class="skill-rating">
-            <label><input type="radio" name="${prefix}_eval_${idx}" value="قليلة" ${savedValue === 'قليلة' ? 'checked' : ''}> قليلة</label>
-            <label><input type="radio" name="${prefix}_eval_${idx}" value="متوسطة" ${savedValue === 'متوسطة' ? 'checked' : ''}> متوسطة</label>
-            <label><input type="radio" name="${prefix}_eval_${idx}" value="كبيرة" ${savedValue === 'كبيرة' ? 'checked' : ''}> كبيرة</label>
-        </div></div>`;
-    }).join('');
-}
-
-function collectEvaluationData(prefix, count) {
-    const data = {};
-    for (let i = 0; i < count; i++) {
-        const selected = document.querySelector(`input[name="${prefix}_eval_${i}"]:checked`);
-        if (selected) data[`item_${i}`] = selected.value;
-    }
-    return data;
-}
+function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
 
 function showMessage(msg, type) {
     const container = document.getElementById('notificationsContainer');
@@ -831,9 +1307,7 @@ function escapeHtmlText(text) {
     }).replace(/\n/g, '<br>');
 }
 
-function showAlertModal() {
-    openModalWithScroll('sendEmailAlertModal');
-}
+function showAlertModal() { openModalWithScroll('sendEmailAlertModal'); }
 function closeSendEmailAlertModal() { closeModalWithScroll('sendEmailAlertModal'); }
 
 // ===================== البحث الذكي =====================
@@ -866,7 +1340,7 @@ function performSmartSearch(report, searchTerm) {
     return true;
 }
 
-// ===================== دوال بناء التقرير =====================
+// ===================== دوال بناء التقرير للطباعة =====================
 function buildEvaluationTableFast(items, evaluations, title) {
     if (!items || items.length === 0) return '';
     let html = `<h3>${title}</h3><table class="print-evaluation-table"><thead><tr><th>#</th><th>البند</th><th>قليلة</th><th>متوسطة</th><th>كبيرة</th></tr></thead><tbody>`;
@@ -909,7 +1383,26 @@ function buildPrintHTMLFast(report, type) {
         reportContent = `<div class="print-report-container"><div class="print-header"><div><h2>نظام التقارير التربوية</h2><p>دائرة التربية والتعليم</p></div></div><h2>تقرير متابعة التعليم عن بعد</h2><div class="print-info-grid"><div class="print-info-item"><span class="print-info-label">تاريخ الزيارة:</span> ${visitDate}</div><div class="print-info-item"><span class="print-info-label">المنطقة التعليمية:</span> ${districtName}</div><div class="print-info-item"><span class="print-info-label">المدرسة:</span> ${schoolName}</div><div class="print-info-item"><span class="print-info-label">مدير المدرسة:</span> ${principalName}</div><div class="print-info-item"><span class="print-info-label">المختص التربوي:</span> ${specialistName}</div><div class="print-info-item"><span class="print-info-label">اسم المعلم:</span> ${teacherName}</div><div class="print-info-item"><span class="print-info-label">الصف:</span> ${className}</div><div class="print-info-item"><span class="print-info-label">الشعبة:</span> ${section}</div><div class="print-info-item"><span class="print-info-label">المبحث:</span> ${subject}</div></div>${adminTable}${technicalTable}<div class="print-text-section"><h3>التحديات</h3><div class="print-text-content">${escapeHtmlText(report.challenges) || 'لا توجد تحديات مسجلة'}</div></div><div class="print-text-section"><h3>أفكار إبداعية</h3><div class="print-text-content">${escapeHtmlText(report.creative_ideas) || 'لا توجد أفكار إبداعية مسجلة'}</div></div><div class="print-text-section"><h3>التوصيات</h3><div class="print-text-content">${escapeHtmlText(report.recommendations) || 'لا توجد توصيات مسجلة'}</div></div><div class="print-footer">تم إنشاء التقرير بواسطة: ${userName}<br>تاريخ التصدير: ${currentDate} - ${currentTime}</div></div>`;
     }
     
-    return `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير تربوي</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI','Cairo','Tahoma',Arial,sans-serif;background:white;padding:12mm 15mm;direction:rtl}.print-report-container{max-width:100%;margin:0 auto;background:white}.print-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1e3c72;padding-bottom:10px;margin-bottom:20px}.print-header h2{margin:0;font-size:18px;color:#1e3c72}.print-header p{margin:2px 0;font-size:12px}.print-footer{margin-top:25px;border-top:1px solid #ccc;padding-top:10px;text-align:center;font-size:11px;color:#666}h2{text-align:center;color:#1e3c72;margin:0 0 20px 0;font-size:22px}h3{color:#1e3c72;margin:25px 0 12px 0;font-size:16px;border-bottom:2px solid #1e3c72;padding-bottom:5px}.print-evaluation-table{width:100%;border-collapse:collapse;margin-bottom:25px}.print-evaluation-table th,.print-evaluation-table td{border:1px solid #000;padding:8px 6px;text-align:center;vertical-align:middle}.print-evaluation-table th{background:#1e3c72;color:white;font-weight:600;font-size:13px}.print-info-grid{display:flex;flex-wrap:wrap;gap:12px;background:#f8fafd;padding:15px;border-radius:12px;margin-bottom:25px;border:1px solid #e2e8f0}.print-info-item{flex:1;min-width:170px}.print-info-label{font-weight:bold;color:#1e3c72}.print-text-section{margin-top:25px}.print-text-content{background:#f8fafd;padding:15px;border-radius:12px;border:1px solid #e2e8f0;min-height:60px;white-space:pre-wrap;line-height:1.6}.print-evaluation-table tr,.print-info-grid,.print-text-section{page-break-inside:avoid;break-inside:avoid}.print-evaluation-table{page-break-inside:auto}h3{page-break-after:avoid;break-after:avoid}@media print{body{padding:0;margin:0}.print-info-grid{border:1px solid #ddd}.print-evaluation-table td,.print-evaluation-table th{border:1px solid #000}}</style></head><body>${reportContent}</body></html>`;
+    return `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير تربوي</title><style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI','Cairo','Tahoma',Arial,sans-serif;background:white;padding:12mm 15mm;direction:rtl}
+        .print-report-container{max-width:100%;margin:0 auto;background:white}
+        .print-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1e3c72;padding-bottom:10px;margin-bottom:20px}
+        .print-header h2{margin:0;font-size:18px;color:#1e3c72}
+        .print-header p{margin:2px 0;font-size:12px}
+        .print-footer{margin-top:25px;border-top:1px solid #ccc;padding-top:10px;text-align:center;font-size:11px;color:#666}
+        h2{text-align:center;color:#1e3c72;margin:0 0 20px 0;font-size:22px}
+        h3{color:#1e3c72;margin:25px 0 12px 0;font-size:16px;border-bottom:2px solid #1e3c72;padding-bottom:5px}
+        .print-evaluation-table{width:100%;border-collapse:collapse;margin-bottom:25px}
+        .print-evaluation-table th,.print-evaluation-table td{border:1px solid #000;padding:8px 6px;text-align:center;vertical-align:middle}
+        .print-evaluation-table th{background:#1e3c72;color:white;font-weight:600;font-size:13px}
+        .print-info-grid{display:flex;flex-wrap:wrap;gap:12px;background:#f8fafd;padding:15px;border-radius:12px;margin-bottom:25px;border:1px solid #e2e8f0}
+        .print-info-item{flex:1;min-width:170px}
+        .print-info-label{font-weight:bold;color:#1e3c72}
+        .print-text-section{margin-top:25px}
+        .print-text-content{background:#f8fafd;padding:15px;border-radius:12px;border:1px solid #e2e8f0;min-height:60px;white-space:pre-wrap;line-height:1.6}
+        @media print{body{padding:0;margin:0}}
+    </style></head><body>${reportContent}</body></html>`;
 }
 
 // ===================== دوال البريد الإلكتروني =====================
@@ -918,7 +1411,6 @@ async function loadUsersData() {
         const { data, error } = await window.supabaseClient.from('users').select('id, email, name, role, district_id, school_id');
         if (error) throw error;
         usersData = data || [];
-        console.log('تم تحميل بيانات المستخدمين:', usersData.length);
     } catch (error) { console.error('Error loading users data:', error); }
 }
 
@@ -972,7 +1464,7 @@ async function openEmailModal() {
 function closeEmailModal() { closeModalWithScroll('emailModal'); currentReportHtmlBlob = null; }
 
 function openOutlookWithAttachment() {
-    if (!currentViewReport) { showMessage('لا يوجد تقرير للإرسال', 'error'); return; }
+    if (!currentViewReport) return;
     const executeOpenOutlook = function() {
         const toList = (document.getElementById('emailTo').value || '').split(/[;,]/).map(v => v.trim()).filter(Boolean);
         const ccList = (document.getElementById('emailCc').value || '').split(/[;,]/).map(v => v.trim()).filter(Boolean);
@@ -1019,8 +1511,15 @@ async function loadCenterManagersByDistrict() {
             .eq('district_id', districtId)
             .order('manager_name_ar', { ascending: true });
         if (error) throw error;
-        educationalCentersList = data || [];
-        const managersList = educationalCentersList.filter(c => c.manager_name_ar && c.manager_name_ar.trim() !== '');
+        if (data && data.length > 0) {
+            data.forEach(center => {
+                if (!educationalCentersList.find(c => c.id === center.id)) {
+                    educationalCentersList.push(center);
+                }
+                centerNameCache.set(center.id, center.name_en || center.manager_name_ar || 'مركز تعليمي');
+            });
+        }
+        const managersList = (data || []).filter(c => c.manager_name_ar && c.manager_name_ar.trim() !== '');
         if (managersList.length === 0) { managerSelect.innerHTML = '<option value="">لا يوجد مدراء في هذه المنطقة</option>'; return; }
         let options = '<option value="">اختر مدير المركز</option>';
         managersList.forEach(center => {
@@ -1043,119 +1542,85 @@ function loadEducationalCenterByManager() {
     const centerIdInput = document.getElementById('inPersonEducationalCenterId');
     if (!selectedOption || !selectedOption.value) { centerNameInput.value = ''; centerIdInput.value = ''; return; }
     const centerId = selectedOption.value;
-    const centerName = selectedOption.getAttribute('data-center-name') || '';
     const foundCenter = educationalCentersList.find(c => c.id == centerId);
     if (foundCenter) { centerNameInput.value = foundCenter.name_en || ''; centerIdInput.value = centerId; }
-    else { centerNameInput.value = centerName; centerIdInput.value = centerId; }
+}
+
+// ===================== قوائم التقييم =====================
+const inPersonTeachingList = [
+    'لدى المعلم/ة توقعات إيجابية وواقعية تجاه الطلبة',
+    'يلتزم المعلم بخطة التعلم',
+    'يشارك المعلم الطلبة بأهداف ومعايير نجاح واضحة',
+    'ينفذ المعلم أنشطة متنوعة تناسب جميع الطلبة',
+    'يدير المعلم وقت الأنشطة بصورة فاعلة',
+    'يوظف المعلم أساليب التمايز المختلفة',
+    'يوظف المعلم أساليب تقييم متنوعة',
+    'يشارك الطلبة بفاعلية في الأنشطة الصفية',
+    'يزود المعلم الطلبة بتغذية راجعة بنائية مستمرة',
+    'يزود المعلم أولياء الأمور بمعلومات حول تقدم أبنائهم'
+];
+
+const inPersonWellbeingList = [
+    'ينخرط الطلبة بأنشطة تدعم الجانب النفسي والاجتماعي',
+    'يتعاون الطلبة فيما بينهم بتخطيط وتنفيذ الأنشطة',
+    'يشارك معظم الطلبة في أنشطة تناسب احتياجاتهم',
+    'يحفز الطلبة الذين يظهرون تقدماً بمحفزات مادية أو معنوية',
+    'يتم إحالة الطلبة الذين يحتاجون لدعم النفسي والاجتماعي إلى المرشد',
+    'يتم إحالة الطلبة الذين لديهم مشاكل صحية إلى النقطة الطبية',
+    'يعرض الطلبة أعمالهم على المعلمين باستمرار'
+];
+
+const remoteAdminList = [
+    'مدى التزام الفريق الإداري بفتح وإغلاق المجموعات وفق الجدول الزمني',
+    'تنشر المواد التعليمية على المجموعات بشكل منتظم',
+    'مدى اهتمام الإدارة والمعلمين بإدارة الإعلانات والتعليمات',
+    'مدى الالتزام بقواعد السلوك في إدارة المحادثات',
+    'مدى انخراط جميع العاملين وفق أدوارهم المتفق عليها'
+];
+
+const remoteTechnicalList = [
+    'مدى التزام المعلم بإدراج البطاقات التعليمية حسب الخطة الزمنية',
+    'يسرد المعلم أهداف البطاقات التعليمية مع ذكر أهم النقاط',
+    'يشجع المعلم الطلبة على المشاركة من خلال التعزيز المعنوي',
+    'شارك الطلبة بفاعلية وقدموا بعض التساؤلات والاستفسارات',
+    'يجيب المعلم على أسئلة الطلبة ويوضح الغموض في البطاقات',
+    'يغلق المعلم جلسة التعلم بملخص حول ما تعلمه الطالب',
+    'جميع مشاركات المعلم والطلبة لا تتعارض مع مبادئ الحياد'
+];
+
+function buildEvaluationItems(containerId, items, prefix, savedValues = {}) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = items.map((item, idx) => {
+        const savedValue = savedValues[`item_${idx}`] || 'متوسطة';
+        return `<div class="skill-item"><span class="skill-name">${idx+1}. ${item}</span><div class="skill-rating">
+            <label><input type="radio" name="${prefix}_eval_${idx}" value="قليلة" ${savedValue === 'قليلة' ? 'checked' : ''}> قليلة</label>
+            <label><input type="radio" name="${prefix}_eval_${idx}" value="متوسطة" ${savedValue === 'متوسطة' ? 'checked' : ''}> متوسطة</label>
+            <label><input type="radio" name="${prefix}_eval_${idx}" value="كبيرة" ${savedValue === 'كبيرة' ? 'checked' : ''}> كبيرة</label>
+        </div></div>`;
+    }).join('');
+}
+
+function collectEvaluationData(prefix, count) {
+    const data = {};
+    for (let i = 0; i < count; i++) {
+        const selected = document.querySelector(`input[name="${prefix}_eval_${i}"]:checked`);
+        if (selected) data[`item_${i}`] = selected.value;
+    }
+    return data;
 }
 
 // ===================== دوال التقارير الرئيسية =====================
-async function loadAllReportsToCache() {
-    if (isLoadingMore) return;
-    isLoadingMore = true;
-    const progressDiv = document.getElementById('loadingProgress');
-    const progressFill = document.getElementById('progressFill');
-    const loadingStats = document.getElementById('loadingStats');
-    progressDiv.style.display = 'block';
-    progressFill.style.width = '5%';
-    loadingStats.innerHTML = 'جاري تحميل جميع التقارير إلى الكاش...';
-    try {
-        const districtsMap = {};
-        districtsList.forEach(d => { districtsMap[d.id] = d.name; });
-        progressFill.style.width = '10%';
-        loadingStats.innerHTML = 'جاري جلب التقارير الوجاهية...';
-        let allInPersonReports = [];
-        let inPersonPage = 0;
-        const pageSizeFetch = 1000;
-        let inPersonQuery = window.supabaseClient
-            .from('in_person_reports')
-            .select(`*, educational_centers:educational_center_id(id, name_en, manager_name_ar, email, district_id), users:specialist_id(id,name,email)`)
-            .order('visit_date', { ascending: false });
-        if (currentUser.role === 'user') inPersonQuery = inPersonQuery.eq('specialist_id', currentUser.id);
-        else if (currentUser.role === 'manger' && currentUser.district_id) {
-            const { data: centers } = await window.supabaseClient.from('educational_centers').select('id').eq('district_id', currentUser.district_id);
-            const centerIds = centers?.map(c => c.id) || [];
-            if (centerIds.length > 0) inPersonQuery = inPersonQuery.in('educational_center_id', centerIds);
-            else inPersonQuery = inPersonQuery.eq('educational_center_id', -1);
-        } else if (currentUser.role === 'spuser' && currentUser.school_id) inPersonQuery = inPersonQuery.eq('educational_center_id', -1);
-        let hasMore = true;
-        while (hasMore) {
-            const start = inPersonPage * pageSizeFetch;
-            const end = start + pageSizeFetch - 1;
-            const { data, error } = await inPersonQuery.range(start, end);
-            if (error) throw error;
-            if (data && data.length > 0) {
-                allInPersonReports = [...allInPersonReports, ...data];
-                inPersonPage++;
-                const percent = Math.min(10 + (allInPersonReports.length / 6000) * 30, 40);
-                progressFill.style.width = `${percent}%`;
-                loadingStats.innerHTML = `📊 جاري تحميل التقارير الوجاهية: ${allInPersonReports.length.toLocaleString()} تقرير...`;
-                if (data.length < pageSizeFetch) hasMore = false;
-            } else { hasMore = false; }
-        }
-        progressFill.style.width = '45%';
-        loadingStats.innerHTML = 'جاري جلب التقارير عن بعد...';
-        let allRemoteReports = [];
-        let remotePage = 0;
-        let remoteQuery = window.supabaseClient
-            .from('remote_reports')
-            .select(`*, schools:school_id(id,name,district_id, schoolPrincipal, schoolPrincipalEmail), users:specialist_id(id,name,email)`)
-            .order('visit_date', { ascending: false });
-        if (currentUser.role === 'user') remoteQuery = remoteQuery.eq('specialist_id', currentUser.id);
-        else if (currentUser.role === 'manger' && currentUser.district_id) {
-            const { data: schools } = await window.supabaseClient.from('schools').select('id').eq('district_id', currentUser.district_id);
-            const schoolIds = schools?.map(s => s.id) || [];
-            if (schoolIds.length > 0) remoteQuery = remoteQuery.in('school_id', schoolIds);
-            else remoteQuery = remoteQuery.eq('school_id', -1);
-        } else if (currentUser.role === 'spuser' && currentUser.school_id) remoteQuery = remoteQuery.eq('school_id', currentUser.school_id);
-        hasMore = true;
-        while (hasMore) {
-            const start = remotePage * pageSizeFetch;
-            const end = start + pageSizeFetch - 1;
-            const { data, error } = await remoteQuery.range(start, end);
-            if (error) throw error;
-            if (data && data.length > 0) {
-                allRemoteReports = [...allRemoteReports, ...data];
-                remotePage++;
-                const percent = Math.min(45 + (allRemoteReports.length / 6000) * 30, 75);
-                progressFill.style.width = `${percent}%`;
-                loadingStats.innerHTML = `📊 جاري تحميل التقارير عن بعد: ${allRemoteReports.length.toLocaleString()} تقرير...`;
-                if (data.length < pageSizeFetch) hasMore = false;
-            } else { hasMore = false; }
-        }
-        progressFill.style.width = '80%';
-        loadingStats.innerHTML = 'جاري معالجة البيانات وترتيبها...';
-        const inPersonData = allInPersonReports.map(r => ({ 
-            ...r, report_type: 'in_person', educational_centers: r.educational_centers, users: r.users, 
-            district_name: districtsMap[r.educational_centers?.district_id] || '-', 
-            principal_name: r.principal_name || r.educational_centers?.manager_name_ar || '',
-            principal_Email: r.principal_Email || r.educational_centers?.email || '',
-            center_name: r.educational_centers?.name_en || '-'
-        }));
-        const remoteData = allRemoteReports.map(r => ({ 
-            ...r, report_type: 'remote', schools: r.schools, users: r.users, 
-            district_name: districtsMap[r.schools?.district_id] || '-', 
-            principal_name: r.principal_name || r.schools?.schoolPrincipal || ''
-        }));
-        const allReports = [...inPersonData, ...remoteData].sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date));
-        allReportsCache = allReports;
-        filteredReportsCache = [...allReports];
-        totalFilteredCount = filteredReportsCache.length;
-        progressFill.style.width = '100%';
-        loadingStats.innerHTML = `✅ تم تحميل ${allReports.length.toLocaleString()} تقرير بنجاح! (${allInPersonReports.length} وجاهي + ${allRemoteReports.length} عن بعد)`;
-        setTimeout(() => { progressDiv.style.display = 'none'; }, 800);
-        const totalCountSpan = document.getElementById('totalCountDisplay');
-        if (totalCountSpan) totalCountSpan.textContent = allReports.length.toLocaleString();
-        const totalHint = document.getElementById('totalReportsHint');
-        if (totalHint) totalHint.textContent = allReports.length.toLocaleString();
-        return allReports;
-    } catch (error) {
-        console.error('Error loading all reports:', error);
-        loadingStats.innerHTML = '❌ حدث خطأ في تحميل التقارير';
-        loadingStats.style.color = '#e34f76';
-        setTimeout(() => { progressDiv.style.display = 'none'; }, 2000);
-        throw error;
-    } finally { isLoadingMore = false; }
+
+function sortReportsByDate(reports) {
+    if (!reports || reports.length === 0) return reports;
+    return [...reports].sort((a, b) => {
+        const dateA = new Date(a.visit_date);
+        const dateB = new Date(b.visit_date);
+        if (dateA > dateB) return -1;
+        if (dateA < dateB) return 1;
+        return (a.id > b.id) ? -1 : 1;
+    });
 }
 
 function displayCurrentPage() {
@@ -1166,6 +1631,7 @@ function displayCurrentPage() {
     if (!pageReports || pageReports.length === 0) {
         tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:3rem;"><i class="fas fa-folder-open"></i><p>لا توجد تقارير مطابقة</p></td></tr>`;
         document.getElementById('resultsCount').innerHTML = 'عدد النتائج: 0';
+        document.getElementById('paginationContainer').innerHTML = '';
         return;
     }
     tbody.innerHTML = pageReports.map((report, idx) => {
@@ -1231,61 +1697,6 @@ function goToPage(page) {
     document.querySelector('.table-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function filterReports() {
-    const search = document.getElementById('searchInput').value;
-    let fromDate = getDateFromPicker(dateFromPicker);
-    let toDate = getDateFromPicker(dateToPicker);
-    const type = document.getElementById('reportTypeFilter').value;
-    const district = document.getElementById('districtFilter').value;
-    const classFilter = document.getElementById('classFilter').value;
-    if (!allReportsCache || allReportsCache.length === 0) { showMessage('لا توجد تقارير للتصفية، يرجى الانتظار حتى اكتمال التحميل', 'info'); return; }
-    let filtered = allReportsCache.filter(r => {
-        if (type && r.report_type !== type) return false;
-        if (district && district !== '' && r.district_name !== district) return false;
-        if (classFilter && r.class_name !== classFilter) return false;
-        if (fromDate && r.visit_date < fromDate) return false;
-        if (toDate && r.visit_date > toDate) return false;
-        if (search && search.trim() !== '') return performSmartSearch(r, search);
-        return true;
-    });
-    filteredReportsCache = filtered;
-    totalFilteredCount = filtered.length;
-    currentPage = 1;
-    displayCurrentPage();
-    if (filtered.length > 0) showMessage(`تم العثور على ${filtered.length.toLocaleString()} تقرير مطابق`, 'success');
-    else showMessage('لا توجد تقارير مطابقة', 'info');
-}
-
-function clearFilters() {
-    document.getElementById('searchInput').value = '';
-    if (dateFromPicker) dateFromPicker.clear();
-    if (dateToPicker) dateToPicker.clear();
-    document.getElementById('reportTypeFilter').value = '';
-    document.getElementById('districtFilter').value = '';
-    document.getElementById('classFilter').value = '';
-    if (allReportsCache && allReportsCache.length > 0) {
-        filteredReportsCache = [...allReportsCache];
-        totalFilteredCount = filteredReportsCache.length;
-        currentPage = 1;
-        displayCurrentPage();
-        showMessage('تم مسح جميع الفلاتر', 'success');
-    } else { showMessage('لا توجد تقارير لعرضها', 'info'); }
-}
-
-async function refreshCache() {
-    if (refreshInProgress) return;
-    refreshInProgress = true;
-    try {
-        await loadAllReportsToCache();
-        filteredReportsCache = [...allReportsCache];
-        totalFilteredCount = filteredReportsCache.length;
-        currentPage = 1;
-        displayCurrentPage();
-    } finally {
-        refreshInProgress = false;
-    }
-}
-
 async function fetchSingleReportDirectly(reportId, reportType) {
     try {
         const districtsMap = {};
@@ -1322,17 +1733,16 @@ async function fetchSingleReportDirectly(reportId, reportType) {
 }
 
 async function viewReport(type, id) {
-    if (isLoadingReport) { showMessage('جاري تحميل تقرير آخر، الرجاء الانتظار...', 'info'); return; }
-    if (currentOpenReportId === id && document.getElementById('viewModal').classList.contains('active')) { return; }
+    if (isLoadingReport) { showMessage('جاري تحميل تقرير آخر...', 'info'); return; }
     let report = allReportsCache.find(r => r.report_type === type && r.id == id);
     if (!report) {
-        showMessage('التقرير غير موجود في الكاش، جاري البحث في قاعدة البيانات...', 'info');
+        showMessage('جاري البحث عن التقرير...', 'info');
         try {
             const fetchedReport = await fetchSingleReportDirectly(id, type);
-            if (fetchedReport) { report = fetchedReport; allReportsCache.push(report); }
-        } catch (err) { console.error('Error fetching single report:', err); }
+            if (fetchedReport) { report = fetchedReport; allReportsCache.push(report); allReportsCache = sortReportsByDate(allReportsCache); }
+        } catch (err) { console.error(err); }
     }
-    if (!report) { showMessage('عذراً، التقرير غير موجود أو لا تملك صلاحية عرضه', 'error'); return; }
+    if (!report) { showMessage('التقرير غير موجود', 'error'); return; }
     currentViewReport = report;
     currentOpenReportId = id;
     const detailsDiv = document.getElementById('reportDetails');
@@ -1356,34 +1766,32 @@ async function viewReport(type, id) {
             const emailBtn = document.getElementById('emailReportBtn');
             if (emailBtn && canEmailReport(currentUser)) emailBtn.style.display = 'inline-flex';
         } catch (error) {
-            console.error('خطأ في بناء التقرير:', error);
-            detailsDiv.innerHTML = '<div class="view-loading" style="color: red;"><i class="fas fa-exclamation-triangle"></i><span>حدث خطأ في تحميل التقرير</span></div>';
+            detailsDiv.innerHTML = '<div class="view-loading" style="color: red;">حدث خطأ في تحميل التقرير</div>';
             showMessage('حدث خطأ في تحميل التقرير', 'error');
         } finally { isLoadingReport = false; }
     });
 }
 
 function generateReportFileName(report) {
-    const prefix = (report.report_type === 'remote' || report.report_type === 'remote_learning') ? 'SP_RL' : 'SP_TLS';
-    const clean = (text = '') => { return String(text).trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, ''); };
+    const prefix = (report.report_type === 'remote') ? 'SP_RL' : 'SP_TLS';
+    const clean = (text = '') => String(text).trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
     const specialist = clean(report.users?.name || 'مختص');
     const centerOrSchool = report.report_type === 'in_person' ? clean(report.educational_centers?.name_en || 'مركز') : clean(report.schools?.name || 'مدرسة');
     return `${prefix}_${specialist}_${centerOrSchool}.pdf`;
 }
 
-function exportReportToPDF(reportId = null) {
-    const report = reportId ? allReportsCache.find(r => r.id == reportId) : currentViewReport;
-    if (!report) { showMessage('لم يتم العثور على التقرير', 'error'); return; }
-    const html = reportsCache.get(report.id) || buildPrintHTMLFast(report, report.report_type);
-    const fileName = generateReportFileName(report);
+function exportReportToPDF() {
+    if (!currentViewReport) { showMessage('لا يوجد تقرير للتصدير', 'error'); return; }
+    const html = reportsCache.get(currentViewReport.id) || buildPrintHTMLFast(currentViewReport, currentViewReport.report_type);
+    const fileName = generateReportFileName(currentViewReport);
     const printWindow = window.open('', '_blank');
     if (!printWindow) { showMessage('الرجاء السماح للنوافذ المنبثقة', 'error'); return; }
-    printWindow.document.open();
     printWindow.document.write(html);
     printWindow.document.title = fileName.replace('.pdf', '');
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => { printWindow.print(); }, 500);
+    setTimeout(() => printWindow.print(), 500);
+    showMessage('تم فتح نافذة الطباعة، يمكنك حفظ الملف', 'success');
 }
 
 function closeViewModal() { 
@@ -1394,45 +1802,41 @@ function closeViewModal() {
 }
 
 function updateUIBasedOnRole(user) {
+        if (typeof window.applySidebarPermissions === 'function') window.applySidebarPermissions(user);
     if (!user) return;
     const summaryReportsLink = document.getElementById('summaryReportsLink');
-    if (summaryReportsLink) summaryReportsLink.style.display = (user.role !== 'spuser') ? 'flex' : 'none';
     const analyticsLink = document.getElementById('navAnalytics');
-    if (analyticsLink) analyticsLink.style.display = ['admin', 'support', 'manger'].includes(user.role) ? 'flex' : 'none';
     const adminLinks = document.getElementById('adminLinks');
+
+    // ====== إخفاء التقارير التجميعية لمدير المدرسة ومدير المركز ======
+    if (summaryReportsLink) {
+        summaryReportsLink.style.display = (user.role !== 'spuser' && user.role !== 'center') ? 'flex' : 'none';
+        console.log(`📊 التقارير التجميعية: ${summaryReportsLink.style.display} (الدور: ${user.role})`);
+    }
+    
+    // إظهار التحليلات للأدمن والدعم ومدير المنطقة
+    if (analyticsLink) analyticsLink.style.display = ['admin', 'support', 'manger'].includes(user.role) ? 'flex' : 'none';
+    
+    // إظهار روابط الإدارة للأدمن والدعم فقط
     if (adminLinks) adminLinks.style.display = ['admin', 'support'].includes(user.role) ? 'block' : 'none';
+    
+    // أزرار إضافة التقارير
     const addReportBtns = document.querySelectorAll('.add-report-btn');
     const showAddButtons = canCreateReports(user);
     addReportBtns.forEach(btn => btn.style.display = showAddButtons ? 'inline-flex' : 'none');
+    
     const emailBtn = document.getElementById('emailReportBtn');
     if (emailBtn) emailBtn.style.display = canEmailReport(user) ? 'inline-flex' : 'none';
 }
 
-async function getCurrentUserFromLocal() {
-    const localUser = localStorage.getItem('currentUser');
-    if (localUser && JSON.parse(localUser).id) {
-        const parsed = JSON.parse(localUser);
-        return parsed;
-    }
-    try {
-        const { data: { user } } = await window.supabaseClient.auth.getUser();
-        if (user) {
-            const { data: userData } = await window.supabaseClient.from('users').select('*').eq('email', user.email).single();
-            if (userData) {
-                if (userData.district_id) {
-                    const { data: district } = await window.supabaseClient.from('districts').select('name').eq('id', userData.district_id).single();
-                    if (district) userData.district_name = district.name;
-                }
-                if (userData.school_id) {
-                    const { data: school } = await window.supabaseClient.from('schools').select('name').eq('id', userData.school_id).single();
-                    if (school) userData.school_name = school.name;
-                }
-                localStorage.setItem('currentUser', JSON.stringify(userData));
-                return userData;
-            }
-        }
-        return null;
-    } catch (error) { console.error('Error getting user:', error); return null; }
+function canCreateReports(user) { 
+    // الأدمن يرى كل شيء في هذه الصفحة ما عدا أزرار إضافة التقارير
+    // مدير المركز (center) له نفس صلاحيات مدير المدرسة (spuser): معاينة فقط، بدون إضافة
+    return user && ['support', 'user'].includes(user.role); 
+}
+
+function canEmailReport(user) { 
+    return user && ['user', 'support', 'center'].includes(user.role); 
 }
 
 async function loadDistricts() {
@@ -1449,15 +1853,15 @@ async function loadDistricts() {
             visibleDistricts = districtsList.filter(d => d.id == currentUser.district_id);
             filterDistricts = districtsList;
         }
-        const options = '<option value="">اختر المنطقة</option>' + visibleDistricts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+        const options = '<option value="">اختر المنطقة</option>' + visibleDistricts.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
         document.getElementById('inPersonDistrict').innerHTML = options;
         document.getElementById('remoteDistrict').innerHTML = options;
         let filterOptions = '<option value="">جميع المناطق</option>';
         if (currentUser.role === 'manger' && currentUser.district_id) {
             const userDistrict = districtsList.find(d => d.id == currentUser.district_id);
-            if (userDistrict) { filterOptions = `<option value="${userDistrict.name}">${userDistrict.name}</option>`; document.getElementById('districtFilter').disabled = true; }
+            if (userDistrict) { filterOptions = `<option value="${escapeHtml(userDistrict.name)}">${escapeHtml(userDistrict.name)}</option>`; document.getElementById('districtFilter').disabled = true; }
         } else {
-            filterOptions += filterDistricts.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+            filterOptions += filterDistricts.map(d => `<option value="${escapeHtml(d.name)}">${escapeHtml(d.name)}</option>`).join('');
             document.getElementById('districtFilter').disabled = false;
         }
         document.getElementById('districtFilter').innerHTML = filterOptions;
@@ -1477,7 +1881,7 @@ async function loadSchoolsByDistrict(type) {
     const districtId = document.getElementById(`${type}District`).value;
     if (!districtId) { document.getElementById(`${type}SchoolId`).innerHTML = '<option value="">اختر المنطقة أولاً</option>'; return; }
     const filteredSchools = schoolsData.filter(s => s.district_id == districtId).sort((a,b) => a.name.localeCompare(b.name));
-    const options = '<option value="">اختر المدرسة</option>' + filteredSchools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    const options = '<option value="">اختر المدرسة</option>' + filteredSchools.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
     document.getElementById(`${type}SchoolId`).innerHTML = options;
 }
 
@@ -1486,7 +1890,7 @@ async function loadSchoolPrincipal(type) {
         const schoolId = document.getElementById(`remoteSchoolId`).value;
         if (!schoolId) return;
         const school = schoolsData.find(s => s.id == schoolId);
-        if (school) { document.getElementById('remotePrincipalName').value = school.schoolPrincipal || ''; window.currentRemoteSchoolEmail = school.schoolPrincipalEmail || ''; }
+        if (school) document.getElementById('remotePrincipalName').value = school.schoolPrincipal || '';
     }
 }
 
@@ -1537,7 +1941,6 @@ function openAddReportModal(type) {
         if (remoteDatePicker) remoteDatePicker.setDate(new Date());
         document.getElementById('remoteSchoolId').innerHTML = '<option value="">اختر المنطقة أولاً</option>';
         document.getElementById('remoteDistrict').value = '';
-        window.currentRemoteSchoolEmail = '';
         buildEvaluationItems('remoteAdminTasks', remoteAdminList, 'remote_admin');
         buildEvaluationItems('remoteTechnicalTasks', remoteTechnicalList, 'remote_technical');
         openModalWithScroll('remoteModal');
@@ -1546,8 +1949,7 @@ function openAddReportModal(type) {
 
 async function editReport(type, id) {
     const report = allReportsCache.find(r => r.report_type === type && r.id == id);
-    if (!report) return;
-    if (!canEditReport(currentUser, report)) { showMessage('لا تملك صلاحية تعديل هذا التقرير', 'error'); return; }
+    if (!report || !canEditReport(currentUser, report)) { showMessage('لا تملك صلاحية تعديل هذا التقرير', 'error'); return; }
     currentEditingId = id;
     currentEditingType = type;
     if (type === 'in_person') {
@@ -1560,9 +1962,8 @@ async function editReport(type, id) {
             setTimeout(() => {
                 const managerSelect = document.getElementById('inPersonManagerId');
                 for (let i = 0; i < managerSelect.options.length; i++) {
-                    const opt = managerSelect.options[i];
-                    if (opt.value == report.educational_center_id) {
-                        managerSelect.value = opt.value;
+                    if (managerSelect.options[i].value == report.educational_center_id) {
+                        managerSelect.value = managerSelect.options[i].value;
                         loadEducationalCenterByManager();
                         break;
                     }
@@ -1590,8 +1991,7 @@ async function editReport(type, id) {
             setTimeout(() => {
                 document.getElementById('remoteSchoolId').value = report.school_id;
                 const school = schoolsData.find(s => s.id == report.school_id);
-                if (school) { document.getElementById('remotePrincipalName').value = school.schoolPrincipal || ''; window.currentRemoteSchoolEmail = school.schoolPrincipalEmail || ''; }
-                else { document.getElementById('remotePrincipalName').value = report.principal_name || ''; window.currentRemoteSchoolEmail = ''; }
+                if (school) document.getElementById('remotePrincipalName').value = school.schoolPrincipal || '';
             }, 150);
         }
         document.getElementById('remoteTeacherName').value = report.teacher_name || '';
@@ -1607,10 +2007,9 @@ async function editReport(type, id) {
     }
 }
 
-// ===================== حفظ التقرير الوجاهي (مع إرسال الإشعارات) =====================
+// ===================== حفظ التقرير الوجاهي =====================
 document.getElementById('inPersonForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (isInPersonSaving) { showMessage('جاري الحفظ... الرجاء الانتظار', 'info'); return; }
     
     const centerId = document.getElementById('inPersonEducationalCenterId').value;
     if (!centerId) { showMessage('الرجاء اختيار مدير المركز', 'error'); return; }
@@ -1619,6 +2018,7 @@ document.getElementById('inPersonForm')?.addEventListener('submit', async (e) =>
     const selectedOption = managerSelect.options[managerSelect.selectedIndex];
     const principalName = selectedOption?.getAttribute('data-manager-name') || '';
     const principalEmail = selectedOption?.getAttribute('data-center-email') || '';
+    const centerName = selectedOption?.getAttribute('data-center-name') || '';
     const visitDate = getDateFromPicker(inPersonDatePicker);
     if (!visitDate) { showMessage('الرجاء اختيار تاريخ الزيارة', 'error'); return; }
     
@@ -1643,43 +2043,102 @@ document.getElementById('inPersonForm')?.addEventListener('submit', async (e) =>
     const isEdit = currentEditingId !== null && currentEditingType === 'in_person';
     const saveBtn = document.getElementById('inPersonSaveBtn');
     const originalHtml = saveBtn.innerHTML;
+    
+    if (!navigator.onLine) {
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> جاري الحفظ محلياً...';
+        saveBtn.disabled = true;
+        
+        try {
+            const additionalData = { center_name: centerName, center_id: centerId, principal_name: principalName, principal_email: principalEmail };
+            const pendingResult = await savePendingReport(data, 'in_person', isEdit, currentEditingId, additionalData);
+            
+            if (pendingResult.success) {
+                const districtsMap = {};
+                districtsList.forEach(d => { districtsMap[d.id] = d.name; });
+                const newReport = {
+                    ...data, id: 'pending_' + pendingResult.pendingId + '_' + Date.now(),
+                    report_type: 'in_person',
+                    users: { name: currentUser.name, id: currentUser.id },
+                    educational_centers: { name_en: centerName, manager_name_ar: principalName, email: principalEmail },
+                    district_name: districtsMap[educationalCentersList.find(c => c.id == centerId)?.district_id] || '-',
+                    principal_name: principalName, principal_Email: principalEmail,
+                    is_pending: true, pending_id: pendingResult.pendingId
+                };
+                addReportToCache(newReport);
+                closeModal('inPersonModal');
+                showMessage('✅ تم حفظ التقرير محلياً. سيتم إرساله تلقائياً عند استعادة الاتصال.', 'success');
+                if (typeof clearForm === 'function') clearForm('in_person_draft');
+            } else {
+                throw new Error(pendingResult.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage('❌ حدث خطأ في الحفظ المحلي: ' + error.message, 'error');
+        } finally {
+            saveBtn.innerHTML = originalHtml;
+            saveBtn.disabled = false;
+            currentEditingId = null;
+            currentEditingType = null;
+        }
+        return;
+    }
+    
+    if (isInPersonSaving) { showMessage('جاري الحفظ...', 'info'); return; }
     isInPersonSaving = true;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
     saveBtn.disabled = true;
     
     try {
-        let result, newReportId;
+        let result, newReportId, newReportData = null;
         if (isEdit) {
-            result = await window.supabaseClient.from('in_person_reports').update(data).eq('id', currentEditingId);
-            newReportId = currentEditingId;
+            result = await window.supabaseClient.from('in_person_reports').update(data).eq('id', currentEditingId).select();
+            if (result.data && result.data[0]) newReportData = result.data[0];
         } else {
             result = await window.supabaseClient.from('in_person_reports').insert([data]).select();
-            if (result.data && result.data[0]) newReportId = result.data[0].id;
+            if (result.data && result.data[0]) { newReportId = result.data[0].id; newReportData = result.data[0]; }
         }
         if (result.error) throw result.error;
         
-        // إرسال الإشعارات (بدون إشعار للمختص نفسه)
-        if (newReportId && window.sendVisitReportNotifications) {
-            await window.sendVisitReportNotifications(data, newReportId, 'in_person', currentUser.name, isEdit ? 'update' : 'create');
+        const actionType = isEdit ? 'update' : 'create';
+        const reportIdToNotify = newReportId || currentEditingId;
+        if (reportIdToNotify && window.sendVisitReportNotifications) {
+            await window.sendVisitReportNotifications(data, reportIdToNotify, 'in_person', currentUser.name, actionType).catch(console.error);
         }
         
-        closeModalWithScroll('inPersonModal');
-        
-        if (!isEdit) {
-            showAlertModal();
-        } else {
-            showMessage('تم تحديث التقرير بنجاح', 'success');
+        if (!isEdit && newReportData) {
+            const districtsMap = {};
+            districtsList.forEach(d => { districtsMap[d.id] = d.name; });
+            const { data: centerData } = await window.supabaseClient
+                .from('educational_centers')
+                .select('id, name_en, manager_name_ar, email, district_id')
+                .eq('id', centerId)
+                .single();
+            const newReport = {
+                ...newReportData, report_type: 'in_person',
+                users: { name: currentUser.name, id: currentUser.id },
+                educational_centers: centerData || { name_en: centerName, manager_name_ar: principalName, email: principalEmail, district_id: null },
+                district_name: districtsMap[centerData?.district_id] || '-',
+                principal_name: principalName, principal_Email: principalEmail
+            };
+            addReportToCache(newReport);
+        } else if (isEdit && newReportData) {
+            const updatedReport = allReportsCache.find(r => r.id == currentEditingId);
+            if (updatedReport) Object.assign(updatedReport, newReportData);
+            updateReportInCache(updatedReport);
         }
         
-        refreshCache().catch(err => console.error('Refresh cache error:', err));
+        window.refreshFullReportsCache().catch(err => console.warn('⚠️ فشل تحديث الخلفية:', err));
         
+        closeModal('inPersonModal');
+        if (!isEdit) showAlertModal();
+        else showMessage('تم تحديث التقرير بنجاح', 'success');
+        
+        if (typeof clearForm === 'function') clearForm('in_person_draft');
         currentEditingId = null;
         currentEditingType = null;
-        
     } catch (error) { 
-        console.error('Error:', error); 
         showMessage('خطأ: ' + error.message, 'error');
-        closeModalWithScroll('inPersonModal');
+        closeModal('inPersonModal');
     } finally { 
         isInPersonSaving = false; 
         saveBtn.innerHTML = originalHtml; 
@@ -1687,22 +2146,19 @@ document.getElementById('inPersonForm')?.addEventListener('submit', async (e) =>
     }
 });
 
-// ===================== حفظ التقرير عن بعد (مع إرسال الإشعارات) =====================
+// ===================== حفظ التقرير عن بعد =====================
 document.getElementById('remoteForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (isRemoteSaving) { showMessage('جاري الحفظ... الرجاء الانتظار', 'info'); return; }
     
     const schoolId = document.getElementById('remoteSchoolId').value;
     if (!schoolId) { showMessage('الرجاء اختيار المدرسة', 'error'); return; }
-    
+    const school = schoolsData.find(s => s.id == schoolId);
+    const schoolName = school?.name || '';
     const visitDate = getDateFromPicker(remoteDatePicker);
     if (!visitDate) { showMessage('الرجاء اختيار تاريخ الزيارة', 'error'); return; }
     
-    const school = schoolsData.find(s => s.id == parseInt(schoolId));
-    
     const data = {
-        visit_date: visitDate, 
-        school_id: parseInt(schoolId), 
+        visit_date: visitDate, school_id: parseInt(schoolId), 
         teacher_name: document.getElementById('remoteTeacherName').value,
         principal_name: document.getElementById('remotePrincipalName').value, 
         specialist_id: currentUser.id,
@@ -1719,43 +2175,101 @@ document.getElementById('remoteForm')?.addEventListener('submit', async (e) => {
     const isEdit = currentEditingId !== null && currentEditingType === 'remote';
     const saveBtn = document.getElementById('remoteSaveBtn');
     const originalHtml = saveBtn.innerHTML;
+    
+    if (!navigator.onLine) {
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> جاري الحفظ محلياً...';
+        saveBtn.disabled = true;
+        
+        try {
+            const additionalData = { school_name: schoolName, school_id: schoolId, principal_name: data.principal_name };
+            const pendingResult = await savePendingReport(data, 'remote', isEdit, currentEditingId, additionalData);
+            
+            if (pendingResult.success) {
+                const districtsMap = {};
+                districtsList.forEach(d => { districtsMap[d.id] = d.name; });
+                const newReport = {
+                    ...data, id: 'pending_' + pendingResult.pendingId + '_' + Date.now(),
+                    report_type: 'remote',
+                    users: { name: currentUser.name, id: currentUser.id },
+                    schools: { name: schoolName, schoolPrincipal: data.principal_name },
+                    district_name: districtsMap[school?.district_id] || '-',
+                    principal_name: data.principal_name,
+                    is_pending: true, pending_id: pendingResult.pendingId
+                };
+                addReportToCache(newReport);
+                closeModal('remoteModal');
+                showMessage('✅ تم حفظ التقرير محلياً. سيتم إرساله تلقائياً عند استعادة الاتصال.', 'success');
+                if (typeof clearForm === 'function') clearForm('remote_draft');
+            } else {
+                throw new Error(pendingResult.error);
+            }
+        } catch (error) {
+            showMessage('❌ حدث خطأ في الحفظ المحلي: ' + error.message, 'error');
+        } finally {
+            saveBtn.innerHTML = originalHtml;
+            saveBtn.disabled = false;
+            currentEditingId = null;
+            currentEditingType = null;
+        }
+        return;
+    }
+    
+    if (isRemoteSaving) { showMessage('جاري الحفظ...', 'info'); return; }
     isRemoteSaving = true;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
     saveBtn.disabled = true;
     
     try {
-        let result, newReportId;
+        let result, newReportId, newReportData = null;
         if (isEdit) {
-            result = await window.supabaseClient.from('remote_reports').update(data).eq('id', currentEditingId);
-            newReportId = currentEditingId;
+            result = await window.supabaseClient.from('remote_reports').update(data).eq('id', currentEditingId).select();
+            if (result.data && result.data[0]) newReportData = result.data[0];
         } else {
             result = await window.supabaseClient.from('remote_reports').insert([data]).select();
-            if (result.data && result.data[0]) newReportId = result.data[0].id;
+            if (result.data && result.data[0]) { newReportId = result.data[0].id; newReportData = result.data[0]; }
         }
         if (result.error) throw result.error;
         
-        // إرسال الإشعارات (بدون إشعار للمختص نفسه)
-        if (newReportId && window.sendVisitReportNotifications) {
-            await window.sendVisitReportNotifications(data, newReportId, 'remote', currentUser.name, isEdit ? 'update' : 'create');
+        const actionType = isEdit ? 'update' : 'create';
+        const reportIdToNotify = newReportId || currentEditingId;
+        if (reportIdToNotify && window.sendVisitReportNotifications) {
+            await window.sendVisitReportNotifications(data, reportIdToNotify, 'remote', currentUser.name, actionType).catch(console.error);
         }
         
-        closeModalWithScroll('remoteModal');
-        
-        if (!isEdit) {
-            showAlertModal();
-        } else {
-            showMessage('تم تحديث التقرير بنجاح', 'success');
+        if (!isEdit && newReportData) {
+            const districtsMap = {};
+            districtsList.forEach(d => { districtsMap[d.id] = d.name; });
+            const { data: schoolData } = await window.supabaseClient
+                .from('schools')
+                .select('id, name, district_id, schoolPrincipal, schoolPrincipalEmail')
+                .eq('id', schoolId)
+                .single();
+            const newReport = {
+                ...newReportData, report_type: 'remote',
+                users: { name: currentUser.name, id: currentUser.id },
+                schools: schoolData || { name: schoolName, district_id: null, schoolPrincipal: data.principal_name, schoolPrincipalEmail: '' },
+                district_name: districtsMap[schoolData?.district_id] || '-',
+                principal_name: data.principal_name
+            };
+            addReportToCache(newReport);
+        } else if (isEdit && newReportData) {
+            const updatedReport = allReportsCache.find(r => r.id == currentEditingId);
+            if (updatedReport) Object.assign(updatedReport, newReportData);
+            updateReportInCache(updatedReport);
         }
         
-        refreshCache().catch(err => console.error('Refresh cache error:', err));
+        window.refreshFullReportsCache().catch(err => console.warn('⚠️ فشل تحديث الخلفية:', err));
         
+        closeModal('remoteModal');
+        if (!isEdit) showAlertModal();
+        else showMessage('تم تحديث التقرير بنجاح', 'success');
+        
+        if (typeof clearForm === 'function') clearForm('remote_draft');
         currentEditingId = null;
         currentEditingType = null;
-        
     } catch (error) { 
-        console.error('Error:', error); 
         showMessage('خطأ: ' + error.message, 'error');
-        closeModalWithScroll('remoteModal');
+        closeModal('remoteModal');
     } finally { 
         isRemoteSaving = false; 
         saveBtn.innerHTML = originalHtml; 
@@ -1763,7 +2277,12 @@ document.getElementById('remoteForm')?.addEventListener('submit', async (e) => {
     }
 });
 
+// ===================== دوال الحذف =====================
 function openDeleteModal(type, id) {
+    if (String(id).startsWith('pending_')) {
+        showMessage('لا يمكن حذف التقارير المعلقة، سيتم حذفها تلقائياً بعد المزامنة', 'info');
+        return;
+    }
     const report = allReportsCache.find(r => r.report_type === type && r.id == id);
     if (!canDeleteReport(currentUser, report)) { showMessage('لا تملك صلاحية حذف هذا التقرير', 'error'); return; }
     deleteReportData = { type, id };
@@ -1771,23 +2290,293 @@ function openDeleteModal(type, id) {
 }
 
 async function confirmDelete() {
-    if (!deleteReportData) return;
-    const table = deleteReportData.type === 'in_person' ? 'in_person_reports' : 'remote_reports';
-    const { error } = await window.supabaseClient.from(table).delete().eq('id', deleteReportData.id);
-    if (error) { showMessage('خطأ في الحذف', 'error'); return; }
-    closeModalWithScroll('deleteModal');
-    await refreshCache();
-    showMessage('تم الحذف بنجاح', 'success');
+    if (!deleteReportData) { showMessage('لا يوجد تقرير للحذف', 'error'); return; }
+    const deleteModal = document.getElementById('deleteModal');
+    const confirmBtn = deleteModal?.querySelector('.btn-primary');
+    const originalText = confirmBtn?.innerHTML || 'حذف';
+    if (confirmBtn) { confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحذف...'; confirmBtn.disabled = true; }
+    
+    try {
+        const table = deleteReportData.type === 'in_person' ? 'in_person_reports' : 'remote_reports';
+        const deletedId = deleteReportData.id;
+        const deletedType = deleteReportData.type;
+        const relatedReportType = deletedType === 'in_person' ? 'in_person' : 'remote';
+        
+        console.log(`🗑️ جاري حذف التقرير ${deletedId} من جدول ${table}`);
+        if (!navigator.onLine) { showMessage('⚠️ لا يمكن حذف التقرير حالياً (لا يوجد اتصال بالإنترنت)', 'info'); return; }
+        
+        const { error: notifError } = await window.supabaseClient
+            .from('notifications')
+            .delete()
+            .eq('related_report_id', deletedId)
+            .eq('related_report_type', relatedReportType);
+        if (notifError) console.warn('⚠️ تحذير أثناء حذف الإشعارات:', notifError.message);
+        else console.log('✅ تم حذف الإشعارات المرتبطة بنجاح');
+        
+        const { error: reportError } = await window.supabaseClient.from(table).delete().eq('id', deletedId);
+        if (reportError) throw reportError;
+        console.log('✅ تم حذف التقرير من قاعدة البيانات بنجاح');
+        
+        deleteReportFromCache(deletedId, deletedType);
+        showMessage('تم حذف التقرير وجميع إشعاراته بنجاح', 'success');
+        closeModalWithScroll('deleteModal');
+        deleteReportData = null;
+        await updateUnreadBadge();
+        window.refreshFullReportsCache().catch(err => console.warn('⚠️ فشل تحديث الخلفية:', err));
+    } catch (error) {
+        console.error('❌ خطأ في حذف التقرير:', error);
+        showMessage('حدث خطأ في حذف التقرير: ' + (error.message || 'غير معروف'), 'error');
+    } finally {
+        if (confirmBtn) { confirmBtn.innerHTML = originalText; confirmBtn.disabled = false; }
+    }
 }
 
-function closeModal(id) { closeModalWithScroll(id); }
 function closeDeleteModal() { closeModalWithScroll('deleteModal'); deleteReportData = null; }
+
+// ===================== دوال الكاش المحلي =====================
+function addReportToCache(newReport) {
+    allReportsCache.push(newReport);
+    allReportsCache = sortReportsByDate(allReportsCache);
+    filteredReportsCache = [...allReportsCache];
+    totalFilteredCount = filteredReportsCache.length;
+    currentPage = 1;
+    displayCurrentPage();
+    document.getElementById('totalCountDisplay').textContent = allReportsCache.length.toLocaleString();
+    document.getElementById('totalReportsHint').textContent = allReportsCache.length.toLocaleString();
+    window.saveReportsToIndexedDB(allReportsCache).catch(console.error);
+}
+
+function updateReportInCache(updatedReport) {
+    const index = allReportsCache.findIndex(r => r.id == updatedReport.id);
+    if (index !== -1) {
+        allReportsCache[index] = updatedReport;
+        allReportsCache = sortReportsByDate(allReportsCache);
+        filteredReportsCache = [...allReportsCache];
+        displayCurrentPage();
+        document.getElementById('totalCountDisplay').textContent = allReportsCache.length.toLocaleString();
+        window.saveReportsToIndexedDB(allReportsCache).catch(console.error);
+    }
+}
+
+function deleteReportFromCache(reportId, reportType) {
+    const index = allReportsCache.findIndex(r => r.id == reportId && r.report_type == reportType);
+    if (index !== -1) {
+        allReportsCache.splice(index, 1);
+        allReportsCache = sortReportsByDate(allReportsCache);
+        filteredReportsCache = [...allReportsCache];
+        totalFilteredCount = filteredReportsCache.length;
+        if (currentPage > Math.ceil(totalFilteredCount / pageSize) && totalFilteredCount > 0) {
+            currentPage = Math.ceil(totalFilteredCount / pageSize);
+        }
+        displayCurrentPage();
+        document.getElementById('totalCountDisplay').textContent = allReportsCache.length.toLocaleString();
+        document.getElementById('totalReportsHint').textContent = allReportsCache.length.toLocaleString();
+        window.saveReportsToIndexedDB(allReportsCache).catch(console.error);
+    }
+}
+
+// ===================== دوال التقارير المعلقة =====================
+async function savePendingReport(reportData, reportType, isEdit = false, reportId = null, additionalData = {}) {
+    try {
+        const database = await window.openDatabase();
+        const transaction = database.transaction(['pending_reports'], 'readwrite');
+        const store = transaction.objectStore('pending_reports');
+        
+        const pendingData = {
+            data: reportData,
+            type: reportType,
+            isEdit: isEdit,
+            reportId: reportId,
+            timestamp: Date.now(),
+            synced: false,
+            syncing: false,
+            additionalData: additionalData
+        };
+        
+        const result = await new Promise((resolve, reject) => {
+            const request = store.add(pendingData);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = (e) => reject(e.target.error);
+        });
+        
+        console.log(`📋 تم حفظ تقرير معلق في IndexedDB (ID: ${result})`);
+        return { success: true, pendingId: result };
+    } catch (error) {
+        console.error('Error saving pending report:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function getPendingReports() {
+    try {
+        const database = await window.openDatabase();
+        const transaction = database.transaction(['pending_reports'], 'readonly');
+        const store = transaction.objectStore('pending_reports');
+        
+        const allReports = await new Promise((resolve, reject) => {
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result || []);
+            request.onerror = (e) => reject(e.target.error);
+        });
+        
+        return (allReports || []).filter(p => !p.synced && !p.syncing);
+    } catch (error) {
+        console.error('Error getting pending reports:', error);
+        return [];
+    }
+}
+
+async function markPendingReportAsSyncing(pendingId) {
+    try {
+        const database = await window.openDatabase();
+        const transaction = database.transaction(['pending_reports'], 'readwrite');
+        const store = transaction.objectStore('pending_reports');
+        
+        const report = await new Promise((resolve, reject) => {
+            const request = store.get(pendingId);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = (e) => reject(e.target.error);
+        });
+        
+        if (report) {
+            report.syncing = true;
+            await new Promise((resolve, reject) => {
+                const request = store.put(report);
+                request.onsuccess = () => resolve();
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+        return true;
+    } catch (error) {
+        console.error('Error marking pending report as syncing:', error);
+        return false;
+    }
+}
+
+async function removePendingReport(pendingId) {
+    try {
+        const database = await window.openDatabase();
+        const transaction = database.transaction(['pending_reports'], 'readwrite');
+        const store = transaction.objectStore('pending_reports');
+        
+        await new Promise((resolve, reject) => {
+            const request = store.delete(pendingId);
+            request.onsuccess = () => resolve();
+            request.onerror = (e) => reject(e.target.error);
+        });
+        
+        console.log(`🗑️ تم حذف التقرير المعلق ${pendingId}`);
+        return true;
+    } catch (error) {
+        console.error('Error removing pending report:', error);
+        return false;
+    }
+}
+
+// ===================== المزامنة التلقائية =====================
+async function syncPendingReports() {
+    if (isSyncing) {
+        console.log('⚠️ مزامنة قيد التنفيذ بالفعل، تأجيل...');
+        return;
+    }
+    
+    if (!navigator.onLine) {
+        console.log('🌐 لا يوجد اتصال بالإنترنت، تأجيل المزامنة');
+        return;
+    }
+    
+    isSyncing = true;
+    console.log('🔄 بدء مزامنة التقارير المعلقة...');
+    
+    try {
+        const pendingReports = await getPendingReports();
+        
+        if (pendingReports.length === 0) {
+            console.log('📭 لا توجد تقارير معلقة للمزامنة');
+            return;
+        }
+        
+        showMessage(`🔄 جاري مزامنة ${pendingReports.length} تقرير مع الخادم...`, 'info');
+        
+        let successCount = 0;
+        
+        for (const pending of pendingReports) {
+            await markPendingReportAsSyncing(pending.id);
+            
+            try {
+                const table = pending.type === 'in_person' ? 'in_person_reports' : 'remote_reports';
+                let result;
+                
+                const dataToSend = { ...pending.data };
+                if (dataToSend.id && String(dataToSend.id).startsWith('pending_')) {
+                    delete dataToSend.id;
+                }
+                
+                if (pending.isEdit && pending.reportId && !String(pending.reportId).startsWith('pending_')) {
+                    result = await window.supabaseClient
+                        .from(table)
+                        .update(dataToSend)
+                        .eq('id', pending.reportId)
+                        .select();
+                } else {
+                    result = await window.supabaseClient
+                        .from(table)
+                        .insert([dataToSend])
+                        .select();
+                }
+                
+                if (result.error) {
+                    console.error(`❌ فشل مزامنة التقرير:`, result.error);
+                    continue;
+                }
+                
+                if (window.sendVisitReportNotifications && result.data && result.data[0]) {
+                    const newReportId = result.data[0].id;
+                    await window.sendVisitReportNotifications(
+                        pending.data, 
+                        newReportId, 
+                        pending.type, 
+                        currentUser?.name || 'مستخدم', 
+                        pending.isEdit ? 'update' : 'create'
+                    ).catch(console.error);
+                }
+                
+                await removePendingReport(pending.id);
+                successCount++;
+                console.log(`✅ تمت مزامنة التقرير بنجاح`);
+                
+            } catch (err) {
+                console.error(`❌ خطأ في المزامنة:`, err);
+            }
+        }
+        
+        if (successCount > 0) {
+            await refreshLocalCacheAfterSync();
+            showMessage(`✅ تمت مزامنة ${successCount} تقرير بنجاح`, 'success');
+        }
+        
+    } catch (error) {
+        console.error('❌ خطأ في المزامنة:', error);
+        showMessage('❌ حدث خطأ في مزامنة التقارير المعلقة', 'error');
+    } finally {
+        isSyncing = false;
+    }
+}
+
+async function refreshLocalCacheAfterSync() {
+    try {
+        console.log('🔄 تحديث الكاش في الخلفية بعد المزامنة...');
+        await refreshCacheInBackground();
+    } catch(e) {
+        console.warn('⚠️ فشل تحديث الكاش بعد المزامنة:', e);
+    }
+}
 
 // ===================== دوال الإشعارات العامة =====================
 async function updateUnreadBadge() {
     try {
         const result = await window.getUnreadNotificationsCount(currentUser?.id);
-        if (result.success) {
+        if (result && result.success) {
             const badge = document.getElementById('unreadBadge');
             if (badge) {
                 if (result.count > 0) { badge.textContent = result.count > 99 ? '99+' : result.count; badge.style.display = 'flex'; }
@@ -1817,45 +2606,19 @@ async function loadNotifications() {
         const result = await window.getRecentNotifications(currentUser?.id, 50);
         if (result.success) {
             const notifications = result.data;
-            if (!notifications || notifications.length === 0) { listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>'; }
-            else {
+            if (!notifications || notifications.length === 0) {
+                listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
+            } else {
                 listContainer.innerHTML = notifications.map(n => `<div class="notification-list-item ${!n.is_read ? 'unread' : ''}" onclick="handleNotificationItemClick(${n.id}, '${n.related_report_type || ''}', ${n.related_report_id || 'null'})"><div class="title">${escapeHtml(n.title)}</div><div class="message">${escapeHtml(n.message)}</div><div class="time">${formatNotificationTime(n.created_at)}</div><button class="delete-notification" onclick="event.stopPropagation(); deleteNotificationItem(${n.id})"><i class="fas fa-trash"></i></button></div>`).join('');
             }
             await updateUnreadBadge();
             const markAllBtn = document.getElementById('markAllReadBtn');
-            if (markAllBtn) { const hasUnread = notifications.some(n => !n.is_read); markAllBtn.style.display = hasUnread ? 'flex' : 'none'; }
-        } else { listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>'; }
+            if (markAllBtn) markAllBtn.style.display = notifications.some(n => !n.is_read) ? 'flex' : 'none';
+        }
     } catch (error) {
         console.error('Error loading notifications:', error);
-        listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ في تحميل الإشعارات</p></div>';
+        listContainer.innerHTML = '<div class="empty-notifications"><i class="fas fa-exclamation-triangle"></i><p>حدث خطأ</p></div>';
     }
-}
-
-async function handleNotificationItemClick(notificationId, reportType, reportId) {
-    try {
-        if (!window.supabaseClient) { showMessage('حدث خطأ في الاتصال', 'error'); return; }
-        await window.markNotificationAsRead(notificationId);
-        await updateUnreadBadge();
-        closeNotificationsPanel();
-        if (reportId && reportType) {
-            if (reportType === 'summary') window.location.href = `summary-reports.html?view=${reportId}&t=${Date.now()}`;
-            else if (reportType === 'in_person' || reportType === 'remote') await viewReport(reportType, reportId);
-            else showMessage('نوع التقرير غير معروف', 'error');
-        } else { showMessage('لا يوجد تقرير مرتبط بهذا الإشعار', 'info'); }
-    } catch (error) { console.error('Error handling notification click:', error); showMessage('حدث خطأ في فتح الإشعار', 'error'); }
-}
-
-async function deleteNotificationItem(notificationId) {
-    try { await window.deleteNotification(notificationId); await loadNotifications(); await updateUnreadBadge(); } 
-    catch (error) { console.error('Error deleting notification:', error); showMessage('حدث خطأ: لم نتمكن من حذف الإشعار', 'error'); }
-}
-
-async function markAllAsRead() {
-    try {
-        const result = await window.markAllNotificationsAsRead(currentUser?.id);
-        if (result.success) { await loadNotifications(); await updateUnreadBadge(); showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success'); const markAllBtn = document.getElementById('markAllReadBtn'); if (markAllBtn) markAllBtn.style.display = 'none'; }
-        else { throw new Error(result.error); }
-    } catch (error) { console.error('Error marking all as read:', error); showMessage('حدث خطأ: لم نتمكن من تحديث الإشعارات', 'error'); }
 }
 
 function formatNotificationTime(dateString) {
@@ -1868,22 +2631,71 @@ function formatNotificationTime(dateString) {
     return `منذ ${Math.floor(diffMins / 1440)} يوم`;
 }
 
-function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
-
-let notificationInterval = null;
-function startNotificationPolling() {
-    if (notificationInterval) clearInterval(notificationInterval);
-    notificationInterval = setInterval(async () => { if (currentUser && document.hasFocus()) { const result = await window.getUnreadNotificationsCount(currentUser.id); if (result.success && result.count > 0) updateUnreadBadge(); } }, 30000);
+async function handleNotificationItemClick(notificationId, reportType, reportId) {
+    try {
+        console.log(`🔔 النقر على الإشعار: ${notificationId}, نوع: ${reportType}, معرف: ${reportId}`);
+        await window.markNotificationAsRead?.(notificationId);
+        await updateUnreadBadge();
+        closeNotificationsPanel();
+        
+        if (reportId && reportType && reportId !== 'null' && !String(reportId).startsWith('pending_')) {
+            if (reportType === 'summary') {
+                const timestamp = Date.now().toString();
+                localStorage.setItem('pendingReportId', reportId);
+                localStorage.setItem('pendingReportType', 'summary');
+                localStorage.setItem('pendingReportTimestamp', timestamp);
+                window.location.href = `summary-reports.html?view=${reportId}&t=${timestamp}`;
+            } else if (reportType === 'in_person' || reportType === 'remote') {
+                window.viewReportFromNotification(reportType, reportId);
+            }
+        }
+    } catch (error) {
+        console.error('خطأ في فتح الإشعار:', error);
+        showMessage('حدث خطأ في فتح الإشعار', 'error');
+    }
 }
-function stopNotificationPolling() { if (notificationInterval) { clearInterval(notificationInterval); notificationInterval = null; } }
 
+async function deleteNotificationItem(notificationId) {
+    try { await window.deleteNotification(notificationId); await loadNotifications(); await updateUnreadBadge(); } 
+    catch (error) { console.error('Error deleting notification:', error); }
+}
+
+async function markAllAsRead() {
+    try {
+        const result = await window.markAllNotificationsAsRead(currentUser?.id);
+        if (result.success) { await loadNotifications(); await updateUnreadBadge(); showMessage('تم تعيين جميع الإشعارات كمقروءة', 'success'); }
+    } catch (error) { console.error('Error marking all as read:', error); }
+}
+
+// ===================== دوال التهيئة =====================
 function initDatePickers() {
     const today = new Date();
     today.setHours(23, 59, 59, 999);
-    dateFromPicker = flatpickr("#dateFrom", { locale: "ar", dateFormat: "d/m/Y", maxDate: today });
-    dateToPicker = flatpickr("#dateTo", { locale: "ar", dateFormat: "d/m/Y", maxDate: today });
-    if (!inPersonDatePicker) inPersonDatePicker = flatpickr("#inPersonVisitDate", { locale: "ar", dateFormat: "d/m/Y", maxDate: today, clickOpens: true });
-    if (!remoteDatePicker) remoteDatePicker = flatpickr("#remoteVisitDate", { locale: "ar", dateFormat: "d/m/Y", maxDate: today, clickOpens: true });
+    
+    if (!dateFromPicker) {
+        dateFromPicker = flatpickr("#dateFrom", { locale: "ar", dateFormat: "d/m/Y", maxDate: today });
+    }
+    if (!dateToPicker) {
+        dateToPicker = flatpickr("#dateTo", { locale: "ar", dateFormat: "d/m/Y", maxDate: today });
+    }
+    if (!inPersonDatePicker) {
+        inPersonDatePicker = flatpickr("#inPersonVisitDate", { 
+            locale: "ar", 
+            dateFormat: "d/m/Y", 
+            maxDate: today, 
+            clickOpens: true 
+        });
+    }
+    if (!remoteDatePicker) {
+        remoteDatePicker = flatpickr("#remoteVisitDate", { 
+            locale: "ar", 
+            dateFormat: "d/m/Y", 
+            maxDate: today, 
+            clickOpens: true 
+        });
+    }
+    
+    console.log('✅ تم تهيئة جميع منتقي التواريخ');
 }
 
 async function logout() {
@@ -1893,32 +2705,47 @@ async function logout() {
     window.location.href = 'login.html';
 }
 
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('active');
-    if (sidebar.classList.contains('open')) toggleBodyScroll(true);
-    else toggleBodyScroll(false);
-}
+// ===================== مراقبة حالة الاتصال =====================
+window.addEventListener('online', () => { console.log('🌐 استعادة الاتصال بالإنترنت'); showMessage('🔄 تم استعادة الاتصال، جاري مزامنة التقارير...', 'info'); setTimeout(() => syncPendingReports(), 2000); });
+window.addEventListener('offline', () => { console.log('⚠️ فقدان الاتصال بالإنترنت'); showMessage('⚠️ فقدان الاتصال، سيتم حفظ التقارير محلياً مؤقتاً', 'info'); });
 
-function closeSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    sidebar.classList.remove('open');
-    overlay.classList.remove('active');
-    toggleBodyScroll(false);
-}
-
-// ===================== تهيئة الصفحة =====================
+// ===================== التهيئة النهائية =====================
+// ==================== في reports.html - التهيئة ====================
 window.addEventListener('load', async () => {
+    console.log('🚀 بدء تحميل صفحة التقارير...');
+    
     currentUser = await getCurrentUserFromLocal();
     if (!currentUser) { window.location.href = 'login.html'; return; }
     
-    document.getElementById('userNameDisplay').textContent = currentUser.name || currentUser.username || 'مستخدم';
+    console.log('👤 المستخدم الحالي:', { id: currentUser.id, role: currentUser.role });
+    console.log('📌 educational_center_id:', currentUser.educational_center_id);
+    console.log('📌 educational_center_name:', currentUser.educational_center_name);
+    console.log('📌 الكيان المختار في localStorage:', localStorage.getItem('currentEntityKey'));
+    
+    document.getElementById('userNameDisplay').textContent = currentUser.name;
     document.getElementById('userRoleDisplay').textContent = getRoleName(currentUser.role);
-    document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(currentUser);
+    
+    // ====== تحديث القائمة الجانبية ======
+    if (currentUser.educational_center_name) {
+        document.getElementById('userDistrictDisplay').textContent = `📚 ${currentUser.educational_center_name}`;
+        console.log(`✅ عرض اسم المركز من المستخدم: ${currentUser.educational_center_name}`);
+    } else if (currentUser.role === 'center') {
+        document.getElementById('userDistrictDisplay').textContent = '📚 مركز تعليمي';
+    } else {
+        document.getElementById('userDistrictDisplay').textContent = getUserSubtitle(currentUser);
+    }
+    
+    // ====== تحديث واجهة المستخدم حسب الدور (بما فيها إخفاء التقارير التجميعية) ======
     updateUIBasedOnRole(currentUser);
+    
+    // ====== تأكيد إخفاء التقارير التجميعية لمدير المركز ======
+    if (currentUser.role === 'center') {
+        const summaryLink = document.getElementById('summaryReportsLink');
+        if (summaryLink) {
+            summaryLink.style.display = 'none';
+            console.log('✅ تم إخفاء التقارير التجميعية لمدير المركز في صفحة التقارير');
+        }
+    }
     
     await loadUsersData();
     await loadDistricts();
@@ -1931,24 +2758,274 @@ window.addEventListener('load', async () => {
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         let searchTimeout;
-        searchInput.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => { filterReports(); }, 400); });
+        searchInput.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => filterReports(), 400); });
         searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { clearTimeout(searchTimeout); filterReports(); } });
     }
     
-    await loadAllReportsToCache();
-    if (allReportsCache && allReportsCache.length > 0) { filteredReportsCache = [...allReportsCache]; totalFilteredCount = filteredReportsCache.length; currentPage = 1; displayCurrentPage(); }
+    // تحديث اسم الكيان في القائمة الجانبية
+    await updateEntityDisplayName();
+    
+    await initializeCache();
     
     await updateUnreadBadge();
     startNotificationPolling();
     
+    setTimeout(() => checkPendingReportFromNotification(), 1500);
+    setTimeout(() => { if (navigator.onLine && !isSyncing) syncPendingReports(); }, 3000);
+    setInterval(() => { if (navigator.onLine && !isSyncing) syncPendingReports(); }, 60000);
+    
+    // معالجة التقرير المطلوب من URL
     const urlParams = new URLSearchParams(window.location.search);
     const reportIdToView = urlParams.get('view');
     const reportTypeToView = urlParams.get('type');
-    if (reportIdToView && reportTypeToView && reportIdToView !== 'null' && reportTypeToView !== 'null') { setTimeout(() => { viewReport(reportTypeToView, reportIdToView); }, 500); window.history.replaceState({}, document.title, window.location.pathname); }
+    if (reportIdToView && reportTypeToView && reportIdToView !== 'null' && reportTypeToView !== 'null' && !String(reportIdToView).startsWith('pending_')) {
+        localStorage.setItem('pendingReportId', reportIdToView);
+        localStorage.setItem('pendingReportType', reportTypeToView);
+        localStorage.setItem('pendingReportTimestamp', Date.now().toString());
+        setTimeout(() => window.history.replaceState({}, document.title, window.location.pathname), 100);
+    }
     
-    document.addEventListener('click', function (event) { const sidebar = document.getElementById('sidebar'); const toggleBtn = document.getElementById('toggleSidebarBtn'); if (window.innerWidth <= 992 && sidebar.classList.contains('open')) { if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) closeSidebar(); } });
+    document.addEventListener('click', function (event) {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebarBtn');
+        if (window.innerWidth <= 992 && sidebar.classList.contains('open')) {
+            if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) closeSidebar();
+        }
+    });
     window.addEventListener('resize', function() { if (window.innerWidth > 992) closeSidebar(); });
+    
+    window.addEventListener('pageshow', function() {
+        const cachedReportId = localStorage.getItem('pendingReportId');
+        const cachedReportType = localStorage.getItem('pendingReportType');
+        const cachedTimestamp = localStorage.getItem('pendingReportTimestamp');
+        const isValid = cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < 30000;
+        if (cachedReportId && cachedReportType && isValid && allReportsCache.length > 0 && !String(cachedReportId).startsWith('pending_')) {
+            setTimeout(() => {
+                viewReport(cachedReportType, cachedReportId);
+                localStorage.removeItem('pendingReportId');
+                localStorage.removeItem('pendingReportType');
+                localStorage.removeItem('pendingReportTimestamp');
+            }, 300);
+        }
+    });
+    
+    console.log('✅ تم تحميل صفحة التقارير بنجاح');
 });
+
+// ===================== دوال فتح التقرير من الإشعار =====================
+window.viewReportFromNotification = async function(type, id) {
+    const timestamp = Date.now().toString();
+    sessionStorage.setItem('pendingReportId', id);
+    sessionStorage.setItem('pendingReportType', type);
+    sessionStorage.setItem('pendingReportTimestamp', timestamp);
+    localStorage.setItem('pendingReportId', id);
+    localStorage.setItem('pendingReportType', type);
+    localStorage.setItem('pendingReportTimestamp', timestamp);
+    
+    if (window.location.pathname.includes('reports.html') && typeof viewReport === 'function') {
+        let waitCount = 0;
+        while ((!allReportsCache || allReportsCache.length === 0) && waitCount < 50) {
+            await new Promise(r => setTimeout(r, 100));
+            waitCount++;
+        }
+        setTimeout(() => viewReport(type, id), 500);
+    } else {
+        window.location.href = `reports.html?view=${id}&type=${type}&t=${timestamp}`;
+    }
+};
+
+async function checkPendingReportFromNotification() {
+    console.log('🔍 التحقق من وجود تقرير معلق من الإشعار...');
+    
+    let pendingId = sessionStorage.getItem('pendingReportId');
+    let pendingType = sessionStorage.getItem('pendingReportType');
+    let pendingTimestamp = sessionStorage.getItem('pendingReportTimestamp');
+    
+    if (!pendingId || !pendingType) {
+        pendingId = localStorage.getItem('pendingReportId');
+        pendingType = localStorage.getItem('pendingReportType');
+        pendingTimestamp = localStorage.getItem('pendingReportTimestamp');
+    }
+    
+    const isValid = pendingTimestamp && (Date.now() - parseInt(pendingTimestamp)) < 30000;
+    
+    if (pendingId && pendingType && isValid && pendingId !== 'null' && pendingType !== 'null' && !String(pendingId).startsWith('pending_')) {
+        console.log(`📌 فتح تقرير من الإشعار: ${pendingType} - ${pendingId}`);
+        
+        sessionStorage.removeItem('pendingReportId');
+        sessionStorage.removeItem('pendingReportType');
+        sessionStorage.removeItem('pendingReportTimestamp');
+        localStorage.removeItem('pendingReportId');
+        localStorage.removeItem('pendingReportType');
+        localStorage.removeItem('pendingReportTimestamp');
+        
+        let waitCount = 0;
+        const maxWait = 50;
+        
+        while ((!allReportsCache || allReportsCache.length === 0) && waitCount < maxWait) {
+            await new Promise(r => setTimeout(r, 100));
+            waitCount++;
+        }
+        
+        setTimeout(() => {
+            if (typeof viewReport === 'function') {
+                viewReport(pendingType, pendingId);
+            }
+        }, 500);
+        return true;
+    }
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlId = urlParams.get('view');
+    const urlType = urlParams.get('type');
+    const urlTimestamp = urlParams.get('t');
+    
+    const isUrlValid = urlTimestamp && (Date.now() - parseInt(urlTimestamp)) < 30000;
+    
+    if (urlId && urlType && urlId !== 'null' && urlType !== 'null' && isUrlValid && !String(urlId).startsWith('pending_')) {
+        console.log(`📌 فتح تقرير من URL: ${urlType} - ${urlId}`);
+        setTimeout(() => window.history.replaceState({}, document.title, window.location.pathname), 100);
+        
+        let waitCount = 0;
+        const maxWait = 50;
+        while ((!allReportsCache || allReportsCache.length === 0) && waitCount < maxWait) {
+            await new Promise(r => setTimeout(r, 100));
+            waitCount++;
+        }
+        setTimeout(() => viewReport(urlType, urlId), 500);
+        return true;
+    }
+    return false;
+}
+
+// ===================== نظام الحفظ التلقائي للنماذج =====================
+(function() {
+    console.log('🔄 نظام الحفظ التلقائي للنماذج يعمل...');
+    if (!document.getElementById('autoSaveIndicator')) {
+        let indicator = document.createElement('div');
+        indicator.id = 'autoSaveIndicator';
+        indicator.innerHTML = '<i class="fas fa-save"></i> تم الحفظ التلقائي';
+        indicator.style.cssText = 'position:fixed;bottom:20px;left:20px;background:#2e9b54;color:white;padding:8px 16px;border-radius:40px;font-size:13px;z-index:10001;display:none;font-family:sans-serif;box-shadow:0 2px 10px rgba(0,0,0,0.2);';
+        document.body.appendChild(indicator);
+    }
+    function showSaved() { let ind = document.getElementById('autoSaveIndicator'); if (ind) { ind.style.display = 'flex'; setTimeout(() => { if (ind) ind.style.display = 'none'; }, 1500); } }
+    let autoSaveInterval = null;
+    function saveForm(formId, key) {
+        let form = document.getElementById(formId);
+        if (!form) return;
+        let modal = form.closest('.modal');
+        if (modal && !modal.classList.contains('active')) return;
+        let data = {};
+        form.querySelectorAll('input:not([type="radio"]):not([type="hidden"]), select, textarea').forEach(el => { if (el.id) data[el.id] = el.value; });
+        let prefix = formId === 'inPersonForm' ? 'in_person' : 'remote';
+        document.querySelectorAll(`input[type="radio"][name^="${prefix}"]:checked`).forEach(radio => { data[radio.name] = radio.value; });
+        localStorage.setItem(key, JSON.stringify({ data: data, time: Date.now() }));
+        showSaved();
+    }
+    function loadForm(formId, key) {
+        let saved = localStorage.getItem(key);
+        if (!saved) return false;
+        try {
+            let { data, time } = JSON.parse(saved);
+            if (Date.now() - time > 24 * 60 * 60 * 1000) { localStorage.removeItem(key); return false; }
+            for (let [id, val] of Object.entries(data)) {
+                let el = document.getElementById(id);
+                if (el) {
+                    if (el.type === 'radio') { let radio = document.querySelector(`input[name="${id}"][value="${val}"]`); if (radio) radio.checked = true; }
+                    else { el.value = val; }
+                }
+            }
+            return true;
+        } catch(e) { return false; }
+    }
+    function clearForm(key) { localStorage.removeItem(key); }
+    function startAutoSave(formId, key) { if (autoSaveInterval) clearInterval(autoSaveInterval); autoSaveInterval = setInterval(() => saveForm(formId, key), 10000); }
+    function stopAutoSave() { if (autoSaveInterval) { clearInterval(autoSaveInterval); autoSaveInterval = null; } }
+    const originalOpenAddReport = window.openAddReportModal;
+    if (originalOpenAddReport) {
+        window.openAddReportModal = function(type) {
+            stopAutoSave();
+            if (type === 'in_person') { loadForm('inPersonForm', 'in_person_draft'); startAutoSave('inPersonForm', 'in_person_draft'); }
+            else if (type === 'remote') { loadForm('remoteForm', 'remote_draft'); startAutoSave('remoteForm', 'remote_draft'); }
+            originalOpenAddReport(type);
+        };
+    }
+    console.log('✅ نظام الحفظ التلقائي جاهز');
+})();
+
+// ===================== بدء التنبيهات =====================
+function startNotificationPolling() {
+    if (notificationInterval) clearInterval(notificationInterval);
+    notificationInterval = setInterval(async () => { 
+        if (currentUser && document.hasFocus()) {
+            const result = await window.getUnreadNotificationsCount(currentUser.id);
+            if (result.success && result.count > 0) updateUnreadBadge();
+        }
+    }, 30000);
+}
+
+function stopNotificationPolling() { if (notificationInterval) { clearInterval(notificationInterval); notificationInterval = null; } }
+// ===================== دالة getCurrentUserFromLocal =====================
+async function getCurrentUserFromLocal() {
+    try {
+        // محاولة الحصول من localStorage أولاً
+        const saved = localStorage.getItem('currentUser');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed && parsed.id) {
+                console.log('✅ تم تحميل المستخدم من localStorage:', parsed.name);
+                return parsed;
+            }
+        }
+        
+        // إذا لم يوجد في localStorage، محاولة الحصول من supabase
+        if (window.getCurrentUser) {
+            const user = await window.getCurrentUser();
+            if (user && user.id) {
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                console.log('✅ تم تحميل المستخدم من supabase:', user.name);
+                return user;
+            }
+        }
+        
+        console.warn('⚠️ لا يوجد مستخدم مسجل الدخول');
+        return null;
+    } catch (error) {
+        console.error('❌ خطأ في جلب المستخدم:', error);
+        // محاولة مرة أخرى من localStorage
+        try {
+            const saved = localStorage.getItem('currentUser');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed && parsed.id) {
+                    return parsed;
+                }
+            }
+        } catch(e) {}
+        return null;
+    }
+}
+
+// ===================== دالة filterReports =====================
+function filterReports() {
+    applyAllFilters();
+}
+
+// ===================== دالة clearFilters =====================
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value = '';
+    document.getElementById('reportTypeFilter').value = '';
+    document.getElementById('districtFilter').value = '';
+    document.getElementById('classFilter').value = '';
+    if (dateFromPicker) dateFromPicker.clear();
+    if (dateToPicker) dateToPicker.clear();
+    applyAllFilters();
+}
+
+console.log('✅ تم تحميل reports.html بالكامل');
 </script>
+
 </body>
 </html>
